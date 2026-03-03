@@ -49,3 +49,4 @@ web-build/
 # Misc
 *.log
 *.lock
+.vercel
