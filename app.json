@@ -2,6 +2,7 @@
   "expo": {
     "name": "FairNest – Housing Support AI",
     "slug": "fairnest",
+    "owner": "teroindian",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",

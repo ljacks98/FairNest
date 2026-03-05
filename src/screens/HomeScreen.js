@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import {
   StyleSheet,
   Text,
@@ -6,15 +6,18 @@ import {
   TouchableOpacity,
   ScrollView,
   TextInput,
+  Alert,
 } from 'react-native';
+
+import { AuthContext } from '../context/AuthContext';
 
 export default function HomeScreen({ navigation }) {
   const [query, setQuery] = useState('');
+  const { user } = useContext(AuthContext);
 
   const handleSearch = () => {
     const text = query.toLowerCase();
 
-    // Housing-related keywords
     if (
       text.includes('rent') ||
       text.includes('eviction') ||
@@ -33,31 +36,36 @@ export default function HomeScreen({ navigation }) {
       text.includes('place to live')
     ) {
       navigation.navigate('Resources', { category: 'housing' });
-      setQuery('');
     } else if (
       text.includes('discrimination') ||
       text.includes('fair housing') ||
       text.includes('harassment')
     ) {
       navigation.navigate('FairHousingSupport');
-      setQuery('');
     } else if (
       text.includes('job') ||
       text.includes('employment') ||
       text.includes('work')
     ) {
       navigation.navigate('Resources', { category: 'employment' });
-      setQuery('');
     } else {
-      // Do nothing OR optionally navigate to housing by default
       navigation.navigate('Resources', { category: 'housing' });
-      setQuery('');
+    }
+
+    setQuery('');
+  };
+
+  const requireAuth = (screen) => {
+    if (!user) {
+      navigation.navigate('Login');
+    } else {
+      navigation.navigate(screen);
     }
   };
 
   return (
     <ScrollView style={styles.container}>
-      {/* FULL WIDTH HEADER (professional look) */}
+      {/* HEADER */}
       <View style={styles.header}>
         <View style={styles.contentWrapper}>
           <Text style={styles.title}>Welcome to FairNest</Text>
@@ -68,7 +76,7 @@ export default function HomeScreen({ navigation }) {
       </View>
 
       <View style={styles.contentWrapper}>
-        {/* FEATURES FIRST */}
+        {/* FEATURES */}
         <View style={styles.featuresContainer}>
           <Text style={styles.sectionTitle}>How FairNest Can Help</Text>
 
@@ -101,7 +109,10 @@ export default function HomeScreen({ navigation }) {
             </Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.featureCard}>
+          {/* PROTECTED FEATURE */}
+          <TouchableOpacity
+            style={styles.featureCard}
+            onPress={() => requireAuth('ChatInterface')}>
             <Text style={styles.featureTitle}>💬 AI Assistant</Text>
             <Text style={styles.featureDescription}>
               Get instant answers to your housing questions
@@ -118,7 +129,7 @@ export default function HomeScreen({ navigation }) {
           </TouchableOpacity>
         </View>
 
-        {/* SEARCH SECTION MOVED TO BOTTOM */}
+        {/* SEARCH SECTION */}
         <View style={styles.searchContainer}>
           <TextInput
             style={styles.searchInput}
@@ -157,10 +168,38 @@ const styles = StyleSheet.create({
     color: '#fff',
     opacity: 0.9,
   },
+  featuresContainer: {
+    paddingTop: 20,
+  },
+  sectionTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    marginBottom: 15,
+    color: '#333',
+    textAlign: 'center',
+  },
+  featureCard: {
+    backgroundColor: '#fff',
+    padding: 20,
+    borderRadius: 10,
+    marginBottom: 15,
+    elevation: 2,
+  },
+  featureTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 8,
+    color: '#2E7D32',
+  },
+  featureDescription: {
+    fontSize: 14,
+    color: '#666',
+    lineHeight: 20,
+  },
   searchContainer: {
     padding: 20,
     backgroundColor: '#fff',
-    marginTop: 30, // add this
+    marginTop: 30,
     marginBottom: 20,
     borderRadius: 12,
   },
@@ -184,39 +223,6 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 18,
     fontWeight: 'bold',
-  },
-  featuresContainer: {
-    padding: 20,
-  },
-  sectionTitle: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    marginBottom: 15,
-    color: '#333',
-    textAlign: 'center',
-  },
-
-  featureCard: {
-    backgroundColor: '#fff',
-    padding: 20,
-    borderRadius: 10,
-    marginBottom: 15,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
-  featureTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 8,
-    color: '#2E7D32',
-  },
-  featureDescription: {
-    fontSize: 14,
-    color: '#666',
-    lineHeight: 20,
   },
   contentWrapper: {
     width: '100%',
