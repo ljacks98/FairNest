@@ -1,62 +1,28 @@
-import axios from 'axios';
-import { API_BASE_URL, AI_API_KEY } from '@env';
+// src/services/api.js
 
-const api = axios.create({
-  baseURL: API_BASE_URL || 'https://api.openai.com/v1',
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
-
-// Add auth token to requests
-api.interceptors.request.use(
-  (config) => {
-    if (AI_API_KEY) {
-      config.headers.Authorization = `Bearer ${AI_API_KEY}`;
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
+const FUNCTION_URL =
+  'https://us-central1-fairnest-abe1e.cloudfunctions.net/chatGPT';
 
 export const aiService = {
-  // AI Chat completion
-  getChatResponse: async (message) => {
+  async getChatResponse(message) {
     try {
-      const response = await api.post('/chat/completions', {
-        model: 'gpt-3.5-turbo',
-        messages: [
-          {
-            role: 'system',
-            content: 'You are a helpful assistant for FairNest, helping Durham residents with housing rights, discrimination issues, and housing resources.',
-          },
-          {
-            role: 'user',
-            content: message,
-          },
-        ],
-        max_tokens: 500,
+      const response = await fetch(FUNCTION_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ message }),
       });
-      return response.data.choices[0].message.content;
+
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+
+      const data = await response.json();
+      return data.reply;
     } catch (error) {
       console.error('AI Service Error:', error);
       throw error;
     }
   },
-
-  // Get housing resources
-  getHousingResources: async (location = 'Durham') => {
-    try {
-      // This would connect to your backend API
-      const response = await api.get(`/resources?location=${location}`);
-      return response.data;
-    } catch (error) {
-      console.error('Resources Error:', error);
-      throw error;
-    }
-  },
 };
-
-export default api;

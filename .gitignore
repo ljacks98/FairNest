@@ -50,3 +50,4 @@ web-build/
 *.log
 *.lock
 .vercel
+.env*.local

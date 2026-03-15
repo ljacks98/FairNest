@@ -18,6 +18,10 @@ import AboutScreen from './src/screens/AboutScreen';
 import LoginScreen from './src/screens/LoginScreen';
 import SignUpScreen from './src/screens/SignUpScreen';
 import ChatInterface from './src/screens/ChatInterface';
+import ProfileScreen from './src/screens/ProfileScreen';
+
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from './src/firebaseConfig';
 
 import { AuthProvider, AuthContext } from './src/context/AuthContext';
 
@@ -32,36 +36,62 @@ function MainNavigator() {
       screenOptions={{
         headerTitleAlign: 'center',
         headerStyle: { backgroundColor: '#2E7D32' },
-        headerTintColor: '#fff',
+        headerTintColor: '#ffffff',
         headerTitleStyle: { fontWeight: 'bold' },
       }}>
       <Stack.Screen
         name="Home"
         component={HomeScreen}
-        options={({ navigation }) => ({
-          headerTitle: 'FairNest',
-          headerRight: () =>
-            user ? (
-              <TouchableOpacity onPress={logout} style={{ marginRight: 15 }}>
-                <Text style={{ color: '#fff', fontWeight: 'bold' }}>
-                  Logout
-                </Text>
-              </TouchableOpacity>
-            ) : (
-              <View style={{ flexDirection: 'row', marginRight: 10 }}>
-                <TouchableOpacity
-                  onPress={() => navigation.navigate('Login')}
-                  style={{ marginRight: 15 }}>
-                  <Text style={{ color: '#fff' }}>Login</Text>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => navigation.navigate('SignUp')}>
-                  <Text style={{ color: '#fff', fontWeight: 'bold' }}>
+        options={({ navigation }) => {
+          const { user, logout } = React.useContext(AuthContext);
+          const [displayName, setDisplayName] = React.useState('');
+
+          React.useEffect(() => {
+            const fetchName = async () => {
+              if (user) {
+                const docRef = doc(db, 'users', user.uid);
+                const snap = await getDoc(docRef);
+                if (snap.exists()) {
+                  setDisplayName(snap.data().firstName || '');
+                }
+              }
+            };
+            fetchName();
+          }, [user]);
+
+          return {
+            headerTitle: 'FairNest',
+            headerRight: () =>
+              user ? (
+                <View style={{ flexDirection: 'row', marginRight: 10 }}>
+                  <Text
+                    style={{ color: '#fff', marginRight: 15 }}
+                    onPress={() => navigation.navigate('Profile')}>
+                    {displayName || 'Account'}
+                  </Text>
+
+                  <Text
+                    style={{ color: '#fff', fontWeight: 'bold' }}
+                    onPress={logout}>
+                    Logout
+                  </Text>
+                </View>
+              ) : (
+                <View style={{ flexDirection: 'row', marginRight: 10 }}>
+                  <Text
+                    style={{ color: '#fff', marginRight: 15 }}
+                    onPress={() => navigation.navigate('Login')}>
+                    Login
+                  </Text>
+                  <Text
+                    style={{ color: '#fff', fontWeight: 'bold' }}
+                    onPress={() => navigation.navigate('SignUp')}>
                     Sign Up
                   </Text>
-                </TouchableOpacity>
-              </View>
-            ),
-        })}
+                </View>
+              ),
+          };
+        }}
       />
 
       {/* PUBLIC SCREENS */}
@@ -90,6 +120,12 @@ function MainNavigator() {
         name="ChatInterface"
         component={ChatInterface}
         options={{ title: 'AI Assistant' }}
+      />
+
+      <Stack.Screen
+        name="Profile"
+        component={ProfileScreen}
+        options={{ title: 'Profile' }}
       />
 
       {/* PROTECTED SCREENS will be added later */}

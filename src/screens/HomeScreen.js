@@ -57,7 +57,14 @@ export default function HomeScreen({ navigation }) {
 
   const requireAuth = (screen) => {
     if (!user) {
-      navigation.navigate('Login');
+      Alert.alert(
+        'Login Required',
+        'You need to log in to use the AI Assistant.',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Login', onPress: () => navigation.navigate('Login') },
+        ]
+      );
     } else {
       navigation.navigate(screen);
     }

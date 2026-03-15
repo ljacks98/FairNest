@@ -10,44 +10,58 @@ import {
 import {
   createUserWithEmailAndPassword,
   GoogleAuthProvider,
-  signInWithCredential,
+  signInWithRedirect,
+  getRedirectResult,
 } from 'firebase/auth';
 
-import { auth } from '../firebaseConfig';
-
-import * as Google from 'expo-auth-session/providers/google';
-import * as WebBrowser from 'expo-web-browser';
-
-WebBrowser.maybeCompleteAuthSession();
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { auth, db } from '../firebaseConfig';
 
 export default function SignUpScreen({ navigation }) {
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
 
-  // 🔐 Google Auth
-  const [request, response, promptAsync] = Google.useAuthRequest({
-    webClientId:
-      '636482035002-cdh1lc63htjc6t653o7222pdr6ho3voa.apps.googleusercontent.com',
-  });
-
+  // 🔵 HANDLE GOOGLE REDIRECT RESULT
   useEffect(() => {
-    if (response?.type === 'success') {
-      const { id_token } = response.authentication;
+    const handleRedirect = async () => {
+      try {
+        const result = await getRedirectResult(auth);
 
-      const credential = GoogleAuthProvider.credential(id_token);
+        if (result) {
+          const user = result.user;
 
-      signInWithCredential(auth, credential)
-        .then(() => {
+          const nameParts = user.displayName?.split(' ') || [];
+          const first = nameParts[0] || '';
+          const last = nameParts.slice(1).join(' ') || '';
+
+          await setDoc(
+            doc(db, 'users', user.uid),
+            {
+              email: user.email,
+              firstName: first,
+              lastName: last,
+              role: 'user',
+              status: 'active',
+              createdAt: serverTimestamp(),
+            },
+            { merge: true }
+          );
+
           navigation.navigate('Home');
-        })
-        .catch(() => {
-          setError('Google sign-up failed.');
-        });
-    }
-  }, [response]);
+        }
+      } catch (err) {
+        console.log(err);
+      }
+    };
 
+    handleRedirect();
+  }, []);
+
+  // 🔐 Password Validation
   const validatePassword = (pwd) => {
     const minLength = pwd.length >= 8;
     const hasUpper = /[A-Z]/.test(pwd);
@@ -58,8 +72,14 @@ export default function SignUpScreen({ navigation }) {
     return minLength && hasUpper && hasLower && hasNumber && hasSpecial;
   };
 
+  // 📧 EMAIL SIGN UP
   const handleSignUp = async () => {
     setError('');
+
+    if (!firstName || !lastName) {
+      setError('Please enter your first and last name.');
+      return;
+    }
 
     if (!email) {
       setError('Please enter your email.');
@@ -79,31 +99,58 @@ export default function SignUpScreen({ navigation }) {
     }
 
     try {
-      await createUserWithEmailAndPassword(auth, email, password);
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+
+      const user = userCredential.user;
+
+      await setDoc(doc(db, 'users', user.uid), {
+        email: user.email,
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        role: 'user',
+        status: 'active',
+        createdAt: serverTimestamp(),
+      });
+
       navigation.navigate('Home');
     } catch (err) {
-      switch (err.code) {
-        case 'auth/email-already-in-use':
-          setError('An account already exists with this email.');
-          break;
-        case 'auth/invalid-email':
-          setError('Please enter a valid email address.');
-          break;
-        case 'auth/weak-password':
-          setError('Password is too weak.');
-          break;
-        case 'auth/missing-email':
-          setError('Email is required.');
-          break;
-        default:
-          setError('Sign up failed. Please try again.');
-      }
+      console.log(err);
+      setError(err.message);
     }
+  };
+
+  // 🔵 GOOGLE SIGN UP
+  const handleGoogleSignUp = async () => {
+    const provider = new GoogleAuthProvider();
+
+    provider.setCustomParameters({
+      prompt: 'select_account',
+    });
+
+    await signInWithRedirect(auth, provider);
   };
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Create Account</Text>
+
+      <TextInput
+        placeholder="First Name"
+        value={firstName}
+        onChangeText={setFirstName}
+        style={styles.input}
+      />
+
+      <TextInput
+        placeholder="Last Name"
+        value={lastName}
+        onChangeText={setLastName}
+        style={styles.input}
+      />
 
       <TextInput
         placeholder="Email"
@@ -130,25 +177,15 @@ export default function SignUpScreen({ navigation }) {
         style={styles.input}
       />
 
-      <Text style={styles.rules}>
-        Password must contain:
-        {'\n'}• At least 8 characters
-        {'\n'}• Uppercase letter
-        {'\n'}• Lowercase letter
-        {'\n'}• Number
-        {'\n'}• Special character
-      </Text>
-
       {error ? <Text style={styles.error}>{error}</Text> : null}
 
       <TouchableOpacity style={styles.button} onPress={handleSignUp}>
         <Text style={styles.buttonText}>Sign Up</Text>
       </TouchableOpacity>
 
-      {/* 🔐 Google Sign Up */}
       <TouchableOpacity
         style={styles.googleButton}
-        onPress={() => promptAsync()}>
+        onPress={handleGoogleSignUp}>
         <Text style={styles.googleText}>Continue with Google</Text>
       </TouchableOpacity>
 
@@ -203,12 +240,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontWeight: 'bold',
     color: '#444',
-  },
-
-  rules: {
-    fontSize: 12,
-    color: '#555',
-    marginBottom: 10,
   },
 
   error: {

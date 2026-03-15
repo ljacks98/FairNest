@@ -5,6 +5,7 @@
     "owner": "teroindian",
     "version": "1.0.0",
     "orientation": "portrait",
+    "scheme": "fairnest",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "splash": {
@@ -21,6 +22,6 @@
       },
       "package": "com.fairnest.app"
     },
-    "web": {}
+    "web": { "bundler": "metro" }
   }
 }
