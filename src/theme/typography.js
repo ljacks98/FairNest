@@ -26,13 +26,9 @@
 //   System     — Uses device default (no install needed)
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { Platform } from 'react-native';
-
-// On web, Google Fonts CSS is injected in App.js — use the CSS family name
-// On native, @expo-google-fonts loads the font under these keys
-export const FONT_REGULAR = Platform.OS === 'web' ? 'Poppins' : 'Poppins_400Regular';
-export const FONT_BOLD    = Platform.OS === 'web' ? 'Poppins' : 'Poppins_700Bold';
-export const FONT_SEMI    = Platform.OS === 'web' ? 'Poppins' : 'Poppins_600SemiBold';
+export const FONT_REGULAR = undefined;
+export const FONT_BOLD    = undefined;
+export const FONT_SEMI    = undefined;
 
 // Font sizes — increase/decrease the base to scale everything at once
 const BASE = 1; // multiply all sizes by this to scale up/down globally
