@@ -33,7 +33,10 @@
     "react-native-screens": "~3.22.0",
     "react-native-web": "~0.19.6",
     "react-navigation": "^4.4.4",
-    "remark-gfm": "^4.0.1"
+    "remark-gfm": "^4.0.1",
+    "expo-document-picker": "~11.5.4",
+    "expo-image-picker": "~14.3.2",
+    "@react-native-community/datetimepicker": "7.2.0"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",

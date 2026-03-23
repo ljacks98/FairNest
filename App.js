@@ -19,6 +19,7 @@ import LoginScreen from './src/screens/LoginScreen';
 import SignUpScreen from './src/screens/SignUpScreen';
 import ChatInterface from './src/screens/ChatInterface';
 import ProfileScreen from './src/screens/ProfileScreen';
+import ReportScreen from './src/screens/ReportScreen';
 
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from './src/firebaseConfig';
@@ -120,6 +121,11 @@ function MainNavigator() {
         name="ChatInterface"
         component={ChatInterface}
         options={{ title: 'AI Assistant' }}
+      />
+      <Stack.Screen
+        name="Report"
+        component={ReportScreen}
+        options={{ title: 'File Report' }}
       />
 
       <Stack.Screen

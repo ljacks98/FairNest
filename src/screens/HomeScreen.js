@@ -128,6 +128,15 @@ export default function HomeScreen({ navigation }) {
 
           <TouchableOpacity
             style={styles.featureCard}
+            onPress={() => navigation.navigate('Report')}>
+            <Text style={styles.featureTitle}>📝 File a Report</Text>
+            <Text style={styles.featureDescription}>
+              Submit a housing discrimination or issue report
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.featureCard}
             onPress={() => navigation.navigate('About')}>
             <Text style={styles.featureTitle}>ℹ️ About FairNest</Text>
             <Text style={styles.featureDescription}>
