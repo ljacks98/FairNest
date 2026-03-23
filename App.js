@@ -3,6 +3,7 @@ import {
   StyleSheet,
   SafeAreaView,
   StatusBar,
+  Platform,
 } from 'react-native';
 import {
   useFonts,
@@ -90,13 +91,24 @@ function MainNavigator() {
 }
 
 export default function App() {
-  const [fontsLoaded] = useFonts({
-    Poppins_400Regular,
-    Poppins_600SemiBold,
-    Poppins_700Bold,
-  });
+  const [fontsLoaded] = useFonts(
+    Platform.OS !== 'web'
+      ? { Poppins_400Regular, Poppins_600SemiBold, Poppins_700Bold }
+      : {}
+  );
 
-  if (!fontsLoaded) return null;
+  // Inject Google Fonts CDN on web to avoid OTS font parsing errors
+  if (Platform.OS === 'web' && typeof document !== 'undefined') {
+    if (!document.getElementById('google-fonts-poppins')) {
+      const link = document.createElement('link');
+      link.id = 'google-fonts-poppins';
+      link.rel = 'stylesheet';
+      link.href = 'https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap';
+      document.head.appendChild(link);
+    }
+  }
+
+  if (Platform.OS !== 'web' && !fontsLoaded) return null;
 
   return (
     <AuthProvider>
