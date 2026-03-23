@@ -1,12 +1,15 @@
-import React, { useContext } from 'react';
+import React from 'react';
 import {
   StyleSheet,
-  Text,
-  View,
   SafeAreaView,
   StatusBar,
-  TouchableOpacity,
 } from 'react-native';
+import {
+  useFonts,
+  Poppins_400Regular,
+  Poppins_600SemiBold,
+  Poppins_700Bold,
+} from '@expo-google-fonts/poppins';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 
@@ -20,17 +23,15 @@ import SignUpScreen from './src/screens/SignUpScreen';
 import ChatInterface from './src/screens/ChatInterface';
 import ProfileScreen from './src/screens/ProfileScreen';
 import ReportScreen from './src/screens/ReportScreen';
-
-import { doc, getDoc } from 'firebase/firestore';
-import { db } from './src/firebaseConfig';
+import AdminDashboardScreen from './src/screens/AdminDashboardScreen';
+import DiscriminationCheckerScreen from './src/screens/DiscriminationCheckerScreen';
+import ScheduleCallScreen from './src/screens/ScheduleCallScreen';
 
 import { AuthProvider, AuthContext } from './src/context/AuthContext';
 
 const Stack = createStackNavigator();
 
 function MainNavigator() {
-  const { user, logout } = useContext(AuthContext);
-
   return (
     <Stack.Navigator
       initialRouteName="Home"
@@ -43,74 +44,17 @@ function MainNavigator() {
       <Stack.Screen
         name="Home"
         component={HomeScreen}
-        options={({ navigation }) => {
-          const { user, logout } = React.useContext(AuthContext);
-          const [displayName, setDisplayName] = React.useState('');
-
-          React.useEffect(() => {
-            const fetchName = async () => {
-              if (user) {
-                const docRef = doc(db, 'users', user.uid);
-                const snap = await getDoc(docRef);
-                if (snap.exists()) {
-                  setDisplayName(snap.data().firstName || '');
-                }
-              }
-            };
-            fetchName();
-          }, [user]);
-
-          return {
-            headerTitle: 'FairNest',
-            headerRight: () =>
-              user ? (
-                <View style={{ flexDirection: 'row', marginRight: 10 }}>
-                  <Text
-                    style={{ color: '#fff', marginRight: 15 }}
-                    onPress={() => navigation.navigate('Profile')}>
-                    {displayName || 'Account'}
-                  </Text>
-
-                  <Text
-                    style={{ color: '#fff', fontWeight: 'bold' }}
-                    onPress={logout}>
-                    Logout
-                  </Text>
-                </View>
-              ) : (
-                <View style={{ flexDirection: 'row', marginRight: 10 }}>
-                  <Text
-                    style={{ color: '#fff', marginRight: 15 }}
-                    onPress={() => navigation.navigate('Login')}>
-                    Login
-                  </Text>
-                  <Text
-                    style={{ color: '#fff', fontWeight: 'bold' }}
-                    onPress={() => navigation.navigate('SignUp')}>
-                    Sign Up
-                  </Text>
-                </View>
-              ),
-          };
-        }}
+        options={{ headerShown: false }}
       />
 
       {/* PUBLIC SCREENS */}
-      <Stack.Screen name="Resources" component={ResourceScreen} />
-      <Stack.Screen
-        name="HousingRights"
-        component={HousingRightsScreen}
-        options={{ title: 'Housing Rights' }}
-      />
-      <Stack.Screen
-        name="FairHousingSupport"
-        component={FairHousingSupportScreen}
-        options={{ title: 'Fair Housing Support' }}
-      />
+      <Stack.Screen name="Resources" component={ResourceScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="HousingRights" component={HousingRightsScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="FairHousingSupport" component={FairHousingSupportScreen} options={{ headerShown: false }} />
       <Stack.Screen
         name="About"
         component={AboutScreen}
-        options={{ title: 'About FairNest' }}
+        options={{ headerShown: false }}
       />
 
       {/* AUTH SCREENS (always accessible) */}
@@ -122,24 +66,38 @@ function MainNavigator() {
         component={ChatInterface}
         options={{ title: 'AI Assistant' }}
       />
-      <Stack.Screen
-        name="Report"
-        component={ReportScreen}
-        options={{ title: 'File Report' }}
-      />
+      <Stack.Screen name="Report" component={ReportScreen} options={{ headerShown: false }} />
+
+      <Stack.Screen name="Profile" component={ProfileScreen} options={{ headerShown: false }} />
 
       <Stack.Screen
-        name="Profile"
-        component={ProfileScreen}
-        options={{ title: 'Profile' }}
+        name="AdminDashboard"
+        component={AdminDashboardScreen}
+        options={{ headerShown: false }}
       />
-
-      {/* PROTECTED SCREENS will be added later */}
+      <Stack.Screen
+        name="DiscriminationChecker"
+        component={DiscriminationCheckerScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="ScheduleCall"
+        component={ScheduleCallScreen}
+        options={{ headerShown: false }}
+      />
     </Stack.Navigator>
   );
 }
 
 export default function App() {
+  const [fontsLoaded] = useFonts({
+    Poppins_400Regular,
+    Poppins_600SemiBold,
+    Poppins_700Bold,
+  });
+
+  if (!fontsLoaded) return null;
+
   return (
     <AuthProvider>
       <SafeAreaView style={styles.container}>

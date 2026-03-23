@@ -10,6 +10,8 @@ import {
 } from 'react-native';
 
 import { AuthContext } from '../context/AuthContext';
+import Navbar from '../components/Navbar';
+import { fontSize } from '../theme/typography';
 
 export default function HomeScreen({ navigation }) {
   const [query, setQuery] = useState('');
@@ -72,12 +74,19 @@ export default function HomeScreen({ navigation }) {
 
   return (
     <ScrollView style={styles.container}>
-      {/* HEADER */}
+      <Navbar navigation={navigation} currentRoute="Home" />
+
+      {/* HERO */}
       <View style={styles.header}>
-        <View style={styles.contentWrapper}>
-          <Text style={styles.title}>Welcome to FairNest</Text>
+        <View style={styles.heroContent}>
+          <Text style={styles.heroLabel}>ABOUT FAIRNEST</Text>
+          <Text style={styles.title}>
+            Housing Justice, Built for Durham
+          </Text>
           <Text style={styles.subtitle}>
-            Your AI-powered housing assistance platform for Durham residents
+            FairNest is a capstone project designed to help Durham residents
+            navigate housing rights, report discrimination, and access local
+            assistance — all in one place.
           </Text>
         </View>
       </View>
@@ -86,6 +95,21 @@ export default function HomeScreen({ navigation }) {
         {/* FEATURES */}
         <View style={styles.featuresContainer}>
           <Text style={styles.sectionTitle}>How FairNest Can Help</Text>
+
+          {/* QUALIFIER HIGHLIGHT CARD */}
+          <TouchableOpacity
+            style={styles.checkerCard}
+            onPress={() => navigation.navigate('DiscriminationChecker')}>
+            <View style={styles.checkerCardInner}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.checkerCardTitle}>Have you been treated unfairly because of who you are?</Text>
+                <Text style={styles.checkerCardDesc}>
+                  If you think you've experienced housing discrimination, answer a few questions to find out if your situation qualifies — and what to do next.
+                </Text>
+                <Text style={styles.checkerCardCta}>Find out now →</Text>
+              </View>
+            </View>
+          </TouchableOpacity>
 
           <TouchableOpacity
             style={styles.featureCard}
@@ -137,6 +161,15 @@ export default function HomeScreen({ navigation }) {
 
           <TouchableOpacity
             style={styles.featureCard}
+            onPress={() => requireAuth('ScheduleCall')}>
+            <Text style={styles.featureTitle}>📞 Schedule a Call</Text>
+            <Text style={styles.featureDescription}>
+              Book a free consultation with a fair housing advocate or legal expert
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.featureCard}
             onPress={() => navigation.navigate('About')}>
             <Text style={styles.featureTitle}>ℹ️ About FairNest</Text>
             <Text style={styles.featureDescription}>
@@ -169,30 +202,77 @@ const styles = StyleSheet.create({
     backgroundColor: '#f5f5f5',
   },
   header: {
-    backgroundColor: '#2E7D32',
-    padding: 20,
-    paddingTop: 40,
+    backgroundColor: '#1B5E20',
+    paddingVertical: 70,
+    paddingHorizontal: 20,
+    alignItems: 'center',
+  },
+  heroContent: {
+    maxWidth: 780,
+    alignItems: 'center',
+  },
+  heroLabel: {
+    fontSize: fontSize.tiny,
+    fontWeight: 'bold',
+    color: 'rgba(255,255,255,0.7)',
+    letterSpacing: 2,
+    marginBottom: 18,
+    textTransform: 'uppercase',
   },
   title: {
-    fontSize: 28,
+    fontSize: fontSize.hero,
     fontWeight: 'bold',
     color: '#fff',
-    marginBottom: 8,
+    marginBottom: 20,
+    textAlign: 'center',
+    lineHeight: fontSize.hero * 1.25,
   },
   subtitle: {
-    fontSize: 16,
-    color: '#fff',
-    opacity: 0.9,
+    fontSize: fontSize.bodyLg,
+    color: 'rgba(255,255,255,0.85)',
+    textAlign: 'center',
+    lineHeight: fontSize.bodyLg * 1.6,
+    maxWidth: 640,
   },
   featuresContainer: {
     paddingTop: 20,
   },
   sectionTitle: {
-    fontSize: 22,
+    fontSize: fontSize.h2,
     fontWeight: 'bold',
     marginBottom: 15,
     color: '#333',
     textAlign: 'center',
+  },
+  checkerCard: {
+    backgroundColor: '#1B5E20',
+    borderRadius: 12,
+    marginBottom: 16,
+    padding: 20,
+    elevation: 3,
+  },
+  checkerCardInner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  checkerCardTitle: {
+    fontSize: fontSize.h3,
+    fontWeight: 'bold',
+    color: '#fff',
+    marginBottom: 6,
+  },
+  checkerCardDesc: {
+    fontSize: fontSize.body,
+    color: 'rgba(255,255,255,0.82)',
+    lineHeight: fontSize.body * 1.5,
+    maxWidth: 280,
+  },
+  checkerCardCta: {
+    fontSize: fontSize.body,
+    fontWeight: 'bold',
+    color: 'rgba(255,255,255,0.9)',
+    marginTop: 10,
   },
   featureCard: {
     backgroundColor: '#fff',
@@ -202,15 +282,15 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   featureTitle: {
-    fontSize: 18,
+    fontSize: fontSize.h4,
     fontWeight: 'bold',
     marginBottom: 8,
     color: '#2E7D32',
   },
   featureDescription: {
-    fontSize: 14,
+    fontSize: fontSize.body,
     color: '#666',
-    lineHeight: 20,
+    lineHeight: fontSize.body * 1.5,
   },
   searchContainer: {
     padding: 20,
@@ -224,7 +304,7 @@ const styles = StyleSheet.create({
     borderColor: '#ddd',
     borderRadius: 8,
     padding: 15,
-    fontSize: 16,
+    fontSize: fontSize.input,
     minHeight: 100,
     textAlignVertical: 'top',
     marginBottom: 15,
@@ -237,7 +317,7 @@ const styles = StyleSheet.create({
   },
   searchButtonText: {
     color: '#fff',
-    fontSize: 18,
+    fontSize: fontSize.button,
     fontWeight: 'bold',
   },
   contentWrapper: {

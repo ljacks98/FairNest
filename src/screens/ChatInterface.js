@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect, useContext } from 'react';
 import {
   View,
   Text,
@@ -9,25 +9,100 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
+  useWindowDimensions,
 } from 'react-native';
+import {
+  collection,
+  addDoc,
+  getDocs,
+  query,
+  orderBy,
+  serverTimestamp,
+} from 'firebase/firestore';
+import { db } from '../firebaseConfig';
+import { AuthContext } from '../context/AuthContext';
+import { fontSize } from '../theme/typography';
+
+const SUGGESTED_QUESTIONS = [
+  'Can my landlord evict me without notice?',
+  'What counts as housing discrimination?',
+  'How do I report a fair housing violation?',
+  'What are my rights if my landlord won\'t make repairs?',
+];
 
 export default function ChatInterface() {
-  const [messages, setMessages] = useState([]);
-  const [inputText, setInputText] = useState('');
-  const [loading, setLoading] = useState(false);
+  const { user } = useContext(AuthContext);
+  const { width } = useWindowDimensions();
+  const isWide = width >= 700;
+
+  const [messages, setMessages]           = useState([]);
+  const [inputText, setInputText]         = useState('');
+  const [loading, setLoading]             = useState(false);
+  const [historyLoading, setHistoryLoading] = useState(true);
   const flatListRef = useRef(null);
 
-  const sendMessage = async () => {
-    if (!inputText.trim()) return;
+  // ── Load history ───────────────────────────────────────────────────
+  useEffect(() => {
+    const loadHistory = async () => {
+      if (!user) { setHistoryLoading(false); return; }
+      try {
+        const q = query(
+          collection(db, 'users', user.uid, 'chatHistory'),
+          orderBy('timestamp', 'asc')
+        );
+        const snap = await getDocs(q);
+        if (!snap.empty) {
+          setMessages(snap.docs.map(d => ({
+            id: d.id,
+            text: d.data().text,
+            sender: d.data().sender,
+            timestamp: d.data().timestamp?.toDate?.()?.toISOString() || new Date().toISOString(),
+          })));
+        }
+      } catch (err) {
+        console.log('History load error:', err);
+      }
+      setHistoryLoading(false);
+    };
+    loadHistory();
+  }, [user]);
+
+  // ── Save message (user history + admin-readable chatLogs) ─────────
+  const saveMessage = async (msg) => {
+    if (!user) return;
+    const payload = {
+      text: msg.text,
+      sender: msg.sender,
+      timestamp: serverTimestamp(),
+    };
+    try {
+      // 1. User's personal history
+      await addDoc(collection(db, 'users', user.uid, 'chatHistory'), payload);
+      // 2. Admin-visible log (top-level collection, queryable by userId)
+      await addDoc(collection(db, 'chatLogs'), {
+        ...payload,
+        userId: user.uid,
+        userEmail: user.email || '',
+      });
+    } catch (err) {
+      console.log('Save error:', err);
+    }
+  };
+
+  // ── Send ───────────────────────────────────────────────────────────
+  const sendMessage = async (text) => {
+    const msg = text || inputText;
+    if (!msg.trim()) return;
 
     const userMessage = {
       id: Date.now().toString(),
-      text: inputText,
+      text: msg.trim(),
       sender: 'user',
       timestamp: new Date().toISOString(),
     };
 
-    setMessages((prev) => [...prev, userMessage]);
+    setMessages(prev => [...prev, userMessage]);
+    saveMessage(userMessage);
     setInputText('');
     setLoading(true);
 
@@ -36,161 +111,279 @@ export default function ChatInterface() {
         'https://us-central1-fairnest-abe1e.cloudfunctions.net/chatGPT',
         {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ message: inputText }),
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: msg.trim() }),
         }
       );
-
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-
+      if (!response.ok) throw new Error('Network error');
       const data = await response.json();
-
       const aiMessage = {
         id: (Date.now() + 1).toString(),
         text: data.reply || 'No response received.',
         sender: 'ai',
         timestamp: new Date().toISOString(),
       };
-
-      setMessages((prev) => [...prev, aiMessage]);
-    } catch (error) {
-      console.log('Frontend error:', error);
-
+      setMessages(prev => [...prev, aiMessage]);
+      saveMessage(aiMessage);
+    } catch {
       const errorMessage = {
         id: (Date.now() + 1).toString(),
-        text: 'Something went wrong connecting to AI.',
+        text: 'Something went wrong. Please check your connection and try again.',
         sender: 'ai',
         timestamp: new Date().toISOString(),
       };
-
-      setMessages((prev) => [...prev, errorMessage]);
+      setMessages(prev => [...prev, errorMessage]);
     } finally {
       setLoading(false);
     }
   };
 
-  const renderMessage = ({ item }) => (
-    <View
-      style={[
-        styles.messageBubble,
-        item.sender === 'user' ? styles.userBubble : styles.aiBubble,
-      ]}>
-      <Text
-        style={[
-          styles.messageText,
-          item.sender === 'user' && { color: '#fff' },
-        ]}>
-        {item.text}
-      </Text>
+  const renderMessage = ({ item }) => {
+    const isUser = item.sender === 'user';
+    const time = new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-      <Text style={styles.timestamp}>
-        {new Date(item.timestamp).toLocaleTimeString()}
-      </Text>
-    </View>
-  );
+    return (
+      <View style={[styles.messageRow, isUser && styles.messageRowUser]}>
+        {!isUser && (
+          <View style={styles.aiAvatar}>
+            <Text style={styles.aiAvatarText}>AI</Text>
+          </View>
+        )}
+        <View style={[styles.bubble, isUser ? styles.bubbleUser : styles.bubbleAi, isWide && styles.bubbleWide]}>
+          <Text style={[styles.bubbleText, isUser && styles.bubbleTextUser]}>
+            {item.text}
+          </Text>
+          <Text style={[styles.bubbleTime, isUser && styles.bubbleTimeUser]}>
+            {time}
+          </Text>
+        </View>
+      </View>
+    );
+  };
+
+  if (historyLoading) {
+    return (
+      <View style={styles.center}>
+        <ActivityIndicator size="large" color="#2E7D32" />
+      </View>
+    );
+  }
+
+  const isEmpty = messages.length === 0;
 
   return (
     <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <FlatList
-        ref={flatListRef}
-        data={messages}
-        renderItem={renderMessage}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.messageList}
-        onContentSizeChange={() =>
-          flatListRef.current?.scrollToEnd({ animated: true })
-        }
-      />
 
-      {loading && (
-        <ActivityIndicator
-          size="large"
-          color="#2E7D32"
-          style={{ marginBottom: 10 }}
+      {/* Header bar */}
+      <View style={styles.header}>
+        <View style={styles.headerAiDot} />
+        <View>
+          <Text style={styles.headerTitle}>FairNest AI Assistant</Text>
+          <Text style={styles.headerSub}>Ask about housing rights, eviction, or discrimination</Text>
+        </View>
+      </View>
+
+      {/* Message area */}
+      {isEmpty ? (
+        <View style={styles.emptyState}>
+          <Text style={styles.emptyIcon}>🤖</Text>
+          <Text style={styles.emptyTitle}>How can I help you today?</Text>
+          <Text style={styles.emptyDesc}>
+            Ask me anything about Durham housing rights, fair housing law, eviction, or how to find local resources.
+          </Text>
+          <View style={[styles.suggestionsGrid, isWide && styles.suggestionsGridWide]}>
+            {SUGGESTED_QUESTIONS.map((q, i) => (
+              <TouchableOpacity
+                key={i}
+                style={styles.suggestionBtn}
+                onPress={() => sendMessage(q)}>
+                <Text style={styles.suggestionText}>{q}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+      ) : (
+        <FlatList
+          ref={flatListRef}
+          data={messages}
+          renderItem={renderMessage}
+          keyExtractor={item => item.id}
+          contentContainerStyle={styles.messageList}
+          onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
         />
       )}
 
-      <View style={styles.inputContainer}>
+      {/* Typing indicator */}
+      {loading && (
+        <View style={styles.typingRow}>
+          <View style={styles.aiAvatar}>
+            <Text style={styles.aiAvatarText}>AI</Text>
+          </View>
+          <View style={styles.typingBubble}>
+            <ActivityIndicator size="small" color="#2E7D32" />
+            <Text style={styles.typingText}>Thinking...</Text>
+          </View>
+        </View>
+      )}
+
+      {/* Input */}
+      <View style={[styles.inputBar, isWide && styles.inputBarWide]}>
         <TextInput
           style={styles.input}
           value={inputText}
           onChangeText={setInputText}
-          placeholder="Ask about housing, eviction, discrimination..."
+          placeholder="Ask about housing rights, eviction, discrimination..."
           multiline
+          maxHeight={100}
         />
-
-        <TouchableOpacity style={styles.sendButton} onPress={sendMessage}>
-          <Text style={styles.sendButtonText}>Send</Text>
+        <TouchableOpacity
+          style={[styles.sendBtn, (!inputText.trim() || loading) && styles.sendBtnDisabled]}
+          onPress={() => sendMessage()}
+          disabled={!inputText.trim() || loading}>
+          <Text style={styles.sendBtnText}>↑</Text>
         </TouchableOpacity>
       </View>
+
+      <Text style={styles.footerNote}>
+        AI responses are for informational purposes only, not legal advice.
+      </Text>
     </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-  },
-  messageList: {
-    padding: 15,
-  },
-  messageBubble: {
-    maxWidth: '80%',
-    padding: 12,
-    borderRadius: 15,
-    marginBottom: 10,
-  },
-  userBubble: {
-    alignSelf: 'flex-end',
-    backgroundColor: '#2E7D32',
-  },
-  aiBubble: {
-    alignSelf: 'flex-start',
-    backgroundColor: '#ffffff',
-    borderWidth: 1,
-    borderColor: '#ddd',
-  },
-  messageText: {
-    fontSize: 16,
-    color: '#333',
-  },
-  timestamp: {
-    fontSize: 10,
-    color: '#999',
-    marginTop: 5,
-  },
-  inputContainer: {
+  container: { flex: 1, backgroundColor: '#f5f5f5' },
+  center:    { flex: 1, justifyContent: 'center', alignItems: 'center' },
+
+  // Header
+  header: {
     flexDirection: 'row',
-    padding: 10,
+    alignItems: 'center',
+    gap: 12,
+    backgroundColor: '#fff',
+    paddingHorizontal: 20,
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e8e8e8',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  headerAiDot: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#2E7D32',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  headerTitle: { fontSize: fontSize.body, fontWeight: 'bold', color: '#1a1a1a' },
+  headerSub:   { fontSize: fontSize.tiny, color: '#888', marginTop: 1 },
+
+  // Empty state
+  emptyState: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 24,
+  },
+  emptyIcon:  { fontSize: fontSize.hero, marginBottom: 16 },
+  emptyTitle: { fontSize: fontSize.h2, fontWeight: 'bold', color: '#1a1a1a', marginBottom: 8, textAlign: 'center' },
+  emptyDesc:  { fontSize: fontSize.body, color: '#666', textAlign: 'center', lineHeight: 22, maxWidth: 400, marginBottom: 28 },
+
+  suggestionsGrid:     { width: '100%', maxWidth: 600, gap: 10 },
+  suggestionsGridWide: { flexDirection: 'row', flexWrap: 'wrap' },
+  suggestionBtn: {
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#d0e8d0',
+    borderRadius: 10,
+    padding: 14,
+    flex: 1,
+    minWidth: 200,
+  },
+  suggestionText: { fontSize: fontSize.caption, color: '#2E7D32', lineHeight: 18 },
+
+  // Messages
+  messageList: { padding: 16, paddingBottom: 8 },
+  messageRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    marginBottom: 14,
+    gap: 8,
+  },
+  messageRowUser: { flexDirection: 'row-reverse' },
+
+  aiAvatar: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#2E7D32',
+    justifyContent: 'center',
+    alignItems: 'center',
+    flexShrink: 0,
+  },
+  aiAvatarText: { color: '#fff', fontSize: fontSize.tiny, fontWeight: 'bold' },
+
+  bubble: {
+    maxWidth: '75%',
+    borderRadius: 16,
+    padding: 12,
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+    borderBottomLeftRadius: 4,
+  },
+  bubbleWide:     { maxWidth: '60%' },
+  bubbleUser:     { backgroundColor: '#2E7D32', borderColor: '#2E7D32', borderBottomLeftRadius: 16, borderBottomRightRadius: 4 },
+  bubbleAi:       {},
+  bubbleText:     { fontSize: fontSize.body, color: '#333', lineHeight: 22 },
+  bubbleTextUser: { color: '#fff' },
+  bubbleTime:     { fontSize: fontSize.tiny, color: '#aaa', marginTop: 5, alignSelf: 'flex-end' },
+  bubbleTimeUser: { color: 'rgba(255,255,255,0.6)' },
+
+  // Typing
+  typingRow:    { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 16, paddingBottom: 8 },
+  typingBubble: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#fff', borderRadius: 12, padding: 10, borderWidth: 1, borderColor: '#e0e0e0' },
+  typingText:   { fontSize: fontSize.caption, color: '#888' },
+
+  // Input
+  inputBar: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    gap: 10,
+    padding: 12,
     backgroundColor: '#fff',
     borderTopWidth: 1,
-    borderTopColor: '#ddd',
+    borderTopColor: '#e8e8e8',
   },
+  inputBarWide: { paddingHorizontal: 24 },
   input: {
     flex: 1,
     borderWidth: 1,
     borderColor: '#ddd',
-    borderRadius: 20,
-    paddingHorizontal: 15,
+    borderRadius: 22,
+    paddingHorizontal: 16,
     paddingVertical: 10,
-    marginRight: 10,
+    fontSize: fontSize.input,
+    backgroundColor: '#fafafa',
     maxHeight: 100,
   },
-  sendButton: {
+  sendBtn: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
     backgroundColor: '#2E7D32',
-    borderRadius: 20,
-    paddingHorizontal: 20,
     justifyContent: 'center',
+    alignItems: 'center',
+    flexShrink: 0,
   },
-  sendButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
-  },
+  sendBtnDisabled: { backgroundColor: '#a5d6a7' },
+  sendBtnText:     { color: '#fff', fontSize: fontSize.h3, fontWeight: 'bold', marginTop: -2 },
+
+  footerNote: { fontSize: fontSize.tiny, color: '#bbb', textAlign: 'center', paddingBottom: 8 },
 });

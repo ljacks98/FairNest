@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,134 +6,236 @@ import {
   ScrollView,
   Linking,
   TouchableOpacity,
+  ActivityIndicator,
+  useWindowDimensions,
 } from 'react-native';
-import { resources } from '../data/resources';
+import { collection, getDocs, orderBy, query } from 'firebase/firestore';
+import { db } from '../firebaseConfig';
+import { resources as staticResources } from '../data/resources';
+import Navbar from '../components/Navbar';
+
+const FILTERS = [
+  { label: 'All',                value: null },
+  { label: 'Rental Assistance',  value: 'assistance' },
+  { label: 'Affordable Housing', value: 'affordable' },
+  { label: 'Legal Help',         value: 'legal' },
+];
 
 export default function ResourceScreen({ route }) {
   const { category, type } = route.params || {};
+  const { width } = useWindowDimensions();
+  const isWide = width >= 700;
 
   const [activeType, setActiveType] = useState(type || null);
+  const [resources, setResources]   = useState([]);
+  const [loading, setLoading]       = useState(true);
 
-  const filteredResources = resources.filter((item) => {
-    if (category !== 'housing') {
+  // Try Firestore first, fall back to static data
+  useEffect(() => {
+    const fetchResources = async () => {
+      try {
+        const q = query(
+          collection(db, 'resources'),
+          orderBy('title', 'asc')
+        );
+        const snap = await getDocs(q);
+        if (!snap.empty) {
+          setResources(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+        } else {
+          setResources(staticResources);
+        }
+      } catch {
+        // Firestore collection doesn't exist yet — use static data
+        setResources(staticResources);
+      }
+      setLoading(false);
+    };
+    fetchResources();
+  }, []);
+
+  const filtered = resources.filter(item => {
+    if (category && category !== 'housing') {
       return item.category === category;
     }
-
     if (activeType) {
-      return item.category === category && item.type === activeType;
+      return item.category === 'housing' && item.type === activeType;
     }
-
-    return item.category === category;
+    return category ? item.category === category : true;
   });
+
+  if (loading) {
+    return (
+      <View style={styles.center}>
+        <ActivityIndicator size="large" color="#2E7D32" />
+      </View>
+    );
+  }
 
   return (
     <ScrollView style={styles.container}>
-      {category === 'housing' && (
-        <View style={styles.filterContainer}>
-          <TouchableOpacity
-            style={[
-              styles.filterButton,
-              activeType === null && styles.activeFilter,
-            ]}
-            onPress={() => setActiveType(null)}>
-            <Text>All</Text>
-          </TouchableOpacity>
+      <Navbar navigation={navigation} currentRoute="Resources" />
+      <View style={styles.pageHeader}>
+        <Text style={styles.pageTitle}>
+          {category === 'employment' ? 'Employment Resources'
+            : category === 'accessibility' ? 'Accessibility Resources'
+            : 'Housing Resources'}
+        </Text>
+        <Text style={styles.pageSubtitle}>
+          Local Durham programs, services, and legal aid
+        </Text>
+      </View>
 
-          <TouchableOpacity
-            style={[
-              styles.filterButton,
-              activeType === 'assistance' && styles.activeFilter,
-            ]}
-            onPress={() => setActiveType('assistance')}>
-            <Text>Rental Assistance</Text>
-          </TouchableOpacity>
+      <View style={styles.body}>
+        {/* Filters — only for housing */}
+        {(!category || category === 'housing') && (
+          <View style={styles.filterRow}>
+            {FILTERS.map(f => (
+              <TouchableOpacity
+                key={String(f.value)}
+                style={[styles.filterBtn, activeType === f.value && styles.filterBtnActive]}
+                onPress={() => setActiveType(f.value)}>
+                <Text style={[styles.filterText, activeType === f.value && styles.filterTextActive]}>
+                  {f.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
 
-          <TouchableOpacity
-            style={[
-              styles.filterButton,
-              activeType === 'affordable' && styles.activeFilter,
-            ]}
-            onPress={() => setActiveType('affordable')}>
-            <Text>Affordable Housing</Text>
-          </TouchableOpacity>
+        {/* Results count */}
+        <Text style={styles.resultsCount}>{filtered.length} resource{filtered.length !== 1 ? 's' : ''} found</Text>
 
-          <TouchableOpacity
-            style={[
-              styles.filterButton,
-              activeType === 'legal' && styles.activeFilter,
-            ]}
-            onPress={() => setActiveType('legal')}>
-            <Text>Legal Help</Text>
-          </TouchableOpacity>
+        {/* Cards */}
+        <View style={[styles.grid, isWide && styles.gridWide]}>
+          {filtered.map(resource => (
+            <View key={resource.id} style={[styles.card, isWide && styles.cardWide]}>
+              {resource.type && (
+                <View style={styles.typeBadge}>
+                  <Text style={styles.typeBadgeText}>
+                    {resource.type === 'assistance' ? 'Rental Assistance'
+                      : resource.type === 'affordable' ? 'Affordable Housing'
+                      : resource.type === 'legal' ? 'Legal Help'
+                      : resource.type}
+                  </Text>
+                </View>
+              )}
+
+              <Text style={styles.cardTitle}>{resource.title}</Text>
+              <Text style={styles.cardDescription}>{resource.description}</Text>
+
+              <View style={styles.cardDetails}>
+                {resource.phone && (
+                  <TouchableOpacity onPress={() => Linking.openURL(`tel:${resource.phone}`)}>
+                    <Text style={styles.detailRow}>📞 {resource.phone}</Text>
+                  </TouchableOpacity>
+                )}
+                {resource.address && (
+                  <Text style={styles.detailRow}>📍 {resource.address}</Text>
+                )}
+                {resource.eligibility && (
+                  <Text style={styles.detailRow}>✅ {resource.eligibility}</Text>
+                )}
+              </View>
+
+              {resource.website && (
+                <TouchableOpacity
+                  style={styles.websiteBtn}
+                  onPress={() => Linking.openURL(resource.website)}>
+                  <Text style={styles.websiteBtnText}>Visit Website →</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          ))}
         </View>
-      )}
 
-      {filteredResources.map((resource) => (
-        <View key={resource.id} style={styles.card}>
-          <Text style={styles.title}>{resource.title}</Text>
-
-          <Text style={styles.description}>{resource.description}</Text>
-
-          <Text style={styles.info}>Phone: {resource.phone}</Text>
-
-          <Text style={styles.info}>Address: {resource.address}</Text>
-
-          <Text style={styles.info}>Eligibility: {resource.eligibility}</Text>
-
-          <TouchableOpacity onPress={() => Linking.openURL(resource.website)}>
-            <Text style={styles.link}>{resource.website}</Text>
-          </TouchableOpacity>
-        </View>
-      ))}
+        {filtered.length === 0 && (
+          <View style={styles.empty}>
+            <Text style={styles.emptyText}>No resources found for this filter.</Text>
+          </View>
+        )}
+      </View>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 15,
-  },
-  card: {
-    backgroundColor: '#f2f2f2',
-    padding: 15,
-    marginBottom: 15,
-    borderRadius: 8,
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 5,
-  },
-  link: {
-    color: '#2e7d32',
-    marginTop: 5,
-    textDecorationLine: 'underline',
-  },
-  description: {
-    marginVertical: 5,
-  },
+  container: { flex: 1, backgroundColor: '#f5f5f5' },
+  center: { flex: 1, justifyContent: 'center', alignItems: 'center', marginTop: 60 },
 
-  info: {
-    marginTop: 2,
-    fontSize: 14,
-    color: '#555',
+  pageHeader: {
+    backgroundColor: '#2E7D32',
+    paddingVertical: 32,
+    paddingHorizontal: 24,
+    alignItems: 'center',
   },
-  filterContainer: {
+  pageTitle:    { fontSize: 26, fontWeight: 'bold', color: '#fff', marginBottom: 6 },
+  pageSubtitle: { fontSize: 15, color: 'rgba(255,255,255,0.8)' },
+
+  body: { padding: 20, maxWidth: 1000, alignSelf: 'center', width: '100%' },
+
+  filterRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    marginBottom: 15,
+    gap: 8,
+    marginBottom: 16,
+    marginTop: 4,
   },
+  filterBtn: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    backgroundColor: '#fff',
+  },
+  filterBtnActive:  { backgroundColor: '#2E7D32', borderColor: '#2E7D32' },
+  filterText:       { fontSize: 14, color: '#555' },
+  filterTextActive: { color: '#fff', fontWeight: 'bold' },
 
-  filterButton: {
-    padding: 8,
-    marginRight: 8,
+  resultsCount: { fontSize: 13, color: '#888', marginBottom: 14 },
+
+  grid:     { gap: 14 },
+  gridWide: { flexDirection: 'row', flexWrap: 'wrap' },
+
+  card: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 18,
+    borderWidth: 1,
+    borderColor: '#e8e8e8',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 1,
+  },
+  cardWide: { flex: 1, minWidth: 280, maxWidth: '48%' },
+
+  typeBadge: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#E8F5E9',
+    borderRadius: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
     marginBottom: 8,
-    backgroundColor: '#eee',
-    borderRadius: 6,
   },
+  typeBadgeText: { fontSize: 11, color: '#2E7D32', fontWeight: 'bold' },
 
-  activeFilter: {
-    backgroundColor: '#c8e6c9',
+  cardTitle:       { fontSize: 16, fontWeight: 'bold', color: '#1a1a1a', marginBottom: 6 },
+  cardDescription: { fontSize: 14, color: '#555', lineHeight: 20, marginBottom: 12 },
+
+  cardDetails: { gap: 5, marginBottom: 14 },
+  detailRow:   { fontSize: 13, color: '#555', lineHeight: 20 },
+
+  websiteBtn: {
+    borderWidth: 1,
+    borderColor: '#2E7D32',
+    borderRadius: 6,
+    paddingVertical: 8,
+    alignItems: 'center',
   },
+  websiteBtnText: { color: '#2E7D32', fontWeight: 'bold', fontSize: 13 },
+
+  empty:     { paddingVertical: 40, alignItems: 'center' },
+  emptyText: { fontSize: 15, color: '#999' },
 });
