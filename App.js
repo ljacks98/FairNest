@@ -1,7 +1,7 @@
 import React from 'react';
 import {
   StyleSheet,
-  SafeAreaView,
+  View,
   StatusBar,
 } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
@@ -58,7 +58,7 @@ function MainNavigator() {
       <Stack.Screen
         name="ChatInterface"
         component={ChatInterface}
-        options={{ title: 'AI Assistant' }}
+        options={{ headerShown: false }}
       />
       <Stack.Screen name="Report" component={ReportScreen} options={{ headerShown: false }} />
 
@@ -87,12 +87,12 @@ export default function App() {
 
   return (
     <AuthProvider>
-      <SafeAreaView style={styles.container}>
+      <View style={styles.container}>
         <StatusBar barStyle="dark-content" />
         <NavigationContainer>
           <MainNavigator />
         </NavigationContainer>
-      </SafeAreaView>
+      </View>
     </AuthProvider>
   );
 }

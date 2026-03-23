@@ -144,7 +144,7 @@ export default function AboutScreen({ navigation }) {
       {/* FOOTER */}
       <View style={styles.footer}>
         <Text style={styles.footerText}>Serving Durham, North Carolina</Text>
-        <Text style={styles.footerText}>NCCU CIS Capstone Prototype</Text>
+        <Text style={styles.footerText}>NCCU IT Capstone Prototype</Text>
       </View>
     </ScrollView>
   );

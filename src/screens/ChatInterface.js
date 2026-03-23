@@ -30,7 +30,7 @@ const SUGGESTED_QUESTIONS = [
   'What are my rights if my landlord won\'t make repairs?',
 ];
 
-export default function ChatInterface() {
+export default function ChatInterface({ navigation }) {
   const { user } = useContext(AuthContext);
   const { width } = useWindowDimensions();
   const isWide = width >= 700;
@@ -178,6 +178,9 @@ export default function ChatInterface() {
 
       {/* Header bar */}
       <View style={styles.header}>
+        <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
+          <Text style={styles.backBtnText}>← Back</Text>
+        </TouchableOpacity>
         <View style={styles.headerAiDot} />
         <View>
           <Text style={styles.headerTitle}>FairNest AI Assistant</Text>
@@ -246,9 +249,7 @@ export default function ChatInterface() {
         </TouchableOpacity>
       </View>
 
-      <Text style={styles.footerNote}>
-        AI responses are for informational purposes only, not legal advice.
-      </Text>
+      <Text style={styles.footerNote}>AI responses are for informational purposes only, not legal advice.</Text>
     </KeyboardAvoidingView>
   );
 }
@@ -385,5 +386,7 @@ const styles = StyleSheet.create({
   sendBtnDisabled: { backgroundColor: '#a5d6a7' },
   sendBtnText:     { color: '#fff', fontSize: fontSize.h3, fontWeight: 'bold', marginTop: -2 },
 
-  footerNote: { fontSize: fontSize.tiny, color: '#bbb', textAlign: 'center', paddingBottom: 8 },
+  footerNote: { fontSize: fontSize.tiny, color: '#bbb', textAlign: 'center', paddingVertical: 4, backgroundColor: '#fff' },
+  backBtn: { marginRight: 8, paddingHorizontal: 4, paddingVertical: 4 },
+  backBtnText: { fontSize: fontSize.body, color: '#2E7D32', fontWeight: '600' },
 });
