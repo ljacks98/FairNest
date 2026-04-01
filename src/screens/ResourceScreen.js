@@ -26,9 +26,13 @@ export default function ResourceScreen({ route }) {
   const { width } = useWindowDimensions();
   const isWide = width >= 700;
 
-  const [activeType, setActiveType] = useState(type || null);
-  const [resources, setResources]   = useState([]);
-  const [loading, setLoading]       = useState(true);
+  const [activeType, setActiveType]   = useState(type || null);
+  const [resources, setResources]     = useState([]);
+  const [loading, setLoading]         = useState(true);
+  const [hoveredFilter, setHoveredFilter] = useState(null);
+  const [hoveredCard, setHoveredCard]     = useState(null);
+  const [hoveredWebsite, setHoveredWebsite] = useState(null);
+  const [hoveredPhone, setHoveredPhone]   = useState(null);
 
   // Try Firestore first, fall back to static data
   useEffect(() => {
@@ -74,6 +78,14 @@ export default function ResourceScreen({ route }) {
   return (
     <ScrollView style={styles.container}>
       <Navbar navigation={navigation} currentRoute="Resources" />
+
+      {/* Breadcrumb */}
+      <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingVertical: 10, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#eee' }}>
+        <Text onPress={() => navigation.navigate('Home')} style={{ fontSize: 13, color: '#2E7D32', fontWeight: '600' }}>Home</Text>
+        <Text style={{ fontSize: 13, color: '#bbb', marginHorizontal: 4 }}> / </Text>
+        <Text style={{ fontSize: 13, color: '#666' }}>Resources</Text>
+      </View>
+
       <View style={styles.pageHeader}>
         <Text style={styles.pageTitle}>
           {category === 'employment' ? 'Employment Resources'
@@ -92,8 +104,16 @@ export default function ResourceScreen({ route }) {
             {FILTERS.map(f => (
               <TouchableOpacity
                 key={String(f.value)}
-                style={[styles.filterBtn, activeType === f.value && styles.filterBtnActive]}
-                onPress={() => setActiveType(f.value)}>
+                style={[
+                  styles.filterBtn,
+                  activeType === f.value && styles.filterBtnActive,
+                  activeType !== f.value && hoveredFilter === f.value && styles.filterBtnHover,
+                ]}
+                onPress={() => setActiveType(f.value)}
+                onMouseEnter={() => setHoveredFilter(f.value)}
+                onMouseLeave={() => setHoveredFilter(null)}
+                activeOpacity={0.7}
+                accessibilityLabel={`Filter by ${f.label}`}>
                 <Text style={[styles.filterText, activeType === f.value && styles.filterTextActive]}>
                   {f.label}
                 </Text>
@@ -108,7 +128,13 @@ export default function ResourceScreen({ route }) {
         {/* Cards */}
         <View style={[styles.grid, isWide && styles.gridWide]}>
           {filtered.map(resource => (
-            <View key={resource.id} style={[styles.card, isWide && styles.cardWide]}>
+            <TouchableOpacity
+              key={resource.id}
+              style={[styles.card, isWide && styles.cardWide, hoveredCard === resource.id && styles.cardHover]}
+              onMouseEnter={() => setHoveredCard(resource.id)}
+              onMouseLeave={() => setHoveredCard(null)}
+              activeOpacity={1}
+              accessibilityLabel={resource.title}>
               {resource.type && (
                 <View style={styles.typeBadge}>
                   <Text style={styles.typeBadgeText}>
@@ -139,12 +165,16 @@ export default function ResourceScreen({ route }) {
 
               {resource.website && (
                 <TouchableOpacity
-                  style={styles.websiteBtn}
-                  onPress={() => Linking.openURL(resource.website)}>
-                  <Text style={styles.websiteBtnText}>Visit Website →</Text>
+                  style={[styles.websiteBtn, hoveredWebsite === resource.id && styles.websiteBtnHover]}
+                  onPress={() => Linking.openURL(resource.website)}
+                  onMouseEnter={() => setHoveredWebsite(resource.id)}
+                  onMouseLeave={() => setHoveredWebsite(null)}
+                  activeOpacity={0.7}
+                  accessibilityLabel={`Visit ${resource.title} website`}>
+                  <Text style={[styles.websiteBtnText, hoveredWebsite === resource.id && styles.websiteBtnTextHover]}>Visit Website →</Text>
                 </TouchableOpacity>
               )}
-            </View>
+            </TouchableOpacity>
           ))}
         </View>
 
@@ -163,7 +193,7 @@ const styles = StyleSheet.create({
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', marginTop: 60 },
 
   pageHeader: {
-    backgroundColor: '#2E7D32',
+    backgroundColor: '#1B5E20',
     paddingVertical: 32,
     paddingHorizontal: 24,
     alignItems: 'center',
@@ -234,7 +264,18 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     alignItems: 'center',
   },
-  websiteBtnText: { color: '#2E7D32', fontWeight: 'bold', fontSize: 13 },
+  websiteBtnHover:     { backgroundColor: '#2E7D32' },
+  websiteBtnText:      { color: '#2E7D32', fontWeight: 'bold', fontSize: 13 },
+  websiteBtnTextHover: { color: '#fff' },
+
+  filterBtnHover: { backgroundColor: '#f0f7f0', borderColor: '#2E7D32' },
+
+  cardHover: {
+    borderColor: '#2E7D32',
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
+  },
 
   empty:     { paddingVertical: 40, alignItems: 'center' },
   emptyText: { fontSize: 15, color: '#999' },

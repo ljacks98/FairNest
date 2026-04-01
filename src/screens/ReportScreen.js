@@ -14,6 +14,7 @@ import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db } from '../firebaseConfig';
 import { AuthContext } from '../context/AuthContext';
 import * as DocumentPicker from 'expo-document-picker';
+import { Ionicons } from '@expo/vector-icons';
 import Navbar from '../components/Navbar';
 import { fontSize } from '../theme/typography';
 
@@ -84,7 +85,9 @@ export default function ReportScreen({ navigation }) {
       <ScrollView style={styles.container}>
         <Navbar navigation={navigation} currentRoute="Report" />
         <View style={styles.authGuard}>
-          <Text style={styles.authIcon}>🔒</Text>
+          <View style={styles.authIconCircle}>
+            <Ionicons name="lock-closed-outline" size={32} color="#2E7D32" />
+          </View>
           <Text style={styles.authTitle}>Login Required</Text>
           <Text style={styles.authText}>
             You need to be logged in to file a housing discrimination report.
@@ -110,7 +113,9 @@ export default function ReportScreen({ navigation }) {
       <ScrollView style={styles.container}>
         <Navbar navigation={navigation} currentRoute="Report" />
         <View style={styles.successState}>
-          <Text style={styles.successIcon}>✅</Text>
+          <View style={styles.successIconCircle}>
+            <Ionicons name="checkmark-circle-outline" size={40} color="#2E7D32" />
+          </View>
           <Text style={styles.successTitle}>Report Submitted</Text>
           <Text style={styles.successText}>
             Your report has been received. You can track its status in your profile under "My Reports".
@@ -121,7 +126,7 @@ export default function ReportScreen({ navigation }) {
               reportId: submittedReportId,
               reportType: housingIssueType,
             })}>
-            <Text style={styles.primaryBtnText}>📞 Schedule a Call with an Advocate</Text>
+            <Text style={styles.primaryBtnText}>Schedule a Call with an Advocate</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.secondaryBtn}
@@ -395,7 +400,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f5f5f5' },
 
   hero: {
-    backgroundColor: '#2E7D32',
+    backgroundColor: '#1B5E20',
     paddingVertical: 36,
     paddingHorizontal: 24,
     alignItems: 'center',
@@ -505,14 +510,14 @@ const styles = StyleSheet.create({
   disclaimer: { fontSize: fontSize.tiny, color: '#999', textAlign: 'center', lineHeight: 18, marginTop: 4 },
 
   // Auth guard
-  authGuard: { alignItems: 'center', paddingVertical: 60, paddingHorizontal: 32, gap: 12 },
-  authIcon:  { fontSize: fontSize.hero },
-  authTitle: { fontSize: fontSize.h2, fontWeight: 'bold', color: '#1a1a1a' },
-  authText:  { fontSize: fontSize.body, color: '#666', textAlign: 'center', marginBottom: 8 },
+  authGuard:      { alignItems: 'center', paddingVertical: 60, paddingHorizontal: 32, gap: 12 },
+  authIconCircle: { width: 68, height: 68, borderRadius: 34, backgroundColor: '#E8F5E9', justifyContent: 'center', alignItems: 'center' },
+  authTitle:      { fontSize: fontSize.h2, fontWeight: 'bold', color: '#1a1a1a' },
+  authText:       { fontSize: fontSize.body, color: '#666', textAlign: 'center', marginBottom: 8 },
 
   // Success
-  successState: { alignItems: 'center', paddingVertical: 60, paddingHorizontal: 32, gap: 12 },
-  successIcon:  { fontSize: fontSize.hero },
-  successTitle: { fontSize: fontSize.h2, fontWeight: 'bold', color: '#1a1a1a' },
-  successText:  { fontSize: fontSize.body, color: '#555', textAlign: 'center', maxWidth: 360, marginBottom: 8 },
+  successState:      { alignItems: 'center', paddingVertical: 60, paddingHorizontal: 32, gap: 12 },
+  successIconCircle: { width: 80, height: 80, borderRadius: 40, backgroundColor: '#E8F5E9', justifyContent: 'center', alignItems: 'center' },
+  successTitle:      { fontSize: fontSize.h2, fontWeight: 'bold', color: '#1a1a1a' },
+  successText:       { fontSize: fontSize.body, color: '#555', textAlign: 'center', maxWidth: 360, marginBottom: 8 },
 });

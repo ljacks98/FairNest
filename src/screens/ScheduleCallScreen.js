@@ -16,19 +16,21 @@ const DateTimePicker = Platform.OS !== 'web'
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 import { AuthContext } from '../context/AuthContext';
+import { Ionicons } from '@expo/vector-icons';
 import Navbar from '../components/Navbar';
 import { fontSize } from '../theme/typography';
+import { COLORS } from '../utils/constants';
 
 const CALL_TYPES = [
   {
     key: 'advocate',
-    icon: '⚖️',
+    iconName: 'scale-outline',
     title: 'Speak with an Advocate',
     desc: 'Get guidance from a fair housing advocate about your situation or an existing report.',
   },
   {
     key: 'legal',
-    icon: '🏛️',
+    iconName: 'business-outline',
     title: 'Legal Consultation',
     desc: 'Talk directly with a legal expert about your rights and potential next steps.',
   },
@@ -56,13 +58,21 @@ export default function ScheduleCallScreen({ navigation, route }) {
   const [submitting, setSubmitting]   = useState(false);
   const [submitted, setSubmitted]     = useState(false);
 
+  // Hover states (web only)
+  const [hoveredCallType, setHoveredCallType] = useState(null);
+  const [hoveredTimeSlot, setHoveredTimeSlot] = useState(null);
+  const [hoveredPrimary, setHoveredPrimary]   = useState(false);
+  const [hoveredSecondary, setHoveredSecondary] = useState(false);
+
   // ── Auth guard ──────────────────────────────────────────────────────
   if (!user) {
     return (
       <ScrollView style={styles.container}>
         <Navbar navigation={navigation} currentRoute="ScheduleCall" />
         <View style={styles.authGuard}>
-          <Text style={styles.authIcon}>🔒</Text>
+          <View style={styles.authIconCircle}>
+            <Ionicons name="lock-closed-outline" size={32} color="#2E7D32" />
+          </View>
           <Text style={styles.authTitle}>Login Required</Text>
           <Text style={styles.authDesc}>
             You need an account to schedule a call with an advocate or legal expert.
@@ -73,9 +83,11 @@ export default function ScheduleCallScreen({ navigation, route }) {
             <Text style={styles.primaryBtnText}>Log In</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={styles.secondaryBtn}
+            style={[styles.secondaryBtn, hoveredSecondary && styles.secondaryBtnHover]}
+            onMouseEnter={() => setHoveredSecondary(true)}
+            onMouseLeave={() => setHoveredSecondary(false)}
             onPress={() => navigation.navigate('SignUp')}>
-            <Text style={styles.secondaryBtnText}>Create Account</Text>
+            <Text style={[styles.secondaryBtnText, hoveredSecondary && styles.secondaryBtnTextHover]}>Create Account</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -88,7 +100,9 @@ export default function ScheduleCallScreen({ navigation, route }) {
       <ScrollView style={styles.container}>
         <Navbar navigation={navigation} currentRoute="ScheduleCall" />
         <View style={styles.successState}>
-          <Text style={styles.successIcon}>📅</Text>
+          <View style={styles.successIconCircle}>
+            <Ionicons name="calendar-outline" size={40} color="#2E7D32" />
+          </View>
           <Text style={styles.successTitle}>Request Received!</Text>
           <Text style={styles.successText}>
             Your call request has been submitted. An advocate or legal expert will
@@ -116,9 +130,11 @@ export default function ScheduleCallScreen({ navigation, route }) {
             <Text style={styles.primaryBtnText}>Back to Home</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={styles.secondaryBtn}
+            style={[styles.secondaryBtn, hoveredSecondary && styles.secondaryBtnHover]}
+            onMouseEnter={() => setHoveredSecondary(true)}
+            onMouseLeave={() => setHoveredSecondary(false)}
             onPress={() => navigation.navigate('Profile')}>
-            <Text style={styles.secondaryBtnText}>View My Reports</Text>
+            <Text style={[styles.secondaryBtnText, hoveredSecondary && styles.secondaryBtnTextHover]}>View My Reports</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -183,7 +199,7 @@ export default function ScheduleCallScreen({ navigation, route }) {
         {linkedReportId ? (
           <View style={styles.linkedBanner}>
             <Text style={styles.linkedBannerText}>
-              📋 This call is linked to your report:{' '}
+              This call is linked to your report:{' '}
               <Text style={{ fontWeight: 'bold' }}>{linkedReportType || 'Housing Issue'}</Text>
             </Text>
           </View>
@@ -197,9 +213,17 @@ export default function ScheduleCallScreen({ navigation, route }) {
             {CALL_TYPES.map(ct => (
               <TouchableOpacity
                 key={ct.key}
-                style={[styles.typeCard, callType === ct.key && styles.typeCardActive]}
-                onPress={() => setCallType(ct.key)}>
-                <Text style={styles.typeIcon}>{ct.icon}</Text>
+                style={[
+                  styles.typeCard,
+                  callType === ct.key && styles.typeCardActive,
+                  callType !== ct.key && hoveredCallType === ct.key && styles.callTypeCardHover,
+                ]}
+                onPress={() => setCallType(ct.key)}
+                onMouseEnter={() => setHoveredCallType(ct.key)}
+                onMouseLeave={() => setHoveredCallType(null)}>
+                <View style={styles.typeIconCircle}>
+                  <Ionicons name={ct.iconName} size={24} color="#2E7D32" />
+                </View>
                 <Text style={[styles.typeTitle, callType === ct.key && styles.typeTitleActive]}>
                   {ct.title}
                 </Text>
@@ -262,7 +286,7 @@ export default function ScheduleCallScreen({ navigation, route }) {
                       ? selectedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })
                       : 'Tap to select a date'}
                   </Text>
-                  <Text style={styles.dateIcon}>📅</Text>
+                  <Ionicons name="calendar-outline" size={20} color="#888" />
                 </TouchableOpacity>
                 {showDatePicker && (
                   <DateTimePicker
@@ -293,8 +317,14 @@ export default function ScheduleCallScreen({ navigation, route }) {
               {TIME_SLOTS.map(slot => (
                 <TouchableOpacity
                   key={slot}
-                  style={[styles.slotBtn, timeSlot === slot && styles.slotBtnActive]}
-                  onPress={() => setTimeSlot(slot)}>
+                  style={[
+                    styles.slotBtn,
+                    timeSlot === slot && styles.slotBtnActive,
+                    timeSlot !== slot && hoveredTimeSlot === slot && styles.timeSlotHover,
+                  ]}
+                  onPress={() => setTimeSlot(slot)}
+                  onMouseEnter={() => setHoveredTimeSlot(slot)}
+                  onMouseLeave={() => setHoveredTimeSlot(null)}>
                   <Text style={[styles.slotText, timeSlot === slot && styles.slotTextActive]}>
                     {slot}
                   </Text>
@@ -337,7 +367,7 @@ export default function ScheduleCallScreen({ navigation, route }) {
 
         {/* Info box */}
         <View style={styles.infoBox}>
-          <Text style={styles.infoBoxTitle}>🔒 Confidential & Free</Text>
+          <Text style={styles.infoBoxTitle}>Confidential & Free</Text>
           <Text style={styles.infoBoxText}>
             All consultations are confidential and provided at no cost through our
             partnerships with Legal Aid NC and Durham fair housing advocates.
@@ -349,8 +379,14 @@ export default function ScheduleCallScreen({ navigation, route }) {
         ) : null}
 
         <TouchableOpacity
-          style={[styles.primaryBtn, submitting && styles.primaryBtnDisabled]}
+          style={[
+            styles.primaryBtn,
+            submitting && styles.primaryBtnDisabled,
+            !submitting && hoveredPrimary && styles.primaryBtnHover,
+          ]}
           onPress={handleSubmit}
+          onMouseEnter={() => setHoveredPrimary(true)}
+          onMouseLeave={() => setHoveredPrimary(false)}
           disabled={submitting}>
           {submitting
             ? <ActivityIndicator color="#fff" />
@@ -371,14 +407,14 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f5f5f5' },
 
   // Auth guard
-  authGuard: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 40, marginTop: 60 },
-  authIcon:  { fontSize: fontSize.hero, marginBottom: 16 },
-  authTitle: { fontSize: fontSize.h2, fontWeight: 'bold', color: '#1a1a1a', marginBottom: 8 },
-  authDesc:  { fontSize: fontSize.body, color: '#666', textAlign: 'center', lineHeight: 22, marginBottom: 28, maxWidth: 340 },
+  authGuard:      { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 40, marginTop: 60 },
+  authIconCircle: { width: 68, height: 68, borderRadius: 34, backgroundColor: '#E8F5E9', justifyContent: 'center', alignItems: 'center', marginBottom: 16 },
+  authTitle:      { fontSize: fontSize.h2, fontWeight: 'bold', color: '#1a1a1a', marginBottom: 8 },
+  authDesc:       { fontSize: fontSize.body, color: '#666', textAlign: 'center', lineHeight: 22, marginBottom: 28, maxWidth: 340 },
 
   // Success
-  successState:    { alignItems: 'center', padding: 32, marginTop: 20 },
-  successIcon:     { fontSize: fontSize.hero, marginBottom: 16 },
+  successState:      { alignItems: 'center', padding: 32, marginTop: 20 },
+  successIconCircle: { width: 80, height: 80, borderRadius: 40, backgroundColor: '#E8F5E9', justifyContent: 'center', alignItems: 'center', marginBottom: 16 },
   successTitle:    { fontSize: fontSize.h2, fontWeight: 'bold', color: '#1a1a1a', marginBottom: 10, textAlign: 'center' },
   successText:     { fontSize: fontSize.body, color: '#555', textAlign: 'center', lineHeight: 23, maxWidth: 420, marginBottom: 24 },
   successInfoBox:  { backgroundColor: '#fff', borderRadius: 12, padding: 20, width: '100%', maxWidth: 440, marginBottom: 28, borderWidth: 1, borderColor: '#e8e8e8' },
@@ -427,9 +463,9 @@ const styles = StyleSheet.create({
     flex: 1,
     position: 'relative',
   },
-  typeCardActive: { borderColor: '#2E7D32', backgroundColor: '#F1F8F1' },
-  typeIcon:       { fontSize: fontSize.h1, marginBottom: 10 },
-  typeTitle:      { fontSize: fontSize.body, fontWeight: 'bold', color: '#1a1a1a', marginBottom: 6 },
+  typeCardActive:  { borderColor: '#2E7D32', backgroundColor: '#F1F8F1' },
+  typeIconCircle:  { width: 46, height: 46, borderRadius: 23, backgroundColor: '#E8F5E9', justifyContent: 'center', alignItems: 'center', marginBottom: 12 },
+  typeTitle:       { fontSize: fontSize.body, fontWeight: 'bold', color: '#1a1a1a', marginBottom: 6 },
   typeTitleActive:{ color: '#2E7D32' },
   typeDesc:       { fontSize: fontSize.caption, color: '#666', lineHeight: 19 },
   typeCheck: {
@@ -477,7 +513,6 @@ const styles = StyleSheet.create({
   dateBtnError:       { borderColor: '#e53935' },
   dateBtnText:        { fontSize: fontSize.input, color: '#1a1a1a', flex: 1 },
   dateBtnPlaceholder: { fontSize: fontSize.input, color: '#aaa', flex: 1 },
-  dateIcon:           { fontSize: fontSize.h4, marginLeft: 8 },
 
   // Time slots
   slotRow: { gap: 8 },
@@ -510,9 +545,16 @@ const styles = StyleSheet.create({
 
   primaryBtn:         { backgroundColor: '#2E7D32', padding: 16, borderRadius: 8, alignItems: 'center', marginBottom: 12 },
   primaryBtnDisabled: { backgroundColor: '#a5d6a7' },
+  primaryBtnHover:    { backgroundColor: '#163d18' },
   primaryBtnText:     { color: '#fff', fontWeight: 'bold', fontSize: fontSize.button },
   secondaryBtn:       { borderWidth: 1.5, borderColor: '#2E7D32', padding: 14, borderRadius: 8, alignItems: 'center', marginBottom: 20 },
+  secondaryBtnHover:  { backgroundColor: COLORS.primaryDeep, borderColor: COLORS.primaryDeep },
   secondaryBtnText:   { color: '#2E7D32', fontWeight: 'bold', fontSize: fontSize.button },
+  secondaryBtnTextHover: { color: '#ffffff' },
+
+  // Hover states for cards and slots (web)
+  callTypeCardHover: { backgroundColor: 'rgba(27,94,32,0.05)', borderColor: '#A5D6A7' },
+  timeSlotHover:     { backgroundColor: 'rgba(27,94,32,0.05)', borderColor: '#A5D6A7' },
 
   disclaimer: { fontSize: fontSize.tiny, color: '#aaa', textAlign: 'center', lineHeight: 18, marginBottom: 40 },
 });

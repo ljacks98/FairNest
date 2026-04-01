@@ -1,12 +1,24 @@
 export const COLORS = {
-  primary: '#2E7D32',
-  secondary: '#66BB6A',
+  // Legacy tokens — kept for backward compatibility with other screens
+  primary:    '#2E7D32',
+  secondary:  '#66BB6A',
   background: '#f5f5f5',
-  white: '#ffffff',
-  text: '#333333',
-  textLight: '#666666',
-  error: '#D32F2F',
-  success: '#388E3C',
+  white:      '#ffffff',
+  text:       '#333333',
+  textLight:  '#666666',
+  error:      '#D32F2F',
+  success:    '#388E3C',
+
+  // Design system tokens — match AboutScreen palette exactly
+  primaryDeep: '#1B5E20',   // dark green — hero / footer backgrounds (matches About hero)
+  gold:        '#E8A000',   // amber — search/CTA buttons only
+  greenTint:   '#f0f7f0',   // light green tint — alternating section backgrounds
+  border:      '#e8e8e8',   // subtle border / divider
+  textPrimary: '#1a1a1a',   // near-black body text
+  textMuted:   '#555555',   // secondary / caption text
+  iconTint:    '#E8F5E9',   // icon circle backgrounds
+
+  amber: '#F5A623',  // amber accent   — primary CTAs only
 };
 
 export const HOUSING_RESOURCES = [

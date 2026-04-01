@@ -14,7 +14,7 @@ import {
 import { AuthContext } from '../context/AuthContext';
 import {
   doc, getDoc, setDoc, updateDoc, deleteDoc,
-  collection, query, where, getDocs, orderBy,
+  collection, query, where, getDocs,
 } from 'firebase/firestore';
 import { updatePassword, deleteUser } from 'firebase/auth';
 import { db } from '../firebaseConfig';
@@ -81,11 +81,12 @@ export default function ProfileScreen({ navigation }) {
       try {
         const q = query(
           collection(db, 'reports'),
-          where('userId', '==', user.uid),
-          orderBy('createdAt', 'desc')
+          where('userId', '==', user.uid)
         );
         const snap = await getDocs(q);
-        setReports(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+        const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        docs.sort((a, b) => (b.createdAt?.seconds ?? 0) - (a.createdAt?.seconds ?? 0));
+        setReports(docs);
       } catch (err) { console.log(err); }
       setReportsLoading(false);
     };

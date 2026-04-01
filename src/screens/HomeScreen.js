@@ -1,25 +1,163 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useRef, useEffect } from 'react';
 import {
   StyleSheet,
   Text,
   View,
+  Image,
+  Animated,
   TouchableOpacity,
   ScrollView,
   TextInput,
-  Alert,
+  useWindowDimensions,
 } from 'react-native';
-
+import { Ionicons } from '@expo/vector-icons';
 import { AuthContext } from '../context/AuthContext';
 import Navbar from '../components/Navbar';
+import { COLORS } from '../utils/constants';
 import { fontSize } from '../theme/typography';
+
+// ── Data ──────────────────────────────────────────────────────────────────────
+
+const STATS = [
+  { number: '16+', label: 'Local Programs' },
+  { number: '7', label: 'Protected Classes' },
+  { number: '24/7', label: 'AI Help Available' },
+  { number: '100%', label: 'Free to Use' },
+];
+
+const IMPACT_STATS = [
+  {
+    number: '1 in 4',
+    label: 'Durham renters spend 30%+ of income on housing',
+    icon: 'home-outline',
+  },
+  {
+    number: '72%',
+    label: 'Of housing discrimination cases go unreported',
+    icon: 'eye-off-outline',
+  },
+  {
+    number: '$0',
+    label: 'Cost to use FairNest — completely free',
+    icon: 'shield-checkmark-outline',
+  },
+];
+
+const STEPS = [
+  {
+    num: '01',
+    iconName: 'shield-checkmark-outline',
+    title: 'Check If You Qualify',
+    desc: 'Answer a few questions to find out if your situation is covered under fair housing law.',
+  },
+  {
+    num: '02',
+    iconName: 'book-outline',
+    title: 'Know Your Rights',
+    desc: 'Get clear, plain-language guidance on what legal protections apply to your case.',
+  },
+  {
+    num: '03',
+    iconName: 'arrow-forward-circle-outline',
+    title: 'Take Action',
+    desc: 'File a report, schedule a free consultation, or connect directly with a local advocate.',
+  },
+];
+
+const FEATURE_CARDS = [
+  {
+    iconName: 'home-outline',
+    title: 'Housing Rights',
+    desc: 'Know your legal protections as a Durham tenant',
+    route: 'HousingRights',
+    auth: false,
+  },
+  {
+    iconName: 'people-outline',
+    title: 'Fair Housing Support',
+    desc: 'Connect with local advocates and organizations',
+    route: 'FairHousingSupport',
+    auth: false,
+  },
+  {
+    iconName: 'compass-outline',
+    title: 'Resources',
+    desc: 'Find housing assistance programs near you',
+    route: 'Resources',
+    routeParams: { category: 'housing' },
+    auth: false,
+  },
+  {
+    iconName: 'chatbubble-ellipses-outline',
+    title: 'AI Assistant',
+    desc: 'Get instant answers to your housing questions',
+    route: 'ChatInterface',
+    auth: true,
+  },
+  {
+    iconName: 'document-text-outline',
+    title: 'File a Report',
+    desc: 'Submit a housing discrimination or issue report',
+    route: 'Report',
+    auth: true,
+  },
+  {
+    iconName: 'calendar-outline',
+    title: 'Schedule a Call',
+    desc: 'Book a free consultation with an advocate or attorney',
+    route: 'ScheduleCall',
+    auth: true,
+  },
+  {
+    iconName: 'information-circle-outline',
+    title: 'About FairNest',
+    desc: 'Learn about our mission and the team behind this project',
+    route: 'About',
+    auth: false,
+  },
+];
+
+// ── Screen ────────────────────────────────────────────────────────────────────
 
 export default function HomeScreen({ navigation }) {
   const [query, setQuery] = useState('');
+  const [hoveredCard, setHoveredCard] = useState(null);
   const { user } = useContext(AuthContext);
+  const { width } = useWindowDimensions();
+  const isWide = width >= 700;
+  const isLarge = width >= 1000;
+
+  const [hoveredStep, setHoveredStep] = useState(null);
+  const [hoveredCtaPrimary, setHoveredCtaPrimary] = useState(false);
+  const [hoveredCtaSecondary, setHoveredCtaSecondary] = useState(false);
+  const checkerArrowX = useRef(new Animated.Value(0)).current;
+  const checkerCtaScale = useRef(new Animated.Value(1)).current;
+  const pulseDotAnim = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    const pulse = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseDotAnim, { toValue: 0.25, duration: 900, useNativeDriver: true }),
+        Animated.timing(pulseDotAnim, { toValue: 1, duration: 900, useNativeDriver: true }),
+      ])
+    );
+    pulse.start();
+    return () => pulse.stop();
+  }, [pulseDotAnim]);
+
+  const onCheckerHoverIn = () =>
+    Animated.parallel([
+      Animated.timing(checkerArrowX, { toValue: 6, duration: 180, useNativeDriver: true }),
+      Animated.timing(checkerCtaScale, { toValue: 1.12, duration: 180, useNativeDriver: true }),
+    ]).start();
+  const onCheckerHoverOut = () =>
+    Animated.parallel([
+      Animated.timing(checkerArrowX, { toValue: 0, duration: 180, useNativeDriver: true }),
+      Animated.timing(checkerCtaScale, { toValue: 1, duration: 180, useNativeDriver: true }),
+    ]).start();
 
   const handleSearch = () => {
     const text = query.toLowerCase();
-
     if (
       text.includes('rent') ||
       text.includes('eviction') ||
@@ -33,7 +171,6 @@ export default function HomeScreen({ navigation }) {
       text.includes('house') ||
       text.includes('housing') ||
       text.includes('apartment') ||
-      text.includes('apartments') ||
       text.includes('room') ||
       text.includes('place to live')
     ) {
@@ -53,277 +190,1106 @@ export default function HomeScreen({ navigation }) {
     } else {
       navigation.navigate('Resources', { category: 'housing' });
     }
-
     setQuery('');
   };
 
-  const requireAuth = (screen) => {
-    if (!user) {
-      Alert.alert(
-        'Login Required',
-        'You need to log in to use the AI Assistant.',
-        [
-          { text: 'Cancel', style: 'cancel' },
-          { text: 'Login', onPress: () => navigation.navigate('Login') },
-        ]
-      );
+  const go = (route, params, requiresAuth) => {
+    if (requiresAuth && !user) {
+      navigation.navigate('Login');
     } else {
-      navigation.navigate(screen);
+      navigation.navigate(route, params);
     }
   };
 
   return (
-    <ScrollView style={styles.container}>
-      <Navbar navigation={navigation} currentRoute="Home" />
+    <View style={styles.root}>
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}>
+        {/* ── 1+2. HERO + STATS — single continuous photo background ── */}
+        <View style={styles.heroAndStats}>
+          <Image
+            source={require('../../assets/pexel-durham2.jpg')}
+            style={styles.heroBgImage}
+            resizeMode="cover"
+          />
+          <View style={styles.heroOverlay} />
 
-      {/* HERO */}
-      <View style={styles.header}>
-        <View style={styles.heroContent}>
-          <Text style={styles.heroLabel}>ABOUT FAIRNEST</Text>
-          <Text style={styles.title}>
-            Housing Justice, Built for Durham
-          </Text>
-          <Text style={styles.subtitle}>
-            FairNest is a capstone project designed to help Durham residents
-            navigate housing rights, report discrimination, and access local
-            assistance — all in one place.
-          </Text>
-        </View>
-      </View>
-
-      <View style={styles.contentWrapper}>
-        {/* FEATURES */}
-        <View style={styles.featuresContainer}>
-          <Text style={styles.sectionTitle}>How FairNest Can Help</Text>
-
-          {/* QUALIFIER HIGHLIGHT CARD */}
-          <TouchableOpacity
-            style={styles.checkerCard}
-            onPress={() => navigation.navigate('DiscriminationChecker')}>
-            <View style={styles.checkerCardInner}>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.checkerCardTitle}>Have you been treated unfairly because of who you are?</Text>
-                <Text style={styles.checkerCardDesc}>
-                  If you think you've experienced housing discrimination, answer a few questions to find out if your situation qualifies — and what to do next.
-                </Text>
-                <Text style={styles.checkerCardCta}>Find out now →</Text>
+          {/* Hero */}
+          <View style={styles.hero}>
+            <Navbar navigation={navigation} currentRoute="Home" transparent />
+            <View style={styles.heroContent}>
+              <Text style={styles.heroEyebrow}>FAIRNEST — DURHAM, NC</Text>
+              <Text style={styles.heroTitle}>
+                Every Durham{'\n'}resident deserves{'\n'}fair housing.
+              </Text>
+              <Text style={styles.heroSub}>
+                Navigate your rights, report discrimination, and connect with
+                local support — all in one place, at no cost.
+              </Text>
+              <View style={styles.searchRow}>
+                <TextInput
+                  style={styles.searchInput}
+                  placeholder="Search rights, resources, or ask a question..."
+                  placeholderTextColor="rgba(255,255,255,0.5)"
+                  value={query}
+                  onChangeText={setQuery}
+                  onSubmitEditing={handleSearch}
+                  returnKeyType="search"
+                  accessibilityLabel="Search housing resources"
+                />
+                <TouchableOpacity
+                  style={styles.searchBtn}
+                  onPress={handleSearch}
+                  activeOpacity={0.7}
+                  accessibilityLabel="Submit search">
+                  <Ionicons name="search" size={16} color={COLORS.white} />
+                  <Text style={styles.searchBtnText}>Search</Text>
+                </TouchableOpacity>
               </View>
             </View>
-          </TouchableOpacity>
+          </View>
 
-          <TouchableOpacity
-            style={styles.featureCard}
-            onPress={() => navigation.navigate('HousingRights')}>
-            <Text style={styles.featureTitle}>🏠 Housing Rights</Text>
-            <Text style={styles.featureDescription}>
-              Learn about your rights as a tenant in Durham
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.featureCard}
-            onPress={() => navigation.navigate('FairHousingSupport')}>
-            <Text style={styles.featureTitle}>⚖️ Fair Housing Support</Text>
-            <Text style={styles.featureDescription}>
-              Learn about advocacy and support resources in Durham
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.featureCard}
-            onPress={() =>
-              navigation.navigate('Resources', { category: 'housing' })
-            }>
-            <Text style={styles.featureTitle}>📋 Resources</Text>
-            <Text style={styles.featureDescription}>
-              Find local housing assistance programs
-            </Text>
-          </TouchableOpacity>
-
-          {/* PROTECTED FEATURE */}
-          <TouchableOpacity
-            style={styles.featureCard}
-            onPress={() => requireAuth('ChatInterface')}>
-            <Text style={styles.featureTitle}>💬 AI Assistant</Text>
-            <Text style={styles.featureDescription}>
-              Get instant answers to your housing questions
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.featureCard}
-            onPress={() => navigation.navigate('Report')}>
-            <Text style={styles.featureTitle}>📝 File a Report</Text>
-            <Text style={styles.featureDescription}>
-              Submit a housing discrimination or issue report
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.featureCard}
-            onPress={() => requireAuth('ScheduleCall')}>
-            <Text style={styles.featureTitle}>📞 Schedule a Call</Text>
-            <Text style={styles.featureDescription}>
-              Book a free consultation with a fair housing advocate or legal expert
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.featureCard}
-            onPress={() => navigation.navigate('About')}>
-            <Text style={styles.featureTitle}>ℹ️ About FairNest</Text>
-            <Text style={styles.featureDescription}>
-              Learn about the mission and scope of this project
-            </Text>
-          </TouchableOpacity>
+          {/* Stats — darker overlay strip at the bottom of the shared bg */}
+          <View style={styles.statsSection}>
+            <View style={styles.statsOverlay} />
+            <View style={[styles.statsRow, isWide && styles.statsRowWide]}>
+              {STATS.map((stat, i) => (
+                <View
+                  key={stat.label}
+                  style={[
+                    styles.statItem,
+                    isWide && styles.statItemWide,
+                    i === STATS.length - 1 && styles.statItemLast,
+                  ]}>
+                  <Text style={styles.statNumber}>{stat.number}</Text>
+                  <Text style={styles.statLabel}>{stat.label}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
         </View>
 
-        {/* SEARCH SECTION */}
-        <View style={styles.searchContainer}>
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Ask about housing rights, discrimination, or resources..."
-            value={query}
-            onChangeText={setQuery}
-            multiline
-          />
-          <TouchableOpacity style={styles.searchButton} onPress={handleSearch}>
-            <Text style={styles.searchButtonText}>Get Help</Text>
-          </TouchableOpacity>
+        {/* ── 4. CHECKER HIGHLIGHT — full-bleed white ── */}
+        <View style={styles.checkerSection}>
+          <View style={styles.checkerCard}>
+            {/* Concentric ring decorations */}
+            <View style={styles.checkerRing3} />
+            <View style={styles.checkerRing2} />
+            <View style={styles.checkerRing1} />
+            {/* Glow blobs */}
+            <View style={styles.checkerGlowTopRight} />
+            <View style={styles.checkerGlowBottomLeft} />
+            {/* Glassmorphism inner border */}
+            <View style={styles.checkerGlassBorder} />
+            <View style={styles.checkerDecorCircle1} />
+            <View style={styles.checkerDecorCircle2} />
+            <View style={styles.checkerBar} />
+            <View style={styles.checkerBody}>
+              <View style={styles.checkerBadge}>
+                <View style={styles.checkerBadgeDot} />
+                <Text style={styles.checkerBadgeText}>FREE SELF-ASSESSMENT</Text>
+              </View>
+              <View style={styles.checkerTitleRow}>
+                <View style={styles.checkerIconCircle}>
+                  <Ionicons name="shield-checkmark" size={20} color={COLORS.amber} />
+                </View>
+                <Text style={styles.checkerTitle}>
+                  Have you been treated unfairly because of who you are?
+                </Text>
+              </View>
+              <Text style={styles.checkerDesc}>
+                Answer a few questions to find out if your situation qualifies
+                as housing discrimination — and what to do next.
+              </Text>
+              <TouchableOpacity
+                style={styles.checkerCta}
+                onPress={() => navigation.navigate('DiscriminationChecker')}
+                onMouseEnter={onCheckerHoverIn}
+                onMouseLeave={onCheckerHoverOut}
+                activeOpacity={0.7}
+                accessibilityLabel="Take the free housing discrimination self-assessment">
+                <Animated.View style={[styles.checkerCtaInner, { transform: [{ scale: checkerCtaScale }] }]}>
+                  <Text style={styles.checkerCtaText}>Find out now</Text>
+                  <Animated.View style={{ transform: [{ translateX: checkerArrowX }] }}>
+                    <Ionicons name="arrow-forward" size={15} color={COLORS.primaryDeep} />
+                  </Animated.View>
+                </Animated.View>
+              </TouchableOpacity>
+            </View>
+          </View>
         </View>
-      </View>
-    </ScrollView>
+
+        {/* ── 5. FEATURE CARDS — full-bleed green tint ── */}
+        <View style={styles.toolsSection}>
+          <View style={styles.sectionBadge}>
+            <Text style={styles.sectionBadgeText}>OUR TOOLS</Text>
+          </View>
+          <Text style={styles.sectionTitle}>How FairNest Can Help</Text>
+          <View
+            style={[
+              styles.cardsGrid,
+              isWide && styles.cardsGridWide,
+              isLarge && styles.cardsGridLarge,
+            ]}>
+            {FEATURE_CARDS.map((card) => {
+              const hovered = hoveredCard === card.title;
+              return (
+                <TouchableOpacity
+                  key={card.title}
+                  style={[
+                    styles.featureCard,
+                    isWide && styles.featureCardWide,
+                    isLarge && styles.featureCardLarge,
+                    hovered && styles.featureCardHover,
+                  ]}
+                  onPress={() => go(card.route, card.routeParams, card.auth)}
+                  onMouseEnter={() => setHoveredCard(card.title)}
+                  onMouseLeave={() => setHoveredCard(null)}
+                  activeOpacity={0.7}
+                  accessibilityLabel={card.title}>
+                  <View style={[styles.featureBar, hovered && styles.featureBarHover]} />
+                  <View style={styles.featureBody}>
+                    <View style={[styles.iconCircle, hovered && styles.iconCircleHover]}>
+                      <Ionicons
+                        name={card.iconName}
+                        size={20}
+                        color={hovered ? COLORS.white : COLORS.primaryDeep}
+                      />
+                    </View>
+                    <View style={styles.featureText}>
+                      <Text style={[styles.featureTitle, hovered && styles.featureTitleHover]}>{card.title}</Text>
+                      <Text style={[styles.featureDesc, hovered && styles.featureDescHover]}>{card.desc}</Text>
+                    </View>
+                    <Ionicons
+                      name="chevron-forward"
+                      size={16}
+                      color={hovered ? COLORS.primary : COLORS.border}
+                    />
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
+
+        {/* ── 5b. IMPACT STATS — full-bleed dark green ── */}
+        <View style={styles.impactSection}>
+          <View style={[styles.sectionBadge, styles.sectionBadgeGold]}>
+            <Text
+              style={[styles.sectionBadgeText, styles.sectionBadgeTextGold]}>
+              THE PROBLEM WE'RE SOLVING
+            </Text>
+          </View>
+          <Text style={styles.impactHeading}>
+            Housing Discrimination{'\n'}in Durham
+          </Text>
+          <View style={[styles.impactRow, isWide && styles.impactRowWide]}>
+            {IMPACT_STATS.map((stat, i) => (
+              <View
+                key={i}
+                style={[
+                  styles.impactCard,
+                  isWide && styles.impactCardWide,
+                  isWide &&
+                    i === IMPACT_STATS.length - 1 &&
+                    styles.impactCardLast,
+                ]}>
+                <View style={styles.impactIconWrap}>
+                  <Ionicons name={stat.icon} size={18} color={COLORS.gold} />
+                </View>
+                <View style={styles.impactNumberRow}>
+                  <Text style={styles.impactNumber}>{stat.number}</Text>
+                  {i === 0 && (
+                    <Animated.View
+                      style={[styles.impactPulseDot, { opacity: pulseDotAnim }]}
+                    />
+                  )}
+                </View>
+                <Text style={styles.impactLabel}>{stat.label}</Text>
+              </View>
+            ))}
+          </View>
+        </View>
+
+        {/* ── 6. HOW IT WORKS — full-bleed white ── */}
+        <View style={styles.stepsSection}>
+          <View style={[styles.sectionBadge, styles.sectionBadgeDark]}>
+            <Text
+              style={[styles.sectionBadgeText, styles.sectionBadgeTextDark]}>
+              HOW IT WORKS
+            </Text>
+          </View>
+          <Text style={styles.sectionTitle}>Three Simple Steps</Text>
+          <View style={[styles.stepsRow, isWide && styles.stepsRowWide]}>
+            {STEPS.map((step, idx) => {
+              const stepHovered = hoveredStep === step.num;
+              return (
+                <React.Fragment key={step.num}>
+                  <View
+                    style={[
+                      styles.stepCard,
+                      isWide && styles.stepCardWide,
+                      stepHovered && styles.stepCardHover,
+                      stepHovered && styles.stepCardHoverTransform,
+                    ]}
+                    onMouseEnter={() => setHoveredStep(step.num)}
+                    onMouseLeave={() => setHoveredStep(null)}>
+                    <View style={[styles.stepBadge, stepHovered && styles.stepBadgeHover]}>
+                      <Text style={[styles.stepBadgeNum, stepHovered && styles.stepBadgeNumHover]}>
+                        {step.num}
+                      </Text>
+                    </View>
+                    <View style={[styles.stepIconWrap, stepHovered && styles.stepIconWrapHover]}>
+                      <Ionicons
+                        name={step.iconName}
+                        size={28}
+                        color={stepHovered ? COLORS.white : COLORS.primaryDeep}
+                      />
+                    </View>
+                    <Text style={[styles.stepTitle, stepHovered && styles.stepTitleHover]}>
+                      {step.title}
+                    </Text>
+                    <Text style={[styles.stepDesc, stepHovered && styles.stepDescHover]}>
+                      {step.desc}
+                    </Text>
+                  </View>
+                  {isWide && idx < STEPS.length - 1 && (
+                    <View style={styles.stepsConnector} />
+                  )}
+                </React.Fragment>
+              );
+            })}
+          </View>
+        </View>
+
+        {/* ── 7. MISSION CTA — full-bleed dark green ── */}
+        <View style={styles.ctaSection}>
+          <Text style={styles.ctaEyebrow}>
+            FREE, LOCAL, AND BUILT FOR DURHAM
+          </Text>
+          <Text style={styles.ctaTitle}>
+            Every Durham Resident Deserves Fair Housing
+          </Text>
+          <Text style={styles.ctaSub}>
+            FairNest was built by NCCU students to give you the tools to
+            understand, document, and fight housing discrimination — at no cost.
+          </Text>
+          <View style={[styles.ctaBtns, isWide && styles.ctaBtnsWide]}>
+            <TouchableOpacity
+              style={[styles.ctaBtnPrimary, hoveredCtaPrimary && styles.ctaBtnPrimaryHover]}
+              onPress={() => navigation.navigate('DiscriminationChecker')}
+              onMouseEnter={() => setHoveredCtaPrimary(true)}
+              onMouseLeave={() => setHoveredCtaPrimary(false)}
+              activeOpacity={0.7}
+              accessibilityLabel="Get started with the discrimination checker">
+              <Text style={[styles.ctaBtnPrimaryText, hoveredCtaPrimary && styles.ctaBtnPrimaryTextHover]}>
+                Get Started — It's Free
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.ctaBtnSecondary, hoveredCtaSecondary && styles.ctaBtnSecondaryHover]}
+              onPress={() => navigation.navigate('About')}
+              onMouseEnter={() => setHoveredCtaSecondary(true)}
+              onMouseLeave={() => setHoveredCtaSecondary(false)}
+              activeOpacity={0.7}
+              accessibilityLabel="Learn about FairNest">
+              <Text style={[styles.ctaBtnSecondaryText, hoveredCtaSecondary && styles.ctaBtnSecondaryTextHover]}>Learn About Us</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </ScrollView>
+
+    </View>
   );
 }
 
+// ── Styles ────────────────────────────────────────────────────────────────────
+
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
+  root: { flex: 1, backgroundColor: COLORS.white },
+  scrollContent: { paddingBottom: 0 },
+
+  // ── 1+2. Shared hero + stats background wrapper ──────────────────────────
+  heroAndStats: {
+    overflow: 'hidden',
+    position: 'relative',
   },
-  header: {
-    backgroundColor: '#1B5E20',
-    paddingVertical: 70,
-    paddingHorizontal: 20,
-    alignItems: 'center',
+  heroBgImage: {
+    position: 'absolute',
+    left: -500,
+    right: 0,
+    bottom: 0,
+    height: 950,
+    resizeMode: 'cover',
   },
-  heroContent: {
-    maxWidth: 780,
-    alignItems: 'center',
+  heroOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(10, 40, 10, 0.65)',
   },
-  heroLabel: {
-    fontSize: fontSize.tiny,
-    fontWeight: 'bold',
-    color: 'rgba(255,255,255,0.7)',
-    letterSpacing: 2,
-    marginBottom: 18,
-    textTransform: 'uppercase',
-  },
-  title: {
-    fontSize: fontSize.hero,
-    fontWeight: 'bold',
-    color: '#fff',
-    marginBottom: 20,
-    textAlign: 'center',
-    lineHeight: fontSize.hero * 1.25,
-  },
-  subtitle: {
-    fontSize: fontSize.bodyLg,
-    color: 'rgba(255,255,255,0.85)',
-    textAlign: 'center',
-    lineHeight: fontSize.bodyLg * 1.6,
-    maxWidth: 640,
-  },
-  featuresContainer: {
-    paddingTop: 20,
-  },
-  sectionTitle: {
-    fontSize: fontSize.h2,
-    fontWeight: 'bold',
-    marginBottom: 15,
-    color: '#333',
-    textAlign: 'center',
-  },
-  checkerCard: {
-    backgroundColor: '#1B5E20',
-    borderRadius: 12,
-    marginBottom: 16,
-    padding: 20,
-    elevation: 3,
-  },
-  checkerCardInner: {
-    flexDirection: 'row',
-    alignItems: 'center',
+
+  // ── 1. Hero ──────────────────────────────────────────────────────────────
+  hero: {
+    minHeight: 760,
+    paddingBottom: 40,
+    paddingHorizontal: 0,
     justifyContent: 'space-between',
   },
-  checkerCardTitle: {
-    fontSize: fontSize.h3,
-    fontWeight: 'bold',
-    color: '#fff',
-    marginBottom: 6,
+  heroContent: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 24,
+    paddingBottom: 60,
   },
-  checkerCardDesc: {
-    fontSize: fontSize.body,
-    color: 'rgba(255,255,255,0.82)',
-    lineHeight: fontSize.body * 1.5,
-    maxWidth: 280,
-  },
-  checkerCardCta: {
-    fontSize: fontSize.body,
-    fontWeight: 'bold',
-    color: 'rgba(255,255,255,0.9)',
-    marginTop: 10,
-  },
-  featureCard: {
-    backgroundColor: '#fff',
-    padding: 20,
-    borderRadius: 10,
-    marginBottom: 15,
-    elevation: 2,
-  },
-  featureTitle: {
-    fontSize: fontSize.h4,
-    fontWeight: 'bold',
-    marginBottom: 8,
-    color: '#2E7D32',
-  },
-  featureDescription: {
-    fontSize: fontSize.body,
-    color: '#666',
-    lineHeight: fontSize.body * 1.5,
-  },
-  searchContainer: {
-    padding: 20,
-    backgroundColor: '#fff',
-    marginTop: 30,
+  heroEyebrow: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: COLORS.gold,
+    letterSpacing: 4,
     marginBottom: 20,
+    textTransform: 'uppercase',
+    textAlign: 'center',
+  },
+  heroTitle: {
+    fontSize: 64,
+    fontWeight: '900',
+    color: COLORS.white,
+    textAlign: 'center',
+    lineHeight: 64 * 1.1,
+    letterSpacing: -2,
+    marginBottom: 24,
+    maxWidth: 680,
+  },
+  heroSub: {
+    fontSize: fontSize.bodyLg,
+    color: 'rgba(255,255,255,0.88)',
+    textAlign: 'center',
+    lineHeight: fontSize.bodyLg * 1.6,
+    maxWidth: 560,
+    marginBottom: 40,
+  },
+  searchRow: {
+    flexDirection: 'row',
+    width: '100%',
+    maxWidth: 620,
     borderRadius: 12,
+    overflow: 'hidden',
+    backgroundColor: 'rgba(255,255,255,0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.25)',
   },
   searchInput: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    padding: 15,
-    fontSize: fontSize.input,
-    minHeight: 100,
-    textAlignVertical: 'top',
-    marginBottom: 15,
+    flex: 1,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    fontSize: fontSize.body,
+    color: COLORS.white,
   },
-  searchButton: {
-    backgroundColor: '#2E7D32',
-    padding: 15,
+  searchBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: COLORS.gold,
+    paddingHorizontal: 20,
+    paddingVertical: 14,
+  },
+  searchBtnText: {
+    color: COLORS.white,
+    fontWeight: 'bold',
+    fontSize: fontSize.button,
+  },
+
+  // ── 2. Stats ─────────────────────────────────────────────────────────────
+  statsSection: {
+    position: 'relative',
+  },
+  statsOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(5, 25, 5, 0.45)',
+  },
+  statsRow: { flexDirection: 'row', flexWrap: 'wrap' },
+  statsRowWide: { flexWrap: 'nowrap' },
+  statItem: {
+    flex: 1,
+    minWidth: '50%',
+    alignItems: 'center',
+    paddingVertical: 44,
+    borderRightWidth: 1,
+    borderRightColor: 'rgba(255,255,255,0.15)',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.15)',
+  },
+  statItemWide: {
+    minWidth: 0,
+    borderBottomWidth: 0,
+  },
+  statItemLast: {
+    borderRightWidth: 0,
+  },
+  statNumber: {
+    fontSize: 44,
+    fontWeight: '900',
+    color: COLORS.white,
+    marginBottom: 6,
+    letterSpacing: -1,
+  },
+  statLabel: {
+    fontSize: fontSize.caption,
+    color: COLORS.gold,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    textAlign: 'center',
+  },
+
+  eyebrow: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: COLORS.primary,
+    letterSpacing: 3,
+    marginBottom: 20,
+    textTransform: 'uppercase',
+    textAlign: 'center',
+  },
+
+  // ── 4. Checker ────────────────────────────────────────────────────────────
+  checkerSection: {
+    backgroundColor: COLORS.primaryDeep,
+    paddingHorizontal: 0,
+    paddingVertical: 0,
+  },
+  checkerCard: {
+    flexDirection: 'row',
+    backgroundColor: COLORS.primaryDeep,
+    overflow: 'hidden',
+    width: '100%',
+    minHeight: 280,
+  },
+  checkerGlowTopRight: {
+    position: 'absolute',
+    top: -30,
+    right: -30,
+    width: 320,
+    height: 320,
+    borderRadius: 160,
+    backgroundColor: 'rgba(255,255,255,0.05)',
+  },
+  checkerGlowBottomLeft: {
+    position: 'absolute',
+    bottom: -60,
+    left: 80,
+    width: 200,
+    height: 200,
+    borderRadius: 100,
+    backgroundColor: 'rgba(232,160,0,0.07)',
+  },
+  checkerGlassBorder: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+  },
+  // Concentric ring decorations (right side, inspired by reference)
+  checkerRing1: {
+    position: 'absolute',
+    right: -120,
+    top: '50%',
+    marginTop: -300,
+    width: 600,
+    height: 600,
+    borderRadius: 300,
+    borderWidth: 60,
+    borderColor: 'rgba(255,255,255,0.05)',
+  },
+  checkerRing2: {
+    position: 'absolute',
+    right: -180,
+    top: '50%',
+    marginTop: -400,
+    width: 800,
+    height: 800,
+    borderRadius: 400,
+    borderWidth: 60,
+    borderColor: 'rgba(255,255,255,0.04)',
+  },
+  checkerRing3: {
+    position: 'absolute',
+    right: -240,
+    top: '50%',
+    marginTop: -500,
+    width: 1000,
+    height: 1000,
+    borderRadius: 500,
+    borderWidth: 60,
+    borderColor: 'rgba(255,255,255,0.03)',
+  },
+  checkerBar: { width: 8, backgroundColor: COLORS.amber },
+  checkerBody: { flex: 1, paddingVertical: 56, paddingHorizontal: 48, alignItems: 'center' },
+  checkerEyebrow: {
+    fontSize: fontSize.tiny,
+    fontWeight: 'bold',
+    color: COLORS.amber,
+    letterSpacing: 2,
+    marginBottom: 12,
+    textTransform: 'uppercase',
+    textAlign: 'center',
+  },
+  checkerTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 12,
+    marginBottom: 16,
+    justifyContent: 'center',
+  },
+  checkerIconCircle: {
+    width: 38,
+    height: 38,
+    borderRadius: 10,
+    backgroundColor: 'rgba(232,160,0,0.16)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    flexShrink: 0,
+    marginTop: 2,
+  },
+  checkerTitle: {
+    flex: 1,
+    fontSize: 36,
+    fontWeight: '900',
+    color: COLORS.white,
+    lineHeight: 36 * 1.2,
+    letterSpacing: -0.5,
+    textAlign: 'center',
+  },
+  checkerDesc: {
+    fontSize: fontSize.bodyLg,
+    color: 'rgba(255,255,255,0.75)',
+    lineHeight: fontSize.bodyLg * 1.6,
+    marginBottom: 28,
+    maxWidth: 560,
+    textAlign: 'center',
+  },
+  checkerCta: {
+    backgroundColor: COLORS.amber,
     borderRadius: 8,
+    paddingHorizontal: 32,
+    paddingVertical: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  checkerCtaInner: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  checkerCtaText: {
+    fontSize: fontSize.button,
+    fontWeight: '800',
+    color: COLORS.primaryDeep,
+    letterSpacing: 0.3,
+  },
+
+  // ── 6. Steps ──────────────────────────────────────────────────────────────
+  stepsSection: {
+    backgroundColor: COLORS.white,
+    paddingVertical: 56,
+    paddingHorizontal: 24,
+    alignItems: 'center',
+    borderTopWidth: 1,
+    borderTopColor: COLORS.border,
+  },
+  sectionTitle: {
+    fontSize: fontSize.h1,
+    fontWeight: '800',
+    color: COLORS.textPrimary,
+    textAlign: 'center',
+    marginBottom: 36,
+    letterSpacing: -0.5,
+  },
+  stepsRow: { width: '100%', maxWidth: 960, gap: 16 },
+  stepsRowWide: { flexDirection: 'row', alignItems: 'flex-start' },
+  stepCard: {
+    backgroundColor: COLORS.greenTint,
+    borderRadius: 14,
+    padding: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.07,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  stepCardWide: { flex: 1 },
+  stepNum: {
+    fontSize: 52,
+    fontWeight: '900',
+    color: COLORS.primaryDeep,
+    opacity: 0.15,
+    marginBottom: 8,
+    letterSpacing: -1,
+  },
+  stepIconWrap: {
+    width: 52,
+    height: 52,
+    borderRadius: 12,
+    backgroundColor: COLORS.white,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  stepTitle: {
+    fontSize: fontSize.h4,
+    fontWeight: 'bold',
+    color: COLORS.textPrimary,
+    marginBottom: 8,
+  },
+  stepDesc: {
+    fontSize: fontSize.body,
+    color: COLORS.textMuted,
+    lineHeight: fontSize.body * 1.5,
+  },
+  stepCardHover: {
+    backgroundColor: COLORS.primaryDeep,
+    shadowColor: COLORS.primaryDeep,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.35,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  stepCardHoverTransform: {
+    transform: [{ translateY: -4 }],
+  },
+  stepNumHover: { color: COLORS.white, opacity: 0.2 },
+  stepIconWrapHover: { backgroundColor: COLORS.primary },
+  stepTitleHover: { color: COLORS.white },
+  stepDescHover: { color: 'rgba(255,255,255,0.75)' },
+
+  // ── 5. Feature cards ──────────────────────────────────────────────────────
+  toolsSection: {
+    backgroundColor: COLORS.greenTint,
+    paddingVertical: 56,
+    paddingHorizontal: 24,
     alignItems: 'center',
   },
-  searchButtonText: {
-    color: '#fff',
-    fontSize: fontSize.button,
-    fontWeight: 'bold',
+  eyebrowGreen: { display: 'none' },
+  cardsGrid: { width: '100%', maxWidth: 1100, gap: 16 },
+  cardsGridWide: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
   },
-  contentWrapper: {
-    width: '100%',
-    maxWidth: 1000,
+  cardsGridLarge: { justifyContent: 'center' },
+  featureCard: {
+    backgroundColor: COLORS.white,
+    borderRadius: 14,
+    flexDirection: 'row',
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.07,
+    shadowRadius: 10,
+    elevation: 3,
+  },
+  featureCardWide: { flexBasis: '47%', flexGrow: 1 },
+  featureCardLarge: { flexBasis: '31%', flexGrow: 0 },
+  featureCardHover: {
+    backgroundColor: COLORS.primaryDeep,
+    borderColor: COLORS.primaryDeep,
+  },
+  featureBar: { width: 5, backgroundColor: COLORS.primaryDeep },
+  featureBarHover: { backgroundColor: COLORS.gold },
+  featureBody: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 20,
+    gap: 16,
+  },
+  iconCircle: {
+    width: 52,
+    height: 52,
+    borderRadius: 12,
+    backgroundColor: '#E8F5E9',
+    justifyContent: 'center',
+    alignItems: 'center',
+    flexShrink: 0,
+  },
+  iconCircleHover: {
+    backgroundColor: COLORS.primary,
+  },
+  featureText: { flex: 1 },
+  featureTitle: {
+    fontSize: fontSize.body,
+    fontWeight: 'bold',
+    color: COLORS.textPrimary,
+    marginBottom: 6,
+  },
+  featureTitleHover: { color: COLORS.white },
+  featureDesc: {
+    fontSize: fontSize.small,
+    color: COLORS.textMuted,
+    lineHeight: fontSize.small * 1.5,
+  },
+  featureDescHover: { color: 'rgba(255,255,255,0.75)' },
+
+  // ── 7. Mission CTA ────────────────────────────────────────────────────────
+  ctaSection: {
+    backgroundColor: COLORS.primaryDeep,
+    borderTopWidth: 3,
+    borderTopColor: COLORS.amber,
+    paddingVertical: 64,
+    paddingHorizontal: 24,
+    alignItems: 'center',
+  },
+  ctaEyebrow: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: COLORS.gold,
+    letterSpacing: 3,
+    marginBottom: 16,
+    textTransform: 'uppercase',
+    textAlign: 'center',
+  },
+  ctaTitle: {
+    fontSize: fontSize.h1,
+    fontWeight: 'bold',
+    color: COLORS.white,
+    textAlign: 'center',
+    lineHeight: fontSize.h1 * 1.2,
+    marginBottom: 16,
+    maxWidth: 640,
+  },
+  ctaSub: {
+    fontSize: fontSize.bodyLg,
+    color: 'rgba(255,255,255,0.78)',
+    textAlign: 'center',
+    lineHeight: fontSize.bodyLg * 1.6,
+    maxWidth: 560,
+    marginBottom: 36,
+  },
+  ctaBtns: { gap: 12 },
+  ctaBtnsWide: { flexDirection: 'row' },
+  ctaBtnPrimary: {
+    backgroundColor: COLORS.white,
+    borderRadius: 8,
+    paddingHorizontal: 28,
+    paddingVertical: 16,
+    alignItems: 'center',
+  },
+  ctaBtnPrimaryText: {
+    color: COLORS.primaryDeep,
+    fontWeight: '800',
+    fontSize: fontSize.button,
+  },
+  ctaBtnSecondary: {
+    borderWidth: 1.5,
+    borderColor: 'rgba(255,255,255,0.5)',
+    borderRadius: 8,
+    paddingHorizontal: 28,
+    paddingVertical: 16,
+    alignItems: 'center',
+  },
+  ctaBtnSecondaryText: {
+    color: COLORS.white,
+    fontWeight: 'bold',
+    fontSize: fontSize.button,
+  },
+  ctaBtnPrimaryHover: { backgroundColor: COLORS.primary },
+  ctaBtnPrimaryTextHover: { color: COLORS.white },
+  ctaBtnSecondaryHover: { backgroundColor: COLORS.white, borderColor: COLORS.white },
+  ctaBtnSecondaryTextHover: { color: COLORS.primaryDeep },
+
+  // ── Emergency bar ─────────────────────────────────────────────────────────
+  emergencyBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.white,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    gap: 12,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.border,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  emergencyIconWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: COLORS.greenTint,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  emergencyText: { flex: 1 },
+  emergencyTitle: {
+    fontSize: fontSize.small,
+    fontWeight: 'bold',
+    color: COLORS.textPrimary,
+  },
+  emergencyNum: { fontSize: fontSize.tiny, color: COLORS.textMuted },
+  emergencyBtn: {
+    backgroundColor: COLORS.primaryDeep,
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+  },
+  emergencyBtnText: {
+    color: COLORS.white,
+    fontWeight: 'bold',
+    fontSize: fontSize.small,
+  },
+
+  // ── Section badge pill (NLP-style label) ─────────────────────────────────
+  sectionBadge: {
+    backgroundColor: COLORS.primaryDeep,
+    borderRadius: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 7,
     alignSelf: 'center',
+    marginBottom: 16,
+  },
+  sectionBadgeText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: COLORS.white,
+    letterSpacing: 2,
+    textTransform: 'uppercase',
+  },
+  sectionBadgeDark: { backgroundColor: 'rgba(27,94,32,0.12)' },
+  sectionBadgeTextDark: { color: COLORS.primaryDeep },
+  sectionBadgeGold: { backgroundColor: 'rgba(232,160,0,0.18)' },
+  sectionBadgeTextGold: { color: COLORS.gold },
+
+  // ── Impact stats section ───────────────────────────────────────────────────
+  impactSection: {
+    backgroundColor: COLORS.primaryDeep,
+    paddingVertical: 56,
+    paddingHorizontal: 24,
+    alignItems: 'center',
+  },
+  impactEyebrow: { display: 'none' },
+  impactHeading: {
+    fontSize: fontSize.h1,
+    fontWeight: '900',
+    color: COLORS.white,
+    textAlign: 'center',
+    letterSpacing: -0.5,
+    lineHeight: fontSize.h1 * 1.2,
+    marginBottom: 40,
+  },
+  impactRow: { width: '100%', maxWidth: 900, gap: 0 },
+  impactRowWide: { flexDirection: 'row' },
+  impactCard: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 28,
     paddingHorizontal: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.12)',
+  },
+  impactCardWide: {
+    borderBottomWidth: 0,
+    borderRightWidth: 1,
+    borderRightColor: 'rgba(255,255,255,0.12)',
+  },
+  impactCardLast: { borderRightWidth: 0 },
+  impactIconWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  impactNumber: {
+    fontSize: 56,
+    fontWeight: '900',
+    color: COLORS.white,
+    letterSpacing: -1,
+  },
+  impactLabel: {
+    fontSize: fontSize.small,
+    color: 'rgba(255,255,255,0.7)',
+    textAlign: 'center',
+    lineHeight: fontSize.small * 1.5,
+    maxWidth: 220,
+  },
+
+  // ── Hero badge ────────────────────────────────────────────────────────────
+  heroBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: 'rgba(27,94,32,0.5)',
+    borderRadius: 20,
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.25)',
+    marginBottom: 20,
+  },
+  heroBadgeDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 4,
+    backgroundColor: COLORS.amber,
+  },
+  heroBadgeText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: COLORS.white,
+    letterSpacing: 0.3,
+  },
+
+  // ── Checker decorative circles ────────────────────────────────────────────
+  checkerDecorCircle1: {
+    position: 'absolute',
+    top: -60,
+    right: -60,
+    width: 280,
+    height: 280,
+    borderRadius: 140,
+    backgroundColor: 'rgba(255,255,255,0.04)',
+    opacity: 0.7,
+  },
+  checkerDecorCircle2: {
+    position: 'absolute',
+    top: -20,
+    right: 120,
+    width: 180,
+    height: 180,
+    borderRadius: 90,
+    backgroundColor: 'rgba(255,255,255,0.03)',
+    opacity: 0.6,
+  },
+
+  // ── Checker badge ─────────────────────────────────────────────────────────
+  checkerBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.3)',
+    borderRadius: 20,
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    alignSelf: 'center',
+    marginBottom: 20,
+  },
+  checkerBadgeDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: COLORS.amber,
+  },
+  checkerBadgeText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: 'rgba(255,255,255,0.75)',
+    letterSpacing: 2,
+    textTransform: 'uppercase',
+  },
+
+  // ── Checker ghost link ────────────────────────────────────────────────────
+  checkerGhostLink: {
+    marginTop: 16,
+    paddingVertical: 8,
+  },
+  checkerGhostText: {
+    fontSize: fontSize.small,
+    color: 'rgba(255,255,255,0.6)',
+    textDecorationLine: 'underline',
+    textAlign: 'center',
+    letterSpacing: 0.2,
+  },
+
+  // ── Checker stats row ─────────────────────────────────────────────────────
+  checkerStatsDivider: {
+    width: '100%',
+    maxWidth: 560,
+    height: 1,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    marginTop: 32,
+    marginBottom: 24,
+  },
+  checkerStatsRow: {
+    flexDirection: 'row',
+    width: '100%',
+    maxWidth: 560,
+    justifyContent: 'space-around',
+  },
+  checkerStatItem: {
+    alignItems: 'center',
+    flex: 1,
+    paddingHorizontal: 8,
+  },
+  checkerStatItemBorder: {
+    borderRightWidth: 1,
+    borderRightColor: 'rgba(255,255,255,0.15)',
+  },
+  checkerStatNum: {
+    fontSize: 26,
+    fontWeight: '900',
+    color: COLORS.white,
+    letterSpacing: -0.5,
+    marginBottom: 4,
+  },
+  checkerStatLbl: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: 'rgba(255,255,255,0.65)',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    textAlign: 'center',
+  },
+
+  // ── Step badge + connector ────────────────────────────────────────────────
+  stepBadge: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: COLORS.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  stepBadgeHover: {
+    backgroundColor: COLORS.primaryDeep,
+  },
+  stepBadgeNum: {
+    fontSize: fontSize.small,
+    fontWeight: '900',
+    color: COLORS.white,
+  },
+  stepBadgeNumHover: {
+    color: COLORS.white,
+  },
+  stepsConnector: {
+    width: 28,
+    borderTopWidth: 2,
+    borderTopColor: COLORS.primary,
+    borderStyle: 'dashed',
+    flexShrink: 0,
+    alignSelf: 'flex-start',
+    marginTop: 18,
+  },
+
+  // ── Impact number row + pulse dot ─────────────────────────────────────────
+  impactNumberRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 8,
+  },
+  impactPulseDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: COLORS.primary,
   },
 });

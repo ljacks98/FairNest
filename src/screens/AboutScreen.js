@@ -6,6 +6,7 @@ import {
   ScrollView,
   useWindowDimensions,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import Navbar from '../components/Navbar';
 import { fontSize } from '../theme/typography';
 
@@ -37,7 +38,7 @@ export default function AboutScreen({ navigation }) {
         <View style={styles.card}>
           <Text style={styles.cardLabel}>THE ORGANIZATION</Text>
           <Text style={styles.cardTitle}>
-            North Carolina Central University — CIS Department
+            North Carolina Central University — IT Department
           </Text>
           <Text style={styles.cardText}>
             FairNest is a capstone project developed by students in the
@@ -46,7 +47,7 @@ export default function AboutScreen({ navigation }) {
           </Text>
           <Text style={styles.cardText}>
             Rooted in a commitment to social justice and community impact, NCCU
-            CIS students built FairNest to demonstrate how technology can
+            IT students built FairNest to demonstrate how technology can
             empower underserved communities to navigate housing challenges and
             assert their rights.
           </Text>
@@ -57,7 +58,7 @@ export default function AboutScreen({ navigation }) {
           <Text style={styles.cardLabel}>THE PROJECT</Text>
           <Text style={styles.cardTitle}>Our Capstone</Text>
           <Text style={styles.cardText}>
-            FairNest is a two-semester capstone project. NCCU CIS students
+            FairNest is a two-semester capstone project. NCCU IT students
             designed, built, and deployed this platform as a prototype
             demonstrating how AI-assisted tools can modernize access to housing
             resources and civil rights services.
@@ -95,7 +96,9 @@ export default function AboutScreen({ navigation }) {
 
           <View style={[styles.goalGrid, isWide && styles.goalGridWide]}>
             <View style={styles.goalCard}>
-              <Text style={styles.goalIcon}>📝</Text>
+              <View style={styles.goalIconCircle}>
+                <Ionicons name="document-text-outline" size={24} color="#2E7D32" />
+              </View>
               <Text style={styles.goalCardTitle}>Report Discrimination</Text>
               <Text style={styles.goalCardText}>
                 Easily document and submit housing discrimination reports to the
@@ -103,7 +106,9 @@ export default function AboutScreen({ navigation }) {
               </Text>
             </View>
             <View style={styles.goalCard}>
-              <Text style={styles.goalIcon}>⚖️</Text>
+              <View style={styles.goalIconCircle}>
+                <Ionicons name="book-outline" size={24} color="#2E7D32" />
+              </View>
               <Text style={styles.goalCardTitle}>Know Your Rights</Text>
               <Text style={styles.goalCardText}>
                 Access clear, plain-language guides on Durham tenant rights and
@@ -111,7 +116,9 @@ export default function AboutScreen({ navigation }) {
               </Text>
             </View>
             <View style={styles.goalCard}>
-              <Text style={styles.goalIcon}>🤖</Text>
+              <View style={styles.goalIconCircle}>
+                <Ionicons name="chatbubble-ellipses-outline" size={24} color="#2E7D32" />
+              </View>
               <Text style={styles.goalCardTitle}>AI-Powered Guidance</Text>
               <Text style={styles.goalCardText}>
                 Get instant answers to housing questions from our AI assistant,
@@ -119,7 +126,9 @@ export default function AboutScreen({ navigation }) {
               </Text>
             </View>
             <View style={styles.goalCard}>
-              <Text style={styles.goalIcon}>🏘️</Text>
+              <View style={styles.goalIconCircle}>
+                <Ionicons name="compass-outline" size={24} color="#2E7D32" />
+              </View>
               <Text style={styles.goalCardTitle}>Find Local Resources</Text>
               <Text style={styles.goalCardText}>
                 Discover Durham housing assistance programs, shelters, legal
@@ -302,9 +311,14 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     elevation: 1,
   },
-  goalIcon: {
-    fontSize: fontSize.h1,
-    marginBottom: 10,
+  goalIconCircle: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: '#E8F5E9',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
   },
   goalCardTitle: {
     fontSize: fontSize.body,

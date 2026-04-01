@@ -8,6 +8,7 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import Navbar from '../components/Navbar';
+import { COLORS } from '../utils/constants';
 
 // ── Data ──────────────────────────────────────────────────────────────────────
 
@@ -153,6 +154,11 @@ export default function DiscriminationCheckerScreen({ navigation }) {
   const [currentStep, setCurrentStep] = useState(0); // 0 = intro, 1-3 = steps, 4 = result
   const [answers, setAnswers] = useState({});
 
+  const [hoveredOption, setHoveredOption] = useState(null); // keyed by opt.id
+  const [hoveredPrimary, setHoveredPrimary] = useState(false);
+  const [hoveredBack, setHoveredBack] = useState(false);
+  const [hoveredReset, setHoveredReset] = useState(false);
+
   const step = STEPS[currentStep - 1];
   const totalSteps = STEPS.length;
   const isIntro = currentStep === 0;
@@ -194,6 +200,13 @@ export default function DiscriminationCheckerScreen({ navigation }) {
     <ScrollView style={styles.container}>
       <Navbar navigation={navigation} currentRoute="DiscriminationChecker" />
 
+      {/* Breadcrumb */}
+      <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingVertical: 10, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#eee' }}>
+        <Text onPress={() => navigation.navigate('Home')} style={{ fontSize: 13, color: '#2E7D32', fontWeight: '600' }}>Home</Text>
+        <Text style={{ fontSize: 13, color: '#bbb', marginHorizontal: 4 }}> / </Text>
+        <Text style={{ fontSize: 13, color: '#666' }}>Check Your Rights</Text>
+      </View>
+
       {/* ── Intro ── */}
       {isIntro && (
         <>
@@ -233,8 +246,10 @@ export default function DiscriminationCheckerScreen({ navigation }) {
             </View>
 
             <TouchableOpacity
-              style={styles.primaryBtn}
-              onPress={() => setCurrentStep(1)}>
+              style={[styles.primaryBtn, hoveredPrimary && styles.primaryBtnHover]}
+              onPress={() => setCurrentStep(1)}
+              onMouseEnter={() => setHoveredPrimary(true)}
+              onMouseLeave={() => setHoveredPrimary(false)}>
               <Text style={styles.primaryBtnText}>Start the Checker →</Text>
             </TouchableOpacity>
           </View>
@@ -273,8 +288,10 @@ export default function DiscriminationCheckerScreen({ navigation }) {
               return (
                 <TouchableOpacity
                   key={opt.id}
-                  style={[styles.optionRow, selected && styles.optionRowSelected]}
-                  onPress={() => toggleOption(step.id, opt.id)}>
+                  style={[styles.optionRow, selected && styles.optionRowSelected, !selected && hoveredOption === opt.id && styles.optionRowHover]}
+                  onPress={() => toggleOption(step.id, opt.id)}
+                  onMouseEnter={() => setHoveredOption(opt.id)}
+                  onMouseLeave={() => setHoveredOption(null)}>
                   <View style={[styles.checkbox, selected && styles.checkboxSelected]}>
                     {selected && <Text style={styles.checkmark}>✓</Text>}
                   </View>
@@ -294,12 +311,18 @@ export default function DiscriminationCheckerScreen({ navigation }) {
 
             {/* Nav buttons */}
             <View style={styles.navRow}>
-              <TouchableOpacity style={styles.backBtn} onPress={handleBack}>
-                <Text style={styles.backBtnText}>← Back</Text>
+              <TouchableOpacity
+                style={[styles.backBtn, hoveredBack && styles.backBtnHover]}
+                onPress={handleBack}
+                onMouseEnter={() => setHoveredBack(true)}
+                onMouseLeave={() => setHoveredBack(false)}>
+                <Text style={[styles.backBtnText, hoveredBack && styles.backBtnTextHover]}>← Back</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.primaryBtn, { flex: 1 }, !canProceed() && styles.primaryBtnDisabled]}
-                onPress={handleNext}>
+                style={[styles.primaryBtn, { flex: 1 }, !canProceed() && styles.primaryBtnDisabled, canProceed() && hoveredPrimary && styles.primaryBtnHover]}
+                onPress={handleNext}
+                onMouseEnter={() => setHoveredPrimary(true)}
+                onMouseLeave={() => setHoveredPrimary(false)}>
                 <Text style={styles.primaryBtnText}>
                   {currentStep === totalSteps ? 'See Results →' : 'Next →'}
                 </Text>
@@ -358,19 +381,25 @@ export default function DiscriminationCheckerScreen({ navigation }) {
 
             {/* Actions */}
             <TouchableOpacity
-              style={styles.primaryBtn}
-              onPress={() => navigation.navigate('Report')}>
+              style={[styles.primaryBtn, hoveredPrimary && styles.primaryBtnHover]}
+              onPress={() => navigation.navigate('Report')}
+              onMouseEnter={() => setHoveredPrimary(true)}
+              onMouseLeave={() => setHoveredPrimary(false)}>
               <Text style={styles.primaryBtnText}>File a Report</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={styles.secondaryBtn}
-              onPress={() => navigation.navigate('Resources', { category: 'housing' })}>
-              <Text style={styles.secondaryBtnText}>Find Local Resources</Text>
+              style={[styles.secondaryBtn, hoveredBack && styles.backBtnHover]}
+              onPress={() => navigation.navigate('Resources', { category: 'housing' })}
+              onMouseEnter={() => setHoveredBack(true)}
+              onMouseLeave={() => setHoveredBack(false)}>
+              <Text style={[styles.secondaryBtnText, hoveredBack && styles.backBtnTextHover]}>Find Local Resources</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.ghostBtn}
-              onPress={handleReset}>
-              <Text style={styles.ghostBtnText}>Start Over</Text>
+              onPress={handleReset}
+              onMouseEnter={() => setHoveredReset(true)}
+              onMouseLeave={() => setHoveredReset(false)}>
+              <Text style={[styles.ghostBtnText, hoveredReset && styles.backBtnTextHover]}>Start Over</Text>
             </TouchableOpacity>
           </View>
         </>
@@ -487,6 +516,7 @@ const styles = StyleSheet.create({
     borderColor: '#2E7D32',
     backgroundColor: '#F1F8E9',
   },
+  optionRowHover: { backgroundColor: 'rgba(27,94,32,0.06)', borderColor: '#A5D6A7' },
   checkbox: {
     width: 22,
     height: 22,
@@ -575,9 +605,12 @@ const styles = StyleSheet.create({
   // Buttons
   primaryBtn:         { backgroundColor: '#2E7D32', padding: 16, borderRadius: 8, alignItems: 'center', marginBottom: 10 },
   primaryBtnDisabled: { backgroundColor: '#a5d6a7' },
+  primaryBtnHover:    { backgroundColor: '#163d18' },
   primaryBtnText:     { color: '#fff', fontWeight: 'bold', fontSize: 16 },
   secondaryBtn:       { borderWidth: 1.5, borderColor: '#2E7D32', padding: 14, borderRadius: 8, alignItems: 'center', marginBottom: 10 },
   secondaryBtnText:   { color: '#2E7D32', fontWeight: 'bold', fontSize: 15 },
   ghostBtn:           { padding: 12, alignItems: 'center' },
   ghostBtnText:       { color: '#aaa', fontSize: 14 },
+  backBtnHover:       { backgroundColor: 'rgba(27,94,32,0.08)' },
+  backBtnTextHover:   { color: '#1B5E20' },
 });
