@@ -16,7 +16,6 @@ const DateTimePicker = Platform.OS !== 'web'
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 import { AuthContext } from '../context/AuthContext';
-import { Ionicons } from '@expo/vector-icons';
 import Navbar from '../components/Navbar';
 import { fontSize } from '../theme/typography';
 import { COLORS } from '../utils/constants';
@@ -24,13 +23,13 @@ import { COLORS } from '../utils/constants';
 const CALL_TYPES = [
   {
     key: 'advocate',
-    iconName: 'scale-outline',
+    icon: '⚖️',
     title: 'Speak with an Advocate',
     desc: 'Get guidance from a fair housing advocate about your situation or an existing report.',
   },
   {
     key: 'legal',
-    iconName: 'business-outline',
+    icon: '🏛️',
     title: 'Legal Consultation',
     desc: 'Talk directly with a legal expert about your rights and potential next steps.',
   },
@@ -71,7 +70,7 @@ export default function ScheduleCallScreen({ navigation, route }) {
         <Navbar navigation={navigation} currentRoute="ScheduleCall" />
         <View style={styles.authGuard}>
           <View style={styles.authIconCircle}>
-            <Ionicons name="lock-closed-outline" size={32} color="#2E7D32" />
+            <Text style={{ fontSize: 32 }}>🔒</Text>
           </View>
           <Text style={styles.authTitle}>Login Required</Text>
           <Text style={styles.authDesc}>
@@ -101,7 +100,7 @@ export default function ScheduleCallScreen({ navigation, route }) {
         <Navbar navigation={navigation} currentRoute="ScheduleCall" />
         <View style={styles.successState}>
           <View style={styles.successIconCircle}>
-            <Ionicons name="calendar-outline" size={40} color="#2E7D32" />
+            <Text style={{ fontSize: 40 }}>📅</Text>
           </View>
           <Text style={styles.successTitle}>Request Received!</Text>
           <Text style={styles.successText}>
@@ -222,7 +221,7 @@ export default function ScheduleCallScreen({ navigation, route }) {
                 onMouseEnter={() => setHoveredCallType(ct.key)}
                 onMouseLeave={() => setHoveredCallType(null)}>
                 <View style={styles.typeIconCircle}>
-                  <Ionicons name={ct.iconName} size={24} color="#2E7D32" />
+                  <Text style={{ fontSize: 24 }}>{ct.icon}</Text>
                 </View>
                 <Text style={[styles.typeTitle, callType === ct.key && styles.typeTitleActive]}>
                   {ct.title}
@@ -286,7 +285,7 @@ export default function ScheduleCallScreen({ navigation, route }) {
                       ? selectedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })
                       : 'Tap to select a date'}
                   </Text>
-                  <Ionicons name="calendar-outline" size={20} color="#888" />
+                  <Text style={{ fontSize: 18 }}>📅</Text>
                 </TouchableOpacity>
                 {showDatePicker && (
                   <DateTimePicker

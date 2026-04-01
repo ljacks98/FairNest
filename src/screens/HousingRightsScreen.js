@@ -8,7 +8,6 @@ import {
   Linking,
   useWindowDimensions,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import Navbar from '../components/Navbar';
 import { COLORS } from '../utils/constants';
 import { fontSize } from '../theme/typography';
@@ -23,10 +22,10 @@ const LANDLORD_CANNOT = [
 ];
 
 const YOU_CAN_DO = [
-  { iconName: 'create-outline', title: 'Document Everything', desc: 'Keep records of dates, names, conversations, emails, and any written communication with your landlord.' },
-  { iconName: 'call-outline', title: 'Contact an Advocate', desc: 'Reach out to Legal Aid NC or Durham Housing Authority for free guidance on your situation.' },
-  { iconName: 'business-outline', title: 'File with HUD', desc: 'Submit a fair housing complaint directly to the U.S. Department of Housing and Urban Development.' },
-  { iconName: 'clipboard-outline', title: 'File with FairNest', desc: 'Use our reporting tool to document your experience and connect with local support.' },
+  { icon: '📝', title: 'Document Everything', desc: 'Keep records of dates, names, conversations, emails, and any written communication with your landlord.' },
+  { icon: '📞', title: 'Contact an Advocate', desc: 'Reach out to Legal Aid NC or Durham Housing Authority for free guidance on your situation.' },
+  { icon: '🏛️', title: 'File with HUD', desc: 'Submit a fair housing complaint directly to the U.S. Department of Housing and Urban Development.' },
+  { icon: '📋', title: 'File with FairNest', desc: 'Use our reporting tool to document your experience and connect with local support.' },
 ];
 
 const PROTECTED_CLASSES = [
@@ -104,7 +103,7 @@ export default function HousingRightsScreen({ navigation }) {
             {YOU_CAN_DO.map((item, i) => (
               <View key={i} style={[styles.actionCard, isWide && styles.actionCardWide]}>
                 <View style={styles.actionIconCircle}>
-                  <Ionicons name={item.iconName} size={22} color={COLORS.primaryDeep} />
+                  <Text style={{ fontSize: 22 }}>{item.icon}</Text>
                 </View>
                 <View style={styles.actionText}>
                   <Text style={styles.actionTitle}>{item.title}</Text>
@@ -127,7 +126,7 @@ export default function HousingRightsScreen({ navigation }) {
             activeOpacity={0.7}
             accessibilityLabel="Visit HUD Fair Housing and Equal Opportunity website"
           >
-            <View style={styles.linkIcon}><Ionicons name="open-outline" size={16} color={COLORS.primary} /></View>
+            <Text style={styles.linkIcon}>🔗</Text>
             <View style={styles.linkContent}>
               <Text style={[styles.linkTitle, hoveredLink === 'hud' && styles.linkTitleHover]}>HUD — Fair Housing & Equal Opportunity</Text>
               <Text style={styles.linkSub}>File a federal complaint or learn about the Fair Housing Act</Text>
@@ -141,7 +140,7 @@ export default function HousingRightsScreen({ navigation }) {
             activeOpacity={0.7}
             accessibilityLabel="Visit Legal Aid of North Carolina website"
           >
-            <View style={styles.linkIcon}><Ionicons name="open-outline" size={16} color={COLORS.primary} /></View>
+            <Text style={styles.linkIcon}>🔗</Text>
             <View style={styles.linkContent}>
               <Text style={[styles.linkTitle, hoveredLink === 'legalaid' && styles.linkTitleHover]}>Legal Aid of North Carolina</Text>
               <Text style={styles.linkSub}>Free legal help for low-income Durham residents — call 866-219-5262</Text>
@@ -155,7 +154,7 @@ export default function HousingRightsScreen({ navigation }) {
             activeOpacity={0.7}
             accessibilityLabel="Visit Durham Housing Authority website"
           >
-            <View style={styles.linkIcon}><Ionicons name="open-outline" size={16} color={COLORS.primary} /></View>
+            <Text style={styles.linkIcon}>🔗</Text>
             <View style={styles.linkContent}>
               <Text style={[styles.linkTitle, hoveredLink === 'durham' && styles.linkTitleHover]}>Durham Housing Authority</Text>
               <Text style={styles.linkSub}>Local housing programs and assistance — call 919-683-8596</Text>

@@ -14,7 +14,6 @@ import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db } from '../firebaseConfig';
 import { AuthContext } from '../context/AuthContext';
 import * as DocumentPicker from 'expo-document-picker';
-import { Ionicons } from '@expo/vector-icons';
 import Navbar from '../components/Navbar';
 import { fontSize } from '../theme/typography';
 
@@ -86,7 +85,7 @@ export default function ReportScreen({ navigation }) {
         <Navbar navigation={navigation} currentRoute="Report" />
         <View style={styles.authGuard}>
           <View style={styles.authIconCircle}>
-            <Ionicons name="lock-closed-outline" size={32} color="#2E7D32" />
+            <Text style={{ fontSize: 32 }}>🔒</Text>
           </View>
           <Text style={styles.authTitle}>Login Required</Text>
           <Text style={styles.authText}>
@@ -114,7 +113,7 @@ export default function ReportScreen({ navigation }) {
         <Navbar navigation={navigation} currentRoute="Report" />
         <View style={styles.successState}>
           <View style={styles.successIconCircle}>
-            <Ionicons name="checkmark-circle-outline" size={40} color="#2E7D32" />
+            <Text style={{ fontSize: 40 }}>✅</Text>
           </View>
           <Text style={styles.successTitle}>Report Submitted</Text>
           <Text style={styles.successText}>

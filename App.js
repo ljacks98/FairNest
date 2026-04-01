@@ -84,7 +84,6 @@ function MainNavigator() {
 }
 
 export default function App() {
-
   return (
     <AuthProvider>
       <View style={styles.container}>

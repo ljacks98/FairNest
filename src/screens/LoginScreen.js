@@ -18,7 +18,7 @@ import {
 import { auth } from '../firebaseConfig';
 import * as Google from 'expo-auth-session/providers/google';
 import * as WebBrowser from 'expo-web-browser';
-import { Ionicons } from '@expo/vector-icons';
+
 import { COLORS } from '../utils/constants';
 import { fontSize } from '../theme/typography';
 
@@ -123,7 +123,7 @@ export default function LoginScreen({ navigation }) {
           {/* Error */}
           {!!error && (
             <View style={styles.errorBox}>
-              <Ionicons name="alert-circle-outline" size={15} color="#c0392b" />
+              <Text style={{ fontSize: 15 }}>⚠️</Text>
               <Text style={styles.errorText}>{error}</Text>
             </View>
           )}
@@ -157,11 +157,7 @@ export default function LoginScreen({ navigation }) {
               onPress={() => setSecureText(!secureText)}
               activeOpacity={0.7}
               accessibilityLabel={secureText ? 'Show password' : 'Hide password'}>
-              <Ionicons
-                name={secureText ? 'eye-outline' : 'eye-off-outline'}
-                size={20}
-                color="#9aaa9a"
-              />
+              <Text style={{ fontSize: 18, color: '#9aaa9a' }}>{secureText ? '👁️' : '🙈'}</Text>
             </TouchableOpacity>
           </View>
 
@@ -209,7 +205,7 @@ export default function LoginScreen({ navigation }) {
             onMouseLeave={() => setHoveredGoogle(false)}
             activeOpacity={0.7}
             accessibilityLabel="Continue with Google">
-            <Ionicons name="logo-google" size={18} color="#5f6368" />
+            <Text style={{ fontSize: 18 }}>🇬</Text>
             <Text style={styles.googleText}>Continue with Google</Text>
           </TouchableOpacity>
 

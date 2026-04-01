@@ -17,7 +17,7 @@ import {
 } from 'firebase/auth';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, db } from '../firebaseConfig';
-import { Ionicons } from '@expo/vector-icons';
+
 import { COLORS } from '../utils/constants';
 import { fontSize } from '../theme/typography';
 
@@ -139,7 +139,7 @@ export default function SignUpScreen({ navigation }) {
           {/* Error */}
           {!!error && (
             <View style={styles.errorBox}>
-              <Ionicons name="alert-circle-outline" size={15} color="#c0392b" />
+              <Text style={{ fontSize: 15 }}>⚠️</Text>
               <Text style={styles.errorText}>{error}</Text>
             </View>
           )}
@@ -199,11 +199,7 @@ export default function SignUpScreen({ navigation }) {
               onPress={() => setSecureText(!secureText)}
               activeOpacity={0.7}
               accessibilityLabel={secureText ? 'Show password' : 'Hide password'}>
-              <Ionicons
-                name={secureText ? 'eye-outline' : 'eye-off-outline'}
-                size={20}
-                color="#9aaa9a"
-              />
+              <Text style={{ fontSize: 18, color: '#9aaa9a' }}>{secureText ? '👁️' : '🙈'}</Text>
             </TouchableOpacity>
           </View>
 
@@ -223,11 +219,7 @@ export default function SignUpScreen({ navigation }) {
               onPress={() => setSecureConfirm(!secureConfirm)}
               activeOpacity={0.7}
               accessibilityLabel={secureConfirm ? 'Show confirm password' : 'Hide confirm password'}>
-              <Ionicons
-                name={secureConfirm ? 'eye-outline' : 'eye-off-outline'}
-                size={20}
-                color="#9aaa9a"
-              />
+              <Text style={{ fontSize: 18, color: '#9aaa9a' }}>{secureConfirm ? '👁️' : '🙈'}</Text>
             </TouchableOpacity>
           </View>
 
@@ -262,7 +254,7 @@ export default function SignUpScreen({ navigation }) {
             onMouseLeave={() => setHoveredGoogle(false)}
             activeOpacity={0.7}
             accessibilityLabel="Sign up with Google">
-            <Ionicons name="logo-google" size={18} color="#5f6368" />
+            <Text style={{ fontSize: 18 }}>🇬</Text>
             <Text style={styles.googleText}>Continue with Google</Text>
           </TouchableOpacity>
 

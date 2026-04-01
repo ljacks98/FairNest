@@ -6,7 +6,7 @@ import {
   ScrollView,
   useWindowDimensions,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+
 import Navbar from '../components/Navbar';
 import { fontSize } from '../theme/typography';
 
@@ -97,7 +97,7 @@ export default function AboutScreen({ navigation }) {
           <View style={[styles.goalGrid, isWide && styles.goalGridWide]}>
             <View style={styles.goalCard}>
               <View style={styles.goalIconCircle}>
-                <Ionicons name="document-text-outline" size={24} color="#2E7D32" />
+                <Text style={{ fontSize: 24 }}>📋</Text>
               </View>
               <Text style={styles.goalCardTitle}>Report Discrimination</Text>
               <Text style={styles.goalCardText}>
@@ -107,7 +107,7 @@ export default function AboutScreen({ navigation }) {
             </View>
             <View style={styles.goalCard}>
               <View style={styles.goalIconCircle}>
-                <Ionicons name="book-outline" size={24} color="#2E7D32" />
+                <Text style={{ fontSize: 24 }}>📖</Text>
               </View>
               <Text style={styles.goalCardTitle}>Know Your Rights</Text>
               <Text style={styles.goalCardText}>
@@ -117,7 +117,7 @@ export default function AboutScreen({ navigation }) {
             </View>
             <View style={styles.goalCard}>
               <View style={styles.goalIconCircle}>
-                <Ionicons name="chatbubble-ellipses-outline" size={24} color="#2E7D32" />
+                <Text style={{ fontSize: 24 }}>💬</Text>
               </View>
               <Text style={styles.goalCardTitle}>AI-Powered Guidance</Text>
               <Text style={styles.goalCardText}>
@@ -127,7 +127,7 @@ export default function AboutScreen({ navigation }) {
             </View>
             <View style={styles.goalCard}>
               <View style={styles.goalIconCircle}>
-                <Ionicons name="compass-outline" size={24} color="#2E7D32" />
+                <Text style={{ fontSize: 24 }}>🧭</Text>
               </View>
               <Text style={styles.goalCardTitle}>Find Local Resources</Text>
               <Text style={styles.goalCardText}>

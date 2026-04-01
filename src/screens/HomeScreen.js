@@ -10,7 +10,7 @@ import {
   TextInput,
   useWindowDimensions,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+
 import { AuthContext } from '../context/AuthContext';
 import Navbar from '../components/Navbar';
 import { COLORS } from '../utils/constants';
@@ -29,36 +29,36 @@ const IMPACT_STATS = [
   {
     number: '1 in 4',
     label: 'Durham renters spend 30%+ of income on housing',
-    icon: 'home-outline',
+    icon: '🏠',
   },
   {
     number: '72%',
     label: 'Of housing discrimination cases go unreported',
-    icon: 'eye-off-outline',
+    icon: '👁️',
   },
   {
     number: '$0',
     label: 'Cost to use FairNest — completely free',
-    icon: 'shield-checkmark-outline',
+    icon: '🛡️',
   },
 ];
 
 const STEPS = [
   {
     num: '01',
-    iconName: 'shield-checkmark-outline',
+    icon: '🛡️',
     title: 'Check If You Qualify',
     desc: 'Answer a few questions to find out if your situation is covered under fair housing law.',
   },
   {
     num: '02',
-    iconName: 'book-outline',
+    icon: '📖',
     title: 'Know Your Rights',
     desc: 'Get clear, plain-language guidance on what legal protections apply to your case.',
   },
   {
     num: '03',
-    iconName: 'arrow-forward-circle-outline',
+    icon: '🚀',
     title: 'Take Action',
     desc: 'File a report, schedule a free consultation, or connect directly with a local advocate.',
   },
@@ -66,21 +66,21 @@ const STEPS = [
 
 const FEATURE_CARDS = [
   {
-    iconName: 'home-outline',
+    icon: '🏠',
     title: 'Housing Rights',
     desc: 'Know your legal protections as a Durham tenant',
     route: 'HousingRights',
     auth: false,
   },
   {
-    iconName: 'people-outline',
+    icon: '👥',
     title: 'Fair Housing Support',
     desc: 'Connect with local advocates and organizations',
     route: 'FairHousingSupport',
     auth: false,
   },
   {
-    iconName: 'compass-outline',
+    icon: '🧭',
     title: 'Resources',
     desc: 'Find housing assistance programs near you',
     route: 'Resources',
@@ -88,28 +88,28 @@ const FEATURE_CARDS = [
     auth: false,
   },
   {
-    iconName: 'chatbubble-ellipses-outline',
+    icon: '💬',
     title: 'AI Assistant',
     desc: 'Get instant answers to your housing questions',
     route: 'ChatInterface',
     auth: true,
   },
   {
-    iconName: 'document-text-outline',
+    icon: '📋',
     title: 'File a Report',
     desc: 'Submit a housing discrimination or issue report',
     route: 'Report',
     auth: true,
   },
   {
-    iconName: 'calendar-outline',
+    icon: '📅',
     title: 'Schedule a Call',
     desc: 'Book a free consultation with an advocate or attorney',
     route: 'ScheduleCall',
     auth: true,
   },
   {
-    iconName: 'information-circle-outline',
+    icon: 'ℹ️',
     title: 'About FairNest',
     desc: 'Learn about our mission and the team behind this project',
     route: 'About',
@@ -243,8 +243,7 @@ export default function HomeScreen({ navigation }) {
                   onPress={handleSearch}
                   activeOpacity={0.7}
                   accessibilityLabel="Submit search">
-                  <Ionicons name="search" size={16} color={COLORS.white} />
-                  <Text style={styles.searchBtnText}>Search</Text>
+                  <Text style={styles.searchBtnText}>🔍 Search</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -292,7 +291,7 @@ export default function HomeScreen({ navigation }) {
               </View>
               <View style={styles.checkerTitleRow}>
                 <View style={styles.checkerIconCircle}>
-                  <Ionicons name="shield-checkmark" size={20} color={COLORS.amber} />
+                  <Text style={{ fontSize: 18 }}>🛡️</Text>
                 </View>
                 <Text style={styles.checkerTitle}>
                   Have you been treated unfairly because of who you are?
@@ -312,7 +311,7 @@ export default function HomeScreen({ navigation }) {
                 <Animated.View style={[styles.checkerCtaInner, { transform: [{ scale: checkerCtaScale }] }]}>
                   <Text style={styles.checkerCtaText}>Find out now</Text>
                   <Animated.View style={{ transform: [{ translateX: checkerArrowX }] }}>
-                    <Ionicons name="arrow-forward" size={15} color={COLORS.primaryDeep} />
+                    <Text style={{ fontSize: 15, color: COLORS.primaryDeep }}>→</Text>
                   </Animated.View>
                 </Animated.View>
               </TouchableOpacity>
@@ -351,21 +350,13 @@ export default function HomeScreen({ navigation }) {
                   <View style={[styles.featureBar, hovered && styles.featureBarHover]} />
                   <View style={styles.featureBody}>
                     <View style={[styles.iconCircle, hovered && styles.iconCircleHover]}>
-                      <Ionicons
-                        name={card.iconName}
-                        size={20}
-                        color={hovered ? COLORS.white : COLORS.primaryDeep}
-                      />
+                      <Text style={styles.iconCircleEmoji}>{card.icon}</Text>
                     </View>
                     <View style={styles.featureText}>
                       <Text style={[styles.featureTitle, hovered && styles.featureTitleHover]}>{card.title}</Text>
                       <Text style={[styles.featureDesc, hovered && styles.featureDescHover]}>{card.desc}</Text>
                     </View>
-                    <Ionicons
-                      name="chevron-forward"
-                      size={16}
-                      color={hovered ? COLORS.primary : COLORS.border}
-                    />
+                    <Text style={[styles.chevron, hovered && styles.chevronHover]}>›</Text>
                   </View>
                 </TouchableOpacity>
               );
@@ -396,7 +387,7 @@ export default function HomeScreen({ navigation }) {
                     styles.impactCardLast,
                 ]}>
                 <View style={styles.impactIconWrap}>
-                  <Ionicons name={stat.icon} size={18} color={COLORS.gold} />
+                  <Text style={{ fontSize: 18 }}>{stat.icon}</Text>
                 </View>
                 <View style={styles.impactNumberRow}>
                   <Text style={styles.impactNumber}>{stat.number}</Text>
@@ -441,11 +432,7 @@ export default function HomeScreen({ navigation }) {
                       </Text>
                     </View>
                     <View style={[styles.stepIconWrap, stepHovered && styles.stepIconWrapHover]}>
-                      <Ionicons
-                        name={step.iconName}
-                        size={28}
-                        color={stepHovered ? COLORS.white : COLORS.primaryDeep}
-                      />
+                      <Text style={{ fontSize: 26 }}>{step.icon}</Text>
                     </View>
                     <Text style={[styles.stepTitle, stepHovered && styles.stepTitleHover]}>
                       {step.title}
@@ -1292,4 +1279,8 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     backgroundColor: COLORS.primary,
   },
+
+  iconCircleEmoji: { fontSize: 20 },
+  chevron:         { fontSize: 18, color: COLORS.border, marginLeft: 4 },
+  chevronHover:    { color: COLORS.primary },
 });

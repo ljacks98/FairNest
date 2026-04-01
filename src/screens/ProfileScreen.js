@@ -18,8 +18,8 @@ import {
 } from 'firebase/firestore';
 import { updatePassword, deleteUser } from 'firebase/auth';
 import { db } from '../firebaseConfig';
+import { COLORS } from '../utils/constants';
 import Navbar from '../components/Navbar';
-import { fontSize } from '../theme/typography';
 
 const STATUS_COLORS = {
   pending:  { bg: '#FFF8E1', text: '#F57F17', border: '#FFE082' },
@@ -32,24 +32,39 @@ const STATUS_LABELS = {
   resolved: 'Resolved',
 };
 
+const CALL_TYPE_LABELS = {
+  advocate: '⚖️ Advocate Call',
+  legal:    '🏛️ Legal Consultation',
+};
+
 export default function ProfileScreen({ navigation }) {
   const { user } = useContext(AuthContext);
   const { width } = useWindowDimensions();
   const isWide = width >= 800;
 
-  const [firstName, setFirstName]     = useState('');
-  const [lastName, setLastName]       = useState('');
-  const [email, setEmail]             = useState('');
-  const [phone, setPhone]             = useState('');
+  const [firstName, setFirstName]         = useState('');
+  const [lastName, setLastName]           = useState('');
+  const [email, setEmail]                 = useState('');
+  const [phone, setPhone]                 = useState('');
   const [oldPassword, setOldPassword]     = useState('');
   const [newPassword, setNewPassword]     = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [loading, setLoading]         = useState(true);
-  const [message, setMessage]         = useState('');
-  const [messageType, setMessageType] = useState('success');
-  const [activeTab, setActiveTab]     = useState('profile');
-  const [reports, setReports]         = useState([]);
+  const [loading, setLoading]             = useState(true);
+  const [message, setMessage]             = useState('');
+  const [messageType, setMessageType]     = useState('success');
+  const [activeTab, setActiveTab]         = useState('profile');
+  const [reports, setReports]             = useState([]);
   const [reportsLoading, setReportsLoading] = useState(true);
+  const [calls, setCalls]                 = useState([]);
+  const [callsLoading, setCallsLoading]   = useState(true);
+
+  // Hover states
+  const [hoveredTab, setHoveredTab]             = useState(null);
+  const [hoveredSave, setHoveredSave]           = useState(false);
+  const [hoveredPassword, setHoveredPassword]   = useState(false);
+  const [hoveredDelete, setHoveredDelete]       = useState(false);
+  const [hoveredSchedule, setHoveredSchedule]   = useState(null);
+  const [hoveredEmptyBtn, setHoveredEmptyBtn]   = useState(null);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -64,7 +79,6 @@ export default function ProfileScreen({ navigation }) {
           const storedPhone = d.phone || '';
           const cleanPhone = storedPhone.includes('@') ? '' : storedPhone;
           setPhone(cleanPhone);
-          // Auto-fix corrupted phone field in Firestore
           if (storedPhone.includes('@')) {
             await updateDoc(doc(db, 'users', user.uid), { phone: '' });
           }
@@ -79,10 +93,7 @@ export default function ProfileScreen({ navigation }) {
     const fetchReports = async () => {
       if (!user) return;
       try {
-        const q = query(
-          collection(db, 'reports'),
-          where('userId', '==', user.uid)
-        );
+        const q = query(collection(db, 'reports'), where('userId', '==', user.uid));
         const snap = await getDocs(q);
         const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
         docs.sort((a, b) => (b.createdAt?.seconds ?? 0) - (a.createdAt?.seconds ?? 0));
@@ -91,6 +102,21 @@ export default function ProfileScreen({ navigation }) {
       setReportsLoading(false);
     };
     fetchReports();
+  }, [user]);
+
+  useEffect(() => {
+    const fetchCalls = async () => {
+      if (!user) return;
+      try {
+        const q = query(collection(db, 'callRequests'), where('userId', '==', user.uid));
+        const snap = await getDocs(q);
+        const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        docs.sort((a, b) => (b.createdAt?.seconds ?? 0) - (a.createdAt?.seconds ?? 0));
+        setCalls(docs);
+      } catch (err) { console.log(err); }
+      setCallsLoading(false);
+    };
+    fetchCalls();
   }, [user]);
 
   const showMessage = (text, type = 'success') => {
@@ -109,57 +135,40 @@ export default function ProfileScreen({ navigation }) {
       }, { merge: true });
       showMessage('Profile updated successfully.');
     } catch (err) {
-      console.log('Profile update error:', err.code, err.message);
       showMessage('Update failed. Please try again.', 'error');
     }
   };
 
   const handlePasswordChange = async () => {
-    if (!oldPassword) {
-      showMessage('Please enter your current password.', 'error');
-      return;
-    }
-    if (newPassword.length < 8) {
-      showMessage('New password must be at least 8 characters.', 'error');
-      return;
-    }
-    if (newPassword !== confirmPassword) {
-      showMessage('New passwords do not match.', 'error');
-      return;
-    }
+    if (!oldPassword) { showMessage('Please enter your current password.', 'error'); return; }
+    if (newPassword.length < 8) { showMessage('New password must be at least 8 characters.', 'error'); return; }
+    if (newPassword !== confirmPassword) { showMessage('New passwords do not match.', 'error'); return; }
     try {
       const { EmailAuthProvider, reauthenticateWithCredential } = await import('firebase/auth');
       const credential = EmailAuthProvider.credential(user.email, oldPassword);
       await reauthenticateWithCredential(user, credential);
       await updatePassword(user, newPassword);
-      setOldPassword('');
-      setNewPassword('');
-      setConfirmPassword('');
+      setOldPassword(''); setNewPassword(''); setConfirmPassword('');
       showMessage('Password updated successfully.');
     } catch (err) {
-      if (err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
-        showMessage('Current password is incorrect.', 'error');
-      } else {
-        showMessage('Password update failed. Please try again.', 'error');
-      }
+      showMessage(
+        err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential'
+          ? 'Current password is incorrect.'
+          : 'Password update failed. Please try again.',
+        'error'
+      );
     }
   };
 
   const confirmDeleteAccount = () => {
     if (Platform.OS === 'web') {
-      const confirmed = window.confirm(
-        'Are you sure you want to delete your account?\n\nThis will permanently remove your account and all your data. This cannot be undone.'
-      );
+      const confirmed = window.confirm('Are you sure you want to delete your account?\n\nThis will permanently remove your account and all your data. This cannot be undone.');
       if (confirmed) handleDeleteAccount();
     } else {
-      Alert.alert(
-        'Delete Account',
-        'Are you sure you want to delete your account?\n\nThis will permanently remove your account and all your data. This cannot be undone.',
-        [
-          { text: 'Cancel', style: 'cancel' },
-          { text: 'Yes, Delete', style: 'destructive', onPress: handleDeleteAccount },
-        ]
-      );
+      Alert.alert('Delete Account', 'Are you sure you want to delete your account?', [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Yes, Delete', style: 'destructive', onPress: handleDeleteAccount },
+      ]);
     }
   };
 
@@ -179,52 +188,64 @@ export default function ProfileScreen({ navigation }) {
   };
 
   if (loading) {
-    return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" color="#2E7D32" />
-      </View>
-    );
+    return <View style={styles.center}><ActivityIndicator size="large" color={COLORS.primary} /></View>;
   }
 
   const displayName = [firstName, lastName].filter(Boolean).join(' ') || 'My Profile';
-  const initials = firstName?.[0] || user?.email?.[0] || '?';
+  const initials    = firstName?.[0] || user?.email?.[0] || '?';
+
+  const TABS = [
+    { key: 'profile', emoji: '⚙️', label: 'Account' },
+    { key: 'reports', emoji: '📋', label: `Reports${reports.length > 0 ? ` (${reports.length})` : ''}` },
+    { key: 'calls',   emoji: '📞', label: `Calls${calls.length > 0 ? ` (${calls.length})` : ''}` },
+  ];
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       <Navbar navigation={navigation} currentRoute="Profile" />
 
-      {/* ── Hero ── */}
-      <View style={styles.hero}>
-        <View style={styles.heroAvatar}>
-          <Text style={styles.heroAvatarText}>{initials.toUpperCase()}</Text>
-        </View>
-        <Text style={styles.heroName}>{displayName}</Text>
-        <Text style={styles.heroEmail}>{user?.email}</Text>
-        <View style={styles.heroBadge}>
-          <Text style={styles.heroBadgeText}>Durham Resident</Text>
+      {/* ── Modern Hero ── */}
+      <View style={styles.heroWrap}>
+        {/* Decorative rings */}
+        <View style={styles.ring1} />
+        <View style={styles.ring2} />
+        <View style={styles.ring3} />
+
+        <View style={styles.heroContent}>
+          <View style={styles.heroAvatar}>
+            <Text style={styles.heroAvatarText}>{initials.toUpperCase()}</Text>
+          </View>
+          <Text style={styles.heroName}>{displayName}</Text>
+          <Text style={styles.heroEmail}>{user?.email}</Text>
+          <View style={styles.heroBadge}>
+            <View style={styles.heroBadgeDot} />
+            <Text style={styles.heroBadgeText}>DURHAM RESIDENT</Text>
+          </View>
         </View>
       </View>
 
-      {/* ── Tabs ── */}
+      {/* ── Tab Bar ── */}
       <View style={styles.tabBar}>
-        {[
-          { key: 'profile', label: '⚙️ Account Settings' },
-          { key: 'reports', label: `📋 My Reports${reports.length > 0 ? ` (${reports.length})` : ''}` },
-        ].map(t => (
+        {TABS.map(t => (
           <TouchableOpacity
             key={t.key}
-            style={[styles.tabBtn, activeTab === t.key && styles.tabBtnActive]}
-            onPress={() => setActiveTab(t.key)}>
+            style={[styles.tabBtn, activeTab === t.key && styles.tabBtnActive, activeTab !== t.key && hoveredTab === t.key && styles.tabBtnHover]}
+            onPress={() => setActiveTab(t.key)}
+            onMouseEnter={() => setHoveredTab(t.key)}
+            onMouseLeave={() => setHoveredTab(null)}
+            activeOpacity={0.7}>
+            <Text style={styles.tabEmoji}>{t.emoji}</Text>
             <Text style={[styles.tabText, activeTab === t.key && styles.tabTextActive]}>
               {t.label}
             </Text>
+            {activeTab === t.key && <View style={styles.tabUnderline} />}
           </TouchableOpacity>
         ))}
       </View>
 
       <View style={[styles.body, isWide && styles.bodyWide]}>
 
-        {/* ── Inline feedback ── */}
+        {/* ── Feedback banner ── */}
         {message ? (
           <View style={[styles.feedback, messageType === 'error' ? styles.feedbackError : styles.feedbackSuccess]}>
             <Text style={[styles.feedbackText, messageType === 'error' ? styles.feedbackTextError : styles.feedbackTextSuccess]}>
@@ -233,130 +254,106 @@ export default function ProfileScreen({ navigation }) {
           </View>
         ) : null}
 
-        {/* ════════ ACCOUNT SETTINGS TAB ════════ */}
+        {/* ════════ ACCOUNT TAB ════════ */}
         {activeTab === 'profile' && (
           <>
-            {/* Personal Info card */}
             <View style={styles.card}>
-              <View style={styles.cardHeader}>
-                <Text style={styles.cardIcon}>👤</Text>
-                <View>
-                  <Text style={styles.cardTitle}>Personal Information</Text>
-                  <Text style={styles.cardSubtitle}>Update your name, email, and phone</Text>
+              <View style={styles.cardAccent} />
+              <View style={styles.cardInner}>
+                <View style={styles.cardHeader}>
+                  <View style={styles.cardIconWrap}><Text style={styles.cardIconEmoji}>👤</Text></View>
+                  <View>
+                    <Text style={styles.cardTitle}>Personal Information</Text>
+                    <Text style={styles.cardSubtitle}>Update your name, email, and phone</Text>
+                  </View>
                 </View>
-              </View>
 
-              <View style={[styles.row, isWide && styles.rowWide]}>
-                <View style={[styles.field, isWide && { flex: 1 }]}>
-                  <Text style={styles.label}>First Name</Text>
-                  <TextInput
-                    style={styles.input}
-                    value={firstName}
-                    onChangeText={setFirstName}
-                    placeholder="First name"
-                  />
+                <View style={[styles.row, isWide && styles.rowWide]}>
+                  <View style={[styles.field, isWide && { flex: 1 }]}>
+                    <Text style={styles.label}>First Name</Text>
+                    <TextInput style={styles.input} value={firstName} onChangeText={setFirstName} placeholder="First name" placeholderTextColor="#bbb" />
+                  </View>
+                  <View style={[styles.field, isWide && { flex: 1 }]}>
+                    <Text style={styles.label}>Last Name</Text>
+                    <TextInput style={styles.input} value={lastName} onChangeText={setLastName} placeholder="Last name" placeholderTextColor="#bbb" />
+                  </View>
                 </View>
-                <View style={[styles.field, isWide && { flex: 1 }]}>
-                  <Text style={styles.label}>Last Name</Text>
-                  <TextInput
-                    style={styles.input}
-                    value={lastName}
-                    onChangeText={setLastName}
-                    placeholder="Last name"
-                  />
+
+                <View style={styles.field}>
+                  <Text style={styles.label}>Email Address</Text>
+                  <TextInput style={styles.input} value={email} onChangeText={setEmail} placeholder="Email address" placeholderTextColor="#bbb" keyboardType="email-address" autoCapitalize="none" />
                 </View>
-              </View>
 
-              <View style={styles.field}>
-                <Text style={styles.label}>Email Address</Text>
-                <TextInput
-                  style={styles.input}
-                  value={email}
-                  onChangeText={setEmail}
-                  placeholder="Email address"
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                />
-              </View>
+                <View style={styles.field}>
+                  <Text style={styles.label}>Phone <Text style={styles.optional}>(optional)</Text></Text>
+                  <TextInput style={styles.input} value={phone} onChangeText={setPhone} keyboardType="phone-pad" placeholder="e.g. 919-555-0100" placeholderTextColor="#bbb" />
+                </View>
 
-              <View style={styles.field}>
-                <Text style={styles.label}>
-                  Phone Number <Text style={styles.optional}>(optional)</Text>
-                </Text>
-                <TextInput
-                  style={styles.input}
-                  value={phone}
-                  onChangeText={setPhone}
-                  keyboardType="phone-pad"
-                  placeholder="e.g. 919-555-0100"
-                />
+                <TouchableOpacity
+                  style={[styles.primaryBtn, hoveredSave && styles.primaryBtnHover]}
+                  onPress={handleUpdate}
+                  onMouseEnter={() => setHoveredSave(true)}
+                  onMouseLeave={() => setHoveredSave(false)}
+                  activeOpacity={0.7}>
+                  <Text style={styles.primaryBtnText}>Save Changes</Text>
+                </TouchableOpacity>
               </View>
-
-              <TouchableOpacity style={styles.primaryBtn} onPress={handleUpdate}>
-                <Text style={styles.primaryBtnText}>Save Changes</Text>
-              </TouchableOpacity>
             </View>
 
-            {/* Security card */}
             <View style={styles.card}>
-              <View style={styles.cardHeader}>
-                <Text style={styles.cardIcon}>🔒</Text>
-                <View>
-                  <Text style={styles.cardTitle}>Change Password</Text>
-                  <Text style={styles.cardSubtitle}>Your current password is required to make changes</Text>
+              <View style={styles.cardAccent} />
+              <View style={styles.cardInner}>
+                <View style={styles.cardHeader}>
+                  <View style={styles.cardIconWrap}><Text style={styles.cardIconEmoji}>🔒</Text></View>
+                  <View>
+                    <Text style={styles.cardTitle}>Change Password</Text>
+                    <Text style={styles.cardSubtitle}>Your current password is required</Text>
+                  </View>
                 </View>
-              </View>
 
-              <View style={styles.field}>
-                <Text style={styles.label}>Current Password</Text>
-                <TextInput
-                  style={styles.input}
-                  value={oldPassword}
-                  onChangeText={setOldPassword}
-                  secureTextEntry
-                  placeholder="Enter your current password"
-                />
-              </View>
+                <View style={styles.field}>
+                  <Text style={styles.label}>Current Password</Text>
+                  <TextInput style={styles.input} value={oldPassword} onChangeText={setOldPassword} secureTextEntry placeholder="Enter current password" placeholderTextColor="#bbb" />
+                </View>
+                <View style={styles.field}>
+                  <Text style={styles.label}>New Password</Text>
+                  <TextInput style={styles.input} value={newPassword} onChangeText={setNewPassword} secureTextEntry placeholder="Min. 8 characters" placeholderTextColor="#bbb" />
+                </View>
+                <View style={styles.field}>
+                  <Text style={styles.label}>Confirm New Password</Text>
+                  <TextInput style={styles.input} value={confirmPassword} onChangeText={setConfirmPassword} secureTextEntry placeholder="Re-enter new password" placeholderTextColor="#bbb" />
+                </View>
 
-              <View style={styles.field}>
-                <Text style={styles.label}>New Password</Text>
-                <TextInput
-                  style={styles.input}
-                  value={newPassword}
-                  onChangeText={setNewPassword}
-                  secureTextEntry
-                  placeholder="Min. 8 characters"
-                />
+                <TouchableOpacity
+                  style={[styles.secondaryBtn, hoveredPassword && styles.secondaryBtnHover]}
+                  onPress={handlePasswordChange}
+                  onMouseEnter={() => setHoveredPassword(true)}
+                  onMouseLeave={() => setHoveredPassword(false)}
+                  activeOpacity={0.7}>
+                  <Text style={styles.secondaryBtnText}>Update Password</Text>
+                </TouchableOpacity>
               </View>
-
-              <View style={styles.field}>
-                <Text style={styles.label}>Confirm New Password</Text>
-                <TextInput
-                  style={styles.input}
-                  value={confirmPassword}
-                  onChangeText={setConfirmPassword}
-                  secureTextEntry
-                  placeholder="Re-enter new password"
-                />
-              </View>
-
-              <TouchableOpacity style={styles.secondaryBtn} onPress={handlePasswordChange}>
-                <Text style={styles.secondaryBtnText}>Update Password</Text>
-              </TouchableOpacity>
             </View>
 
-            {/* Danger zone card */}
             <View style={[styles.card, styles.dangerCard]}>
-              <View style={styles.cardHeader}>
-                <Text style={styles.cardIcon}>⚠️</Text>
-                <View>
-                  <Text style={[styles.cardTitle, { color: '#C62828' }]}>Delete Account</Text>
-                  <Text style={styles.cardSubtitle}>Permanently removes your account and all data</Text>
+              <View style={[styles.cardAccent, { backgroundColor: '#D32F2F' }]} />
+              <View style={styles.cardInner}>
+                <View style={styles.cardHeader}>
+                  <View style={[styles.cardIconWrap, { backgroundColor: '#FFEBEE' }]}><Text style={styles.cardIconEmoji}>⚠️</Text></View>
+                  <View>
+                    <Text style={[styles.cardTitle, { color: '#C62828' }]}>Delete Account</Text>
+                    <Text style={styles.cardSubtitle}>Permanently removes your account and all data</Text>
+                  </View>
                 </View>
+                <TouchableOpacity
+                  style={[styles.deleteBtn, hoveredDelete && styles.deleteBtnHover]}
+                  onPress={confirmDeleteAccount}
+                  onMouseEnter={() => setHoveredDelete(true)}
+                  onMouseLeave={() => setHoveredDelete(false)}
+                  activeOpacity={0.7}>
+                  <Text style={styles.deleteBtnText}>Delete My Account</Text>
+                </TouchableOpacity>
               </View>
-              <TouchableOpacity style={styles.deleteBtn} onPress={confirmDeleteAccount}>
-                <Text style={styles.deleteBtnText}>Delete My Account</Text>
-              </TouchableOpacity>
             </View>
           </>
         )}
@@ -365,17 +362,18 @@ export default function ProfileScreen({ navigation }) {
         {activeTab === 'reports' && (
           <>
             {reportsLoading ? (
-              <ActivityIndicator size="large" color="#2E7D32" style={{ marginTop: 40 }} />
+              <ActivityIndicator size="large" color={COLORS.primary} style={{ marginTop: 40 }} />
             ) : reports.length === 0 ? (
               <View style={styles.emptyState}>
                 <Text style={styles.emptyIcon}>📋</Text>
                 <Text style={styles.emptyTitle}>No reports yet</Text>
-                <Text style={styles.emptyText}>
-                  When you submit a housing report, it will appear here with its current status.
-                </Text>
+                <Text style={styles.emptyText}>When you submit a housing report, it will appear here with its status.</Text>
                 <TouchableOpacity
-                  style={styles.primaryBtn}
-                  onPress={() => navigation.navigate('Report')}>
+                  style={[styles.primaryBtn, hoveredEmptyBtn === 'report' && styles.primaryBtnHover]}
+                  onPress={() => navigation.navigate('Report')}
+                  onMouseEnter={() => setHoveredEmptyBtn('report')}
+                  onMouseLeave={() => setHoveredEmptyBtn(null)}
+                  activeOpacity={0.7}>
                   <Text style={styles.primaryBtnText}>File a Report →</Text>
                 </TouchableOpacity>
               </View>
@@ -384,52 +382,122 @@ export default function ProfileScreen({ navigation }) {
                 const status = report.status || 'pending';
                 const colors = STATUS_COLORS[status] || STATUS_COLORS.pending;
                 const date = report.createdAt?.toDate
-                  ? report.createdAt.toDate().toLocaleDateString('en-US', {
-                      month: 'short', day: 'numeric', year: 'numeric',
-                    })
+                  ? report.createdAt.toDate().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
                   : '—';
                 return (
                   <View key={report.id} style={styles.reportCard}>
-                    <View style={styles.reportCardTop}>
-                      <View style={[styles.statusBadge, { backgroundColor: colors.bg, borderColor: colors.border }]}>
-                        <Text style={[styles.statusText, { color: colors.text }]}>
-                          {STATUS_LABELS[status] || status}
-                        </Text>
+                    <View style={[styles.reportAccent, { backgroundColor: colors.text }]} />
+                    <View style={styles.reportBody}>
+                      <View style={styles.reportCardTop}>
+                        <View style={[styles.statusBadge, { backgroundColor: colors.bg, borderColor: colors.border }]}>
+                          <Text style={[styles.statusText, { color: colors.text }]}>{STATUS_LABELS[status] || status}</Text>
+                        </View>
+                        <Text style={styles.reportDate}>{date}</Text>
                       </View>
-                      <Text style={styles.reportDate}>{date}</Text>
+                      <Text style={styles.reportType}>{report.housingIssueType || 'Housing Issue'}</Text>
+                      {report.discriminationBasis ? (
+                        <View style={styles.reportTagRow}>
+                          <View style={styles.reportTag}>
+                            <Text style={styles.reportTagText}>Basis: {report.discriminationBasis}</Text>
+                          </View>
+                        </View>
+                      ) : null}
+                      <Text style={styles.reportDescription} numberOfLines={3}>{report.description}</Text>
+                      {report.desiredResolution ? (
+                        <View style={styles.resolutionBox}>
+                          <Text style={styles.resolutionLabel}>DESIRED RESOLUTION</Text>
+                          <Text style={styles.resolutionText}>{report.desiredResolution}</Text>
+                        </View>
+                      ) : null}
+                      <TouchableOpacity
+                        style={[styles.scheduleCallBtn, hoveredSchedule === report.id && styles.scheduleCallBtnHover]}
+                        onPress={() => navigation.navigate('ScheduleCall', { reportId: report.id, reportType: report.housingIssueType })}
+                        onMouseEnter={() => setHoveredSchedule(report.id)}
+                        onMouseLeave={() => setHoveredSchedule(null)}
+                        activeOpacity={0.7}>
+                        <Text style={[styles.scheduleCallText, hoveredSchedule === report.id && styles.scheduleCallTextHover]}>📞 Schedule a Call About This Report</Text>
+                      </TouchableOpacity>
                     </View>
+                  </View>
+                );
+              })
+            )}
+          </>
+        )}
 
-                    <Text style={styles.reportType}>
-                      {report.housingIssueType || 'Housing Issue'}
-                    </Text>
-
-                    {report.discriminationBasis ? (
-                      <View style={styles.reportTagRow}>
-                        <View style={styles.reportTag}>
-                          <Text style={styles.reportTagText}>Basis: {report.discriminationBasis}</Text>
+        {/* ════════ CALLS TAB ════════ */}
+        {activeTab === 'calls' && (
+          <>
+            {callsLoading ? (
+              <ActivityIndicator size="large" color={COLORS.primary} style={{ marginTop: 40 }} />
+            ) : calls.length === 0 ? (
+              <View style={styles.emptyState}>
+                <Text style={styles.emptyIcon}>📞</Text>
+                <Text style={styles.emptyTitle}>No calls scheduled</Text>
+                <Text style={styles.emptyText}>When you book a consultation with an advocate or attorney, it will appear here.</Text>
+                <TouchableOpacity
+                  style={[styles.primaryBtn, hoveredEmptyBtn === 'call' && styles.primaryBtnHover]}
+                  onPress={() => navigation.navigate('ScheduleCall')}
+                  onMouseEnter={() => setHoveredEmptyBtn('call')}
+                  onMouseLeave={() => setHoveredEmptyBtn(null)}
+                  activeOpacity={0.7}>
+                  <Text style={styles.primaryBtnText}>Book a Call →</Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              calls.map(call => {
+                const status = call.status || 'pending';
+                const colors = STATUS_COLORS[status] || STATUS_COLORS.pending;
+                const date = call.createdAt?.toDate
+                  ? call.createdAt.toDate().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                  : '—';
+                return (
+                  <View key={call.id} style={styles.callCard}>
+                    <View style={styles.callCardTop}>
+                      <View style={styles.callTypeRow}>
+                        <Text style={styles.callTypeLabel}>
+                          {CALL_TYPE_LABELS[call.callType] || '📞 Call Request'}
+                        </Text>
+                        <View style={[styles.statusBadge, { backgroundColor: colors.bg, borderColor: colors.border }]}>
+                          <Text style={[styles.statusText, { color: colors.text }]}>{STATUS_LABELS[status] || status}</Text>
                         </View>
                       </View>
-                    ) : null}
+                      <Text style={styles.callDate}>{date}</Text>
+                    </View>
 
-                    <Text style={styles.reportDescription} numberOfLines={3}>
-                      {report.description}
-                    </Text>
+                    <View style={styles.callDetailGrid}>
+                      {call.preferredDate ? (
+                        <View style={styles.callDetailItem}>
+                          <Text style={styles.callDetailLabel}>📅 Preferred Date</Text>
+                          <Text style={styles.callDetailValue}>{call.preferredDate}</Text>
+                        </View>
+                      ) : null}
+                      {call.timeSlot ? (
+                        <View style={styles.callDetailItem}>
+                          <Text style={styles.callDetailLabel}>🕐 Time Slot</Text>
+                          <Text style={styles.callDetailValue}>{call.timeSlot}</Text>
+                        </View>
+                      ) : null}
+                      {call.phone ? (
+                        <View style={styles.callDetailItem}>
+                          <Text style={styles.callDetailLabel}>📱 Contact</Text>
+                          <Text style={styles.callDetailValue}>{call.phone}</Text>
+                        </View>
+                      ) : null}
+                    </View>
 
-                    {report.desiredResolution ? (
-                      <View style={styles.resolutionBox}>
-                        <Text style={styles.resolutionLabel}>DESIRED RESOLUTION</Text>
-                        <Text style={styles.resolutionText}>{report.desiredResolution}</Text>
+                    {call.notes ? (
+                      <View style={styles.callNotesBox}>
+                        <Text style={styles.callNotesLabel}>NOTES</Text>
+                        <Text style={styles.callNotesText}>{call.notes}</Text>
                       </View>
                     ) : null}
 
-                    <TouchableOpacity
-                      style={styles.scheduleCallBtn}
-                      onPress={() => navigation.navigate('ScheduleCall', {
-                        reportId: report.id,
-                        reportType: report.housingIssueType,
-                      })}>
-                      <Text style={styles.scheduleCallText}>📞 Schedule a Call About This Report</Text>
-                    </TouchableOpacity>
+                    {call.reportId ? (
+                      <View style={styles.callLinkedBadge}>
+                        <Text style={styles.callLinkedText}>📋 Linked to report</Text>
+                      </View>
+                    ) : null}
                   </View>
                 );
               })
@@ -442,162 +510,196 @@ export default function ProfileScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f5f5f5' },
+  container: { flex: 1, backgroundColor: COLORS.greenTint },
   center:    { flex: 1, justifyContent: 'center', alignItems: 'center' },
 
-  // Hero
-  hero: {
-    backgroundColor: '#1B5E20',
-    paddingVertical: 44,
-    paddingHorizontal: 24,
+  // ── Hero ────────────────────────────────────────────────────────────────
+  heroWrap: {
+    backgroundColor: COLORS.primaryDeep,
+    overflow: 'hidden',
+    paddingTop: 48,
+    paddingBottom: 48,
     alignItems: 'center',
+    position: 'relative',
   },
+  ring1: {
+    position: 'absolute', width: 400, height: 400, borderRadius: 200,
+    borderWidth: 50, borderColor: 'rgba(255,255,255,0.05)',
+    top: -150, right: -120,
+  },
+  ring2: {
+    position: 'absolute', width: 260, height: 260, borderRadius: 130,
+    borderWidth: 40, borderColor: 'rgba(255,255,255,0.04)',
+    bottom: -80, left: -60,
+  },
+  ring3: {
+    position: 'absolute', width: 180, height: 180, borderRadius: 90,
+    borderWidth: 30, borderColor: 'rgba(255,255,255,0.04)',
+    top: 20, left: 40,
+  },
+  heroContent: { alignItems: 'center', zIndex: 1 },
   heroAvatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    borderWidth: 3,
-    borderColor: 'rgba(255,255,255,0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 14,
-  },
-  heroAvatarText: { fontSize: 34, fontWeight: 'bold', color: '#fff' },
-  heroName:       { fontSize: fontSize.h2, fontWeight: 'bold', color: '#fff', marginBottom: 4 },
-  heroEmail:      { fontSize: fontSize.body, color: 'rgba(255,255,255,0.75)', marginBottom: 12 },
-  heroBadge: {
+    width: 88, height: 88, borderRadius: 44,
     backgroundColor: 'rgba(255,255,255,0.15)',
-    borderRadius: 20,
-    paddingHorizontal: 14,
-    paddingVertical: 5,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.3)',
+    borderWidth: 3, borderColor: 'rgba(255,255,255,0.4)',
+    justifyContent: 'center', alignItems: 'center', marginBottom: 16,
+    shadowColor: '#000', shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3, shadowRadius: 12, elevation: 8,
   },
-  heroBadgeText: { fontSize: fontSize.caption, color: '#fff', fontWeight: '600' },
+  heroAvatarText: { fontSize: 36, fontWeight: '800', color: '#fff' },
+  heroName:       { fontSize: 22, fontWeight: '800', color: '#fff', marginBottom: 4, letterSpacing: -0.3 },
+  heroEmail:      { fontSize: 14, color: 'rgba(255,255,255,0.7)', marginBottom: 16 },
+  heroBadge: {
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    backgroundColor: 'rgba(255,255,255,0.12)',
+    borderRadius: 20, paddingHorizontal: 14, paddingVertical: 6,
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.25)',
+  },
+  heroBadgeDot:  { width: 6, height: 6, borderRadius: 3, backgroundColor: COLORS.amber },
+  heroBadgeText: { fontSize: 11, color: 'rgba(255,255,255,0.9)', fontWeight: '700', letterSpacing: 1.5 },
 
-  // Tab bar
+  // ── Tab Bar ──────────────────────────────────────────────────────────────
   tabBar: {
     flexDirection: 'row',
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.white,
     borderBottomWidth: 1,
     borderBottomColor: '#e8e8e8',
-    paddingHorizontal: 20,
+    paddingHorizontal: 8,
   },
   tabBtn: {
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    borderBottomWidth: 2,
-    borderBottomColor: 'transparent',
-    marginRight: 4,
+    flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+    gap: 6, paddingVertical: 14, paddingHorizontal: 8,
+    position: 'relative',
   },
-  tabBtnActive: { borderBottomColor: '#2E7D32' },
-  tabText:      { fontSize: fontSize.body, color: '#888', fontWeight: '500' },
-  tabTextActive:{ color: '#2E7D32', fontWeight: 'bold' },
+  tabBtnActive: {},
+  tabBtnHover:  { backgroundColor: COLORS.greenTint },
+  tabEmoji:     { fontSize: 15 },
+  tabText:      { fontSize: 13, color: '#999', fontWeight: '500' },
+  tabTextActive:{ color: COLORS.primaryDeep, fontWeight: '700' },
+  tabUnderline: {
+    position: 'absolute', bottom: 0, left: 12, right: 12,
+    height: 3, borderRadius: 2, backgroundColor: COLORS.primaryDeep,
+  },
 
+  // ── Body ──────────────────────────────────────────────────────────────────
   body:     { padding: 20, maxWidth: 860, alignSelf: 'center', width: '100%' },
   bodyWide: { paddingHorizontal: 32 },
 
-  // Feedback banner
-  feedback: { padding: 14, borderRadius: 10, marginBottom: 16, borderWidth: 1 },
+  // ── Feedback ──────────────────────────────────────────────────────────────
+  feedback:            { padding: 14, borderRadius: 10, marginBottom: 16, borderWidth: 1 },
   feedbackSuccess:     { backgroundColor: '#E8F5E9', borderColor: '#A5D6A7' },
   feedbackError:       { backgroundColor: '#FFEBEE', borderColor: '#EF9A9A' },
-  feedbackText:        { fontSize: fontSize.body, textAlign: 'center', fontWeight: '500' },
+  feedbackText:        { fontSize: 14, textAlign: 'center', fontWeight: '500' },
   feedbackTextSuccess: { color: '#2E7D32' },
   feedbackTextError:   { color: '#C62828' },
 
-  // Cards
+  // ── Cards ─────────────────────────────────────────────────────────────────
   card: {
-    backgroundColor: '#fff',
-    borderRadius: 14,
-    padding: 22,
+    backgroundColor: COLORS.white,
+    borderRadius: 16,
     marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06,
-    shadowRadius: 6,
+    flexDirection: 'row',
+    overflow: 'hidden',
+    shadowColor: COLORS.primaryDeep,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.07,
+    shadowRadius: 8,
     elevation: 2,
     borderWidth: 1,
     borderColor: '#f0f0f0',
   },
   dangerCard:   { borderColor: '#FFCDD2' },
+  cardAccent:   { width: 5, backgroundColor: COLORS.primary },
+  cardInner:    { flex: 1, padding: 22 },
   cardHeader:   { flexDirection: 'row', alignItems: 'center', gap: 14, marginBottom: 20 },
-  cardIcon:     { fontSize: 28 },
-  cardTitle:    { fontSize: fontSize.h4, fontWeight: 'bold', color: '#1a1a1a' },
-  cardSubtitle: { fontSize: fontSize.caption, color: '#888', marginTop: 2 },
+  cardIconWrap: {
+    width: 44, height: 44, borderRadius: 12,
+    backgroundColor: '#E8F5E9', justifyContent: 'center', alignItems: 'center',
+  },
+  cardIconEmoji: { fontSize: 22 },
+  cardTitle:     { fontSize: 16, fontWeight: '700', color: '#1a1a1a' },
+  cardSubtitle:  { fontSize: 12, color: '#999', marginTop: 2 },
 
-  // Form
+  // ── Form ──────────────────────────────────────────────────────────────────
   row:      { gap: 12 },
   rowWide:  { flexDirection: 'row', gap: 16 },
   field:    { marginBottom: 16 },
-  label:    { fontSize: fontSize.label, fontWeight: '600', color: '#444', marginBottom: 8 },
-  optional: { fontWeight: '400', color: '#aaa' },
+  label:    { fontSize: 13, fontWeight: '600', color: '#555', marginBottom: 7 },
+  optional: { fontWeight: '400', color: '#bbb' },
   input: {
-    borderWidth: 1,
-    borderColor: '#e0e0e0',
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: fontSize.input,
-    backgroundColor: '#fafafa',
-    color: '#1a1a1a',
+    borderWidth: 1.5, borderColor: '#e8e8e8', borderRadius: 10,
+    paddingHorizontal: 14, paddingVertical: 12,
+    fontSize: 14, backgroundColor: COLORS.greenTint, color: '#1a1a1a',
   },
 
-  inputReadOnly: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    borderWidth: 1,
-    borderColor: '#e0e0e0',
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    backgroundColor: '#f5f5f5',
-  },
-  inputReadOnlyText:  { fontSize: fontSize.input, color: '#666', flex: 1 },
-  inputReadOnlyBadge: { fontSize: fontSize.tiny, color: '#2E7D32', fontWeight: 'bold', backgroundColor: '#E8F5E9', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 10 },
-  fieldHint: { fontSize: fontSize.tiny, color: '#aaa', marginTop: 5 },
+  // ── Buttons ───────────────────────────────────────────────────────────────
+  primaryBtn:        { backgroundColor: COLORS.primaryDeep, padding: 15, borderRadius: 10, alignItems: 'center', marginTop: 4 },
+  primaryBtnHover:   { backgroundColor: '#163d18' },
+  primaryBtnText:    { color: '#fff', fontWeight: '800', fontSize: 14 },
+  secondaryBtn:      { backgroundColor: '#37474F', padding: 14, borderRadius: 10, alignItems: 'center' },
+  secondaryBtnHover: { backgroundColor: '#263238' },
+  secondaryBtnText:  { color: '#fff', fontWeight: '700', fontSize: 14 },
+  deleteBtn:         { backgroundColor: '#D32F2F', padding: 14, borderRadius: 10, alignItems: 'center', marginTop: 8 },
+  deleteBtnHover:    { backgroundColor: '#b71c1c' },
+  deleteBtnText:     { color: '#fff', fontWeight: '700', fontSize: 14 },
 
-  // Buttons
-  primaryBtn:      { backgroundColor: '#2E7D32', padding: 15, borderRadius: 10, alignItems: 'center', marginTop: 4 },
-  primaryBtnText:  { color: '#fff', fontWeight: 'bold', fontSize: fontSize.button },
-  secondaryBtn:    { backgroundColor: '#37474F', padding: 14, borderRadius: 10, alignItems: 'center' },
-  secondaryBtnText:{ color: '#fff', fontWeight: 'bold', fontSize: fontSize.button },
-  deleteBtn:       { backgroundColor: '#D32F2F', padding: 14, borderRadius: 10, alignItems: 'center', marginTop: 8 },
-  deleteBtnText:   { color: '#fff', fontWeight: 'bold', fontSize: fontSize.button },
-
-  // Empty state
+  // ── Empty state ────────────────────────────────────────────────────────────
   emptyState: { alignItems: 'center', paddingVertical: 60, gap: 12 },
   emptyIcon:  { fontSize: 52 },
-  emptyTitle: { fontSize: fontSize.h3, fontWeight: 'bold', color: '#333' },
-  emptyText:  { fontSize: fontSize.body, color: '#777', textAlign: 'center', maxWidth: 320, lineHeight: 24 },
+  emptyTitle: { fontSize: 20, fontWeight: '700', color: '#333' },
+  emptyText:  { fontSize: 14, color: '#777', textAlign: 'center', maxWidth: 320, lineHeight: 22 },
 
-  // Report cards
+  // ── Report cards ──────────────────────────────────────────────────────────
   reportCard: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 18,
-    marginBottom: 14,
-    borderWidth: 1,
-    borderColor: '#e8e8e8',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 1,
+    backgroundColor: COLORS.white, borderRadius: 14, marginBottom: 14,
+    flexDirection: 'row', overflow: 'hidden',
+    borderWidth: 1, borderColor: '#e8e8e8',
+    shadowColor: '#000', shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05, shadowRadius: 4, elevation: 1,
   },
+  reportAccent:     { width: 5 },
+  reportBody:       { flex: 1, padding: 18 },
   reportCardTop:    { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
-  reportType:       { fontSize: fontSize.h4, fontWeight: 'bold', color: '#1a1a1a', marginBottom: 8 },
-  reportDate:       { fontSize: fontSize.caption, color: '#999' },
+  reportType:       { fontSize: 16, fontWeight: '700', color: '#1a1a1a', marginBottom: 8 },
+  reportDate:       { fontSize: 12, color: '#999' },
   statusBadge:      { borderWidth: 1, borderRadius: 20, paddingHorizontal: 12, paddingVertical: 4 },
-  statusText:       { fontSize: fontSize.caption, fontWeight: 'bold' },
+  statusText:       { fontSize: 11, fontWeight: '700' },
   reportTagRow:     { flexDirection: 'row', marginBottom: 10 },
   reportTag:        { backgroundColor: '#E8F5E9', borderRadius: 6, paddingHorizontal: 10, paddingVertical: 4 },
-  reportTagText:    { fontSize: fontSize.caption, color: '#2E7D32', fontWeight: '600' },
-  reportDescription:{ fontSize: fontSize.body, color: '#444', lineHeight: 24, marginBottom: 12 },
-  resolutionBox:    { backgroundColor: '#f9f9f9', borderRadius: 8, padding: 12, marginBottom: 12, borderLeftWidth: 3, borderLeftColor: '#2E7D32' },
-  resolutionLabel:  { fontSize: fontSize.tiny, fontWeight: 'bold', color: '#2E7D32', letterSpacing: 1, marginBottom: 4 },
-  resolutionText:   { fontSize: fontSize.small, color: '#555', lineHeight: 20 },
-  scheduleCallBtn:  { borderWidth: 1.5, borderColor: '#2E7D32', borderRadius: 8, padding: 10, alignItems: 'center', marginTop: 4 },
-  scheduleCallText: { fontSize: fontSize.small, color: '#2E7D32', fontWeight: '600' },
+  reportTagText:    { fontSize: 12, color: '#2E7D32', fontWeight: '600' },
+  reportDescription:{ fontSize: 14, color: '#555', lineHeight: 22, marginBottom: 12 },
+  resolutionBox:    { backgroundColor: '#f9f9f9', borderRadius: 8, padding: 12, marginBottom: 12, borderLeftWidth: 3, borderLeftColor: COLORS.primary },
+  resolutionLabel:  { fontSize: 10, fontWeight: '700', color: COLORS.primary, letterSpacing: 1, marginBottom: 4 },
+  resolutionText:   { fontSize: 13, color: '#555', lineHeight: 20 },
+  scheduleCallBtn:  {
+    borderWidth: 1.5, borderColor: COLORS.primary, borderRadius: 8,
+    padding: 10, alignItems: 'center', marginTop: 4,
+  },
+  scheduleCallBtnHover:  { backgroundColor: COLORS.primary },
+  scheduleCallText:      { fontSize: 13, color: COLORS.primary, fontWeight: '600' },
+  scheduleCallTextHover: { color: '#fff' },
+
+  // ── Call cards ────────────────────────────────────────────────────────────
+  callCard: {
+    backgroundColor: COLORS.white, borderRadius: 14, padding: 18, marginBottom: 14,
+    borderWidth: 1, borderColor: '#e8e8e8',
+    shadowColor: '#000', shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05, shadowRadius: 4, elevation: 1,
+  },
+  callCardTop:    { marginBottom: 14 },
+  callTypeRow:    { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 },
+  callTypeLabel:  { fontSize: 16, fontWeight: '700', color: '#1a1a1a' },
+  callDate:       { fontSize: 12, color: '#999' },
+  callDetailGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 12 },
+  callDetailItem: {
+    backgroundColor: COLORS.greenTint, borderRadius: 8,
+    paddingHorizontal: 12, paddingVertical: 8, minWidth: 130,
+  },
+  callDetailLabel: { fontSize: 11, color: '#888', marginBottom: 2 },
+  callDetailValue: { fontSize: 13, fontWeight: '600', color: '#1a1a1a' },
+  callNotesBox:    { backgroundColor: '#f9f9f9', borderRadius: 8, padding: 12, marginBottom: 10, borderLeftWidth: 3, borderLeftColor: COLORS.primary },
+  callNotesLabel:  { fontSize: 10, fontWeight: '700', color: COLORS.primary, letterSpacing: 1, marginBottom: 4 },
+  callNotesText:   { fontSize: 13, color: '#555', lineHeight: 20 },
+  callLinkedBadge: { backgroundColor: '#E8F5E9', borderRadius: 6, paddingHorizontal: 10, paddingVertical: 5, alignSelf: 'flex-start' },
+  callLinkedText:  { fontSize: 12, color: '#2E7D32', fontWeight: '600' },
 });

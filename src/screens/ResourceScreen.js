@@ -29,10 +29,9 @@ export default function ResourceScreen({ route }) {
   const [activeType, setActiveType]   = useState(type || null);
   const [resources, setResources]     = useState([]);
   const [loading, setLoading]         = useState(true);
-  const [hoveredFilter, setHoveredFilter] = useState(null);
-  const [hoveredCard, setHoveredCard]     = useState(null);
+  const [hoveredFilter, setHoveredFilter]   = useState(null);
+  const [hoveredCard, setHoveredCard]       = useState(null);
   const [hoveredWebsite, setHoveredWebsite] = useState(null);
-  const [hoveredPhone, setHoveredPhone]   = useState(null);
 
   // Try Firestore first, fall back to static data
   useEffect(() => {

@@ -8,16 +8,15 @@ import {
   Linking,
   useWindowDimensions,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import Navbar from '../components/Navbar';
 import { COLORS } from '../utils/constants';
 import { fontSize } from '../theme/typography';
 
 const STEPS = [
-  { step: '1', iconName: 'create-outline',    title: 'Document the Incident', desc: 'Write down everything: dates, times, names, what was said or done. Save any texts, emails, or letters.' },
-  { step: '2', iconName: 'search-outline',    title: 'Check If You Qualify',  desc: 'Use our Discrimination Checker to see if your situation meets the legal criteria for a fair housing claim.' },
-  { step: '3', iconName: 'clipboard-outline', title: 'File a Report',         desc: 'Submit your report through FairNest to create an official record of the incident.' },
-  { step: '4', iconName: 'scale-outline',     title: 'Seek Legal Help',       desc: 'Contact Legal Aid NC for free legal advice. They can represent you at no cost if your case qualifies.' },
+  { step: '1', icon: '📝', title: 'Document the Incident', desc: 'Write down everything: dates, times, names, what was said or done. Save any texts, emails, or letters.' },
+  { step: '2', icon: '🔍', title: 'Check If You Qualify',  desc: 'Use our Discrimination Checker to see if your situation meets the legal criteria for a fair housing claim.' },
+  { step: '3', icon: '📋', title: 'File a Report',         desc: 'Submit your report through FairNest to create an official record of the incident.' },
+  { step: '4', icon: '⚖️', title: 'Seek Legal Help',       desc: 'Contact Legal Aid NC for free legal advice. They can represent you at no cost if your case qualifies.' },
 ];
 
 const LOCAL_ORGS = [
@@ -115,7 +114,7 @@ export default function FairHousingSupportScreen({ navigation }) {
               <View key={s.step} style={[styles.stepCard, isWide && styles.stepCardWide]}>
                 <Text style={styles.stepBackNum}>{s.step}</Text>
                 <View style={styles.stepIconCircle}>
-                  <Ionicons name={s.iconName} size={22} color={COLORS.primaryDeep} />
+                  <Text style={{ fontSize: 22 }}>{s.icon}</Text>
                 </View>
                 <Text style={styles.stepTitle}>{s.title}</Text>
                 <Text style={styles.stepDesc}>{s.desc}</Text>
@@ -148,7 +147,7 @@ export default function FairHousingSupportScreen({ navigation }) {
                         activeOpacity={0.7}
                         accessibilityLabel={`Call ${org.name} at ${org.phone}`}
                       >
-                        <Ionicons name="call-outline" size={14} color={COLORS.primaryDeep} />
+                        <Text style={{ fontSize: 13 }}>📞</Text>
                         <Text style={styles.orgPhoneText}>{org.phone}</Text>
                       </TouchableOpacity>
                     )}
@@ -160,8 +159,7 @@ export default function FairHousingSupportScreen({ navigation }) {
                       activeOpacity={0.7}
                       accessibilityLabel={`Visit ${org.name} website`}
                     >
-                      <Text style={styles.orgWebText}>Visit Website</Text>
-                      <Ionicons name="arrow-forward" size={12} color={COLORS.primary} />
+                      <Text style={styles.orgWebText}>Visit Website →</Text>
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -187,9 +185,7 @@ export default function FairHousingSupportScreen({ navigation }) {
               activeOpacity={0.7}
               accessibilityLabel={`Visit ${org.name}`}
             >
-              <View style={styles.linkIconBox}>
-                <Ionicons name="open-outline" size={16} color={COLORS.primary} />
-              </View>
+              <Text style={styles.linkIconBox}>🔗</Text>
               <View style={styles.linkContent}>
                 <View style={styles.linkTitleRow}>
                   <Text style={styles.linkTitle}>{org.name}</Text>
