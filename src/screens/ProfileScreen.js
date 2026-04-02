@@ -13,8 +13,15 @@ import {
 } from 'react-native';
 import { AuthContext } from '../context/AuthContext';
 import {
-  doc, getDoc, setDoc, updateDoc, deleteDoc,
-  collection, query, where, getDocs,
+  doc,
+  getDoc,
+  setDoc,
+  updateDoc,
+  deleteDoc,
+  collection,
+  query,
+  where,
+  getDocs,
 } from 'firebase/firestore';
 import { updatePassword, deleteUser } from 'firebase/auth';
 import { db } from '../firebaseConfig';
@@ -22,102 +29,153 @@ import { COLORS } from '../utils/constants';
 import Navbar from '../components/Navbar';
 
 const STATUS_COLORS = {
-  pending:  { bg: '#FFF8E1', text: '#F57F17', border: '#FFE082' },
+  pending: { bg: '#FFF8E1', text: '#F57F17', border: '#FFE082' },
   reviewed: { bg: '#E3F2FD', text: '#1565C0', border: '#90CAF9' },
   resolved: { bg: '#E8F5E9', text: '#2E7D32', border: '#A5D6A7' },
 };
 const STATUS_LABELS = {
-  pending:  'Pending',
+  pending: 'Pending',
   reviewed: 'Under Review',
   resolved: 'Resolved',
 };
 
 const CALL_TYPE_LABELS = {
   advocate: '⚖️ Advocate Call',
-  legal:    '🏛️ Legal Consultation',
+  legal: '🏛️ Legal Consultation',
 };
 
-export default function ProfileScreen({ navigation }) {
+export default function ProfileScreen({ navigation, route }) {
   const { user } = useContext(AuthContext);
   const { width } = useWindowDimensions();
   const isWide = width >= 800;
 
-  const [firstName, setFirstName]         = useState('');
-  const [lastName, setLastName]           = useState('');
-  const [email, setEmail]                 = useState('');
-  const [phone, setPhone]                 = useState('');
-  const [oldPassword, setOldPassword]     = useState('');
-  const [newPassword, setNewPassword]     = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [oldPassword, setOldPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [loading, setLoading]             = useState(true);
-  const [message, setMessage]             = useState('');
-  const [messageType, setMessageType]     = useState('success');
-  const [activeTab, setActiveTab]         = useState('profile');
-  const [reports, setReports]             = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [message, setMessage] = useState('');
+  const [messageType, setMessageType] = useState('success');
+  const [activeTab, setActiveTab] = useState('profile');
+  const [reports, setReports] = useState([]);
   const [reportsLoading, setReportsLoading] = useState(true);
-  const [calls, setCalls]                 = useState([]);
-  const [callsLoading, setCallsLoading]   = useState(true);
+  const [calls, setCalls] = useState([]);
+  const [callsLoading, setCallsLoading] = useState(true);
 
   // Hover states
-  const [hoveredTab, setHoveredTab]             = useState(null);
-  const [hoveredSave, setHoveredSave]           = useState(false);
-  const [hoveredPassword, setHoveredPassword]   = useState(false);
-  const [hoveredDelete, setHoveredDelete]       = useState(false);
-  const [hoveredSchedule, setHoveredSchedule]   = useState(null);
-  const [hoveredEmptyBtn, setHoveredEmptyBtn]   = useState(null);
+  const [hoveredTab, setHoveredTab] = useState(null);
+  const [hoveredSave, setHoveredSave] = useState(false);
+  const [hoveredPassword, setHoveredPassword] = useState(false);
+  const [hoveredDelete, setHoveredDelete] = useState(false);
+  const [hoveredSchedule, setHoveredSchedule] = useState(null);
+  const [hoveredEmptyBtn, setHoveredEmptyBtn] = useState(null);
 
-  useEffect(() => {
-    const fetchUserData = async () => {
-      if (!user) return;
-      try {
-        const snap = await getDoc(doc(db, 'users', user.uid));
-        if (snap.exists()) {
-          const d = snap.data();
-          setFirstName(d.firstName || '');
-          setLastName(d.lastName || '');
-          setEmail(user.email || d.email || '');
-          const storedPhone = d.phone || '';
-          const cleanPhone = storedPhone.includes('@') ? '' : storedPhone;
-          setPhone(cleanPhone);
-          if (storedPhone.includes('@')) {
-            await updateDoc(doc(db, 'users', user.uid), { phone: '' });
-          }
-        }
-      } catch (err) { console.log(err); }
+  const fetchUserData = async () => {
+    if (!user) {
       setLoading(false);
-    };
-    fetchUserData();
-  }, [user]);
+      return;
+    }
 
-  useEffect(() => {
-    const fetchReports = async () => {
-      if (!user) return;
-      try {
-        const q = query(collection(db, 'reports'), where('userId', '==', user.uid));
-        const snap = await getDocs(q);
-        const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-        docs.sort((a, b) => (b.createdAt?.seconds ?? 0) - (a.createdAt?.seconds ?? 0));
-        setReports(docs);
-      } catch (err) { console.log(err); }
+    try {
+      const snap = await getDoc(doc(db, 'users', user.uid));
+      if (snap.exists()) {
+        const d = snap.data();
+        setFirstName(d.firstName || '');
+        setLastName(d.lastName || '');
+        setEmail(user.email || d.email || '');
+        const storedPhone = d.phone || '';
+        const cleanPhone = storedPhone.includes('@') ? '' : storedPhone;
+        setPhone(cleanPhone);
+        if (storedPhone.includes('@')) {
+          await updateDoc(doc(db, 'users', user.uid), { phone: '' });
+        }
+      } else {
+        setEmail(user.email || '');
+      }
+    } catch (err) {
+      console.log(err);
+    }
+
+    setLoading(false);
+  };
+
+  const fetchReports = async () => {
+    if (!user) {
+      setReports([]);
       setReportsLoading(false);
-    };
-    fetchReports();
-  }, [user]);
+      return;
+    }
+
+    setReportsLoading(true);
+    try {
+      const q = query(
+        collection(db, 'reports'),
+        where('userId', '==', user.uid)
+      );
+      const snap = await getDocs(q);
+      const docs = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      docs.sort(
+        (a, b) => (b.createdAt?.seconds ?? 0) - (a.createdAt?.seconds ?? 0)
+      );
+      setReports(docs);
+    } catch (err) {
+      console.log(err);
+    }
+    setReportsLoading(false);
+  };
+
+  const fetchCalls = async () => {
+    if (!user) {
+      setCalls([]);
+      setCallsLoading(false);
+      return;
+    }
+
+    setCallsLoading(true);
+    try {
+      const q = query(
+        collection(db, 'callRequests'),
+        where('userId', '==', user.uid)
+      );
+      const snap = await getDocs(q);
+      const docs = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      docs.sort(
+        (a, b) => (b.createdAt?.seconds ?? 0) - (a.createdAt?.seconds ?? 0)
+      );
+      setCalls(docs);
+    } catch (err) {
+      console.log(err);
+    }
+    setCallsLoading(false);
+  };
 
   useEffect(() => {
-    const fetchCalls = async () => {
-      if (!user) return;
-      try {
-        const q = query(collection(db, 'callRequests'), where('userId', '==', user.uid));
-        const snap = await getDocs(q);
-        const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-        docs.sort((a, b) => (b.createdAt?.seconds ?? 0) - (a.createdAt?.seconds ?? 0));
-        setCalls(docs);
-      } catch (err) { console.log(err); }
-      setCallsLoading(false);
-    };
+    fetchUserData();
+    fetchReports();
     fetchCalls();
   }, [user]);
+
+  useEffect(() => {
+    if (route?.params?.initialTab) {
+      setActiveTab(route.params.initialTab);
+    }
+  }, [route?.params?.initialTab]);
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      fetchUserData();
+      fetchReports();
+      fetchCalls();
+      if (route?.params?.initialTab) {
+        setActiveTab(route.params.initialTab);
+      }
+    });
+
+    return unsubscribe;
+  }, [navigation, route?.params?.initialTab, user]);
 
   const showMessage = (text, type = 'success') => {
     setMessage(text);
@@ -127,12 +185,16 @@ export default function ProfileScreen({ navigation }) {
 
   const handleUpdate = async () => {
     try {
-      await setDoc(doc(db, 'users', user.uid), {
-        firstName: firstName.trim(),
-        lastName:  lastName.trim(),
-        phone:     phone.trim(),
-        email:     email.trim(),
-      }, { merge: true });
+      await setDoc(
+        doc(db, 'users', user.uid),
+        {
+          firstName: firstName.trim(),
+          lastName: lastName.trim(),
+          phone: phone.trim(),
+          email: email.trim(),
+        },
+        { merge: true }
+      );
       showMessage('Profile updated successfully.');
     } catch (err) {
       showMessage('Update failed. Please try again.', 'error');
@@ -140,19 +202,32 @@ export default function ProfileScreen({ navigation }) {
   };
 
   const handlePasswordChange = async () => {
-    if (!oldPassword) { showMessage('Please enter your current password.', 'error'); return; }
-    if (newPassword.length < 8) { showMessage('New password must be at least 8 characters.', 'error'); return; }
-    if (newPassword !== confirmPassword) { showMessage('New passwords do not match.', 'error'); return; }
+    if (!oldPassword) {
+      showMessage('Please enter your current password.', 'error');
+      return;
+    }
+    if (newPassword.length < 8) {
+      showMessage('New password must be at least 8 characters.', 'error');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      showMessage('New passwords do not match.', 'error');
+      return;
+    }
     try {
-      const { EmailAuthProvider, reauthenticateWithCredential } = await import('firebase/auth');
+      const { EmailAuthProvider, reauthenticateWithCredential } =
+        await import('firebase/auth');
       const credential = EmailAuthProvider.credential(user.email, oldPassword);
       await reauthenticateWithCredential(user, credential);
       await updatePassword(user, newPassword);
-      setOldPassword(''); setNewPassword(''); setConfirmPassword('');
+      setOldPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
       showMessage('Password updated successfully.');
     } catch (err) {
       showMessage(
-        err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential'
+        err.code === 'auth/wrong-password' ||
+          err.code === 'auth/invalid-credential'
           ? 'Current password is incorrect.'
           : 'Password update failed. Please try again.',
         'error'
@@ -162,13 +237,23 @@ export default function ProfileScreen({ navigation }) {
 
   const confirmDeleteAccount = () => {
     if (Platform.OS === 'web') {
-      const confirmed = window.confirm('Are you sure you want to delete your account?\n\nThis will permanently remove your account and all your data. This cannot be undone.');
+      const confirmed = window.confirm(
+        'Are you sure you want to delete your account?\n\nThis will permanently remove your account and all your data. This cannot be undone.'
+      );
       if (confirmed) handleDeleteAccount();
     } else {
-      Alert.alert('Delete Account', 'Are you sure you want to delete your account?', [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Yes, Delete', style: 'destructive', onPress: handleDeleteAccount },
-      ]);
+      Alert.alert(
+        'Delete Account',
+        'Are you sure you want to delete your account?',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Yes, Delete',
+            style: 'destructive',
+            onPress: handleDeleteAccount,
+          },
+        ]
+      );
     }
   };
 
@@ -188,16 +273,29 @@ export default function ProfileScreen({ navigation }) {
   };
 
   if (loading) {
-    return <View style={styles.center}><ActivityIndicator size="large" color={COLORS.primary} /></View>;
+    return (
+      <View style={styles.center}>
+        <ActivityIndicator size="large" color={COLORS.primary} />
+      </View>
+    );
   }
 
-  const displayName = [firstName, lastName].filter(Boolean).join(' ') || 'My Profile';
-  const initials    = firstName?.[0] || user?.email?.[0] || '?';
+  const displayName =
+    [firstName, lastName].filter(Boolean).join(' ') || 'My Profile';
+  const initials = firstName?.[0] || user?.email?.[0] || '?';
 
   const TABS = [
     { key: 'profile', emoji: '⚙️', label: 'Account' },
-    { key: 'reports', emoji: '📋', label: `Reports${reports.length > 0 ? ` (${reports.length})` : ''}` },
-    { key: 'calls',   emoji: '📞', label: `Calls${calls.length > 0 ? ` (${calls.length})` : ''}` },
+    {
+      key: 'reports',
+      emoji: '📋',
+      label: `Reports${reports.length > 0 ? ` (${reports.length})` : ''}`,
+    },
+    {
+      key: 'calls',
+      emoji: '📞',
+      label: `Calls${calls.length > 0 ? ` (${calls.length})` : ''}`,
+    },
   ];
 
   return (
@@ -226,16 +324,24 @@ export default function ProfileScreen({ navigation }) {
 
       {/* ── Tab Bar ── */}
       <View style={styles.tabBar}>
-        {TABS.map(t => (
+        {TABS.map((t) => (
           <TouchableOpacity
             key={t.key}
-            style={[styles.tabBtn, activeTab === t.key && styles.tabBtnActive, activeTab !== t.key && hoveredTab === t.key && styles.tabBtnHover]}
+            style={[
+              styles.tabBtn,
+              activeTab === t.key && styles.tabBtnActive,
+              activeTab !== t.key && hoveredTab === t.key && styles.tabBtnHover,
+            ]}
             onPress={() => setActiveTab(t.key)}
             onMouseEnter={() => setHoveredTab(t.key)}
             onMouseLeave={() => setHoveredTab(null)}
             activeOpacity={0.7}>
             <Text style={styles.tabEmoji}>{t.emoji}</Text>
-            <Text style={[styles.tabText, activeTab === t.key && styles.tabTextActive]}>
+            <Text
+              style={[
+                styles.tabText,
+                activeTab === t.key && styles.tabTextActive,
+              ]}>
               {t.label}
             </Text>
             {activeTab === t.key && <View style={styles.tabUnderline} />}
@@ -244,12 +350,24 @@ export default function ProfileScreen({ navigation }) {
       </View>
 
       <View style={[styles.body, isWide && styles.bodyWide]}>
-
         {/* ── Feedback banner ── */}
         {message ? (
-          <View style={[styles.feedback, messageType === 'error' ? styles.feedbackError : styles.feedbackSuccess]}>
-            <Text style={[styles.feedbackText, messageType === 'error' ? styles.feedbackTextError : styles.feedbackTextSuccess]}>
-              {messageType === 'success' ? '✅ ' : '⚠️ '}{message}
+          <View
+            style={[
+              styles.feedback,
+              messageType === 'error'
+                ? styles.feedbackError
+                : styles.feedbackSuccess,
+            ]}>
+            <Text
+              style={[
+                styles.feedbackText,
+                messageType === 'error'
+                  ? styles.feedbackTextError
+                  : styles.feedbackTextSuccess,
+              ]}>
+              {messageType === 'success' ? '✅ ' : '⚠️ '}
+              {message}
             </Text>
           </View>
         ) : null}
@@ -261,36 +379,72 @@ export default function ProfileScreen({ navigation }) {
               <View style={styles.cardAccent} />
               <View style={styles.cardInner}>
                 <View style={styles.cardHeader}>
-                  <View style={styles.cardIconWrap}><Text style={styles.cardIconEmoji}>👤</Text></View>
+                  <View style={styles.cardIconWrap}>
+                    <Text style={styles.cardIconEmoji}>👤</Text>
+                  </View>
                   <View>
                     <Text style={styles.cardTitle}>Personal Information</Text>
-                    <Text style={styles.cardSubtitle}>Update your name, email, and phone</Text>
+                    <Text style={styles.cardSubtitle}>
+                      Update your name, email, and phone
+                    </Text>
                   </View>
                 </View>
 
                 <View style={[styles.row, isWide && styles.rowWide]}>
                   <View style={[styles.field, isWide && { flex: 1 }]}>
                     <Text style={styles.label}>First Name</Text>
-                    <TextInput style={styles.input} value={firstName} onChangeText={setFirstName} placeholder="First name" placeholderTextColor="#bbb" />
+                    <TextInput
+                      style={styles.input}
+                      value={firstName}
+                      onChangeText={setFirstName}
+                      placeholder="First name"
+                      placeholderTextColor="#bbb"
+                    />
                   </View>
                   <View style={[styles.field, isWide && { flex: 1 }]}>
                     <Text style={styles.label}>Last Name</Text>
-                    <TextInput style={styles.input} value={lastName} onChangeText={setLastName} placeholder="Last name" placeholderTextColor="#bbb" />
+                    <TextInput
+                      style={styles.input}
+                      value={lastName}
+                      onChangeText={setLastName}
+                      placeholder="Last name"
+                      placeholderTextColor="#bbb"
+                    />
                   </View>
                 </View>
 
                 <View style={styles.field}>
                   <Text style={styles.label}>Email Address</Text>
-                  <TextInput style={styles.input} value={email} onChangeText={setEmail} placeholder="Email address" placeholderTextColor="#bbb" keyboardType="email-address" autoCapitalize="none" />
+                  <TextInput
+                    style={styles.input}
+                    value={email}
+                    onChangeText={setEmail}
+                    placeholder="Email address"
+                    placeholderTextColor="#bbb"
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                  />
                 </View>
 
                 <View style={styles.field}>
-                  <Text style={styles.label}>Phone <Text style={styles.optional}>(optional)</Text></Text>
-                  <TextInput style={styles.input} value={phone} onChangeText={setPhone} keyboardType="phone-pad" placeholder="e.g. 919-555-0100" placeholderTextColor="#bbb" />
+                  <Text style={styles.label}>
+                    Phone <Text style={styles.optional}>(optional)</Text>
+                  </Text>
+                  <TextInput
+                    style={styles.input}
+                    value={phone}
+                    onChangeText={setPhone}
+                    keyboardType="phone-pad"
+                    placeholder="e.g. 919-555-0100"
+                    placeholderTextColor="#bbb"
+                  />
                 </View>
 
                 <TouchableOpacity
-                  style={[styles.primaryBtn, hoveredSave && styles.primaryBtnHover]}
+                  style={[
+                    styles.primaryBtn,
+                    hoveredSave && styles.primaryBtnHover,
+                  ]}
                   onPress={handleUpdate}
                   onMouseEnter={() => setHoveredSave(true)}
                   onMouseLeave={() => setHoveredSave(false)}
@@ -304,28 +458,56 @@ export default function ProfileScreen({ navigation }) {
               <View style={styles.cardAccent} />
               <View style={styles.cardInner}>
                 <View style={styles.cardHeader}>
-                  <View style={styles.cardIconWrap}><Text style={styles.cardIconEmoji}>🔒</Text></View>
+                  <View style={styles.cardIconWrap}>
+                    <Text style={styles.cardIconEmoji}>🔒</Text>
+                  </View>
                   <View>
                     <Text style={styles.cardTitle}>Change Password</Text>
-                    <Text style={styles.cardSubtitle}>Your current password is required</Text>
+                    <Text style={styles.cardSubtitle}>
+                      Your current password is required
+                    </Text>
                   </View>
                 </View>
 
                 <View style={styles.field}>
                   <Text style={styles.label}>Current Password</Text>
-                  <TextInput style={styles.input} value={oldPassword} onChangeText={setOldPassword} secureTextEntry placeholder="Enter current password" placeholderTextColor="#bbb" />
+                  <TextInput
+                    style={styles.input}
+                    value={oldPassword}
+                    onChangeText={setOldPassword}
+                    secureTextEntry
+                    placeholder="Enter current password"
+                    placeholderTextColor="#bbb"
+                  />
                 </View>
                 <View style={styles.field}>
                   <Text style={styles.label}>New Password</Text>
-                  <TextInput style={styles.input} value={newPassword} onChangeText={setNewPassword} secureTextEntry placeholder="Min. 8 characters" placeholderTextColor="#bbb" />
+                  <TextInput
+                    style={styles.input}
+                    value={newPassword}
+                    onChangeText={setNewPassword}
+                    secureTextEntry
+                    placeholder="Min. 8 characters"
+                    placeholderTextColor="#bbb"
+                  />
                 </View>
                 <View style={styles.field}>
                   <Text style={styles.label}>Confirm New Password</Text>
-                  <TextInput style={styles.input} value={confirmPassword} onChangeText={setConfirmPassword} secureTextEntry placeholder="Re-enter new password" placeholderTextColor="#bbb" />
+                  <TextInput
+                    style={styles.input}
+                    value={confirmPassword}
+                    onChangeText={setConfirmPassword}
+                    secureTextEntry
+                    placeholder="Re-enter new password"
+                    placeholderTextColor="#bbb"
+                  />
                 </View>
 
                 <TouchableOpacity
-                  style={[styles.secondaryBtn, hoveredPassword && styles.secondaryBtnHover]}
+                  style={[
+                    styles.secondaryBtn,
+                    hoveredPassword && styles.secondaryBtnHover,
+                  ]}
                   onPress={handlePasswordChange}
                   onMouseEnter={() => setHoveredPassword(true)}
                   onMouseLeave={() => setHoveredPassword(false)}
@@ -336,17 +518,32 @@ export default function ProfileScreen({ navigation }) {
             </View>
 
             <View style={[styles.card, styles.dangerCard]}>
-              <View style={[styles.cardAccent, { backgroundColor: '#D32F2F' }]} />
+              <View
+                style={[styles.cardAccent, { backgroundColor: '#D32F2F' }]}
+              />
               <View style={styles.cardInner}>
                 <View style={styles.cardHeader}>
-                  <View style={[styles.cardIconWrap, { backgroundColor: '#FFEBEE' }]}><Text style={styles.cardIconEmoji}>⚠️</Text></View>
+                  <View
+                    style={[
+                      styles.cardIconWrap,
+                      { backgroundColor: '#FFEBEE' },
+                    ]}>
+                    <Text style={styles.cardIconEmoji}>⚠️</Text>
+                  </View>
                   <View>
-                    <Text style={[styles.cardTitle, { color: '#C62828' }]}>Delete Account</Text>
-                    <Text style={styles.cardSubtitle}>Permanently removes your account and all data</Text>
+                    <Text style={[styles.cardTitle, { color: '#C62828' }]}>
+                      Delete Account
+                    </Text>
+                    <Text style={styles.cardSubtitle}>
+                      Permanently removes your account and all data
+                    </Text>
                   </View>
                 </View>
                 <TouchableOpacity
-                  style={[styles.deleteBtn, hoveredDelete && styles.deleteBtnHover]}
+                  style={[
+                    styles.deleteBtn,
+                    hoveredDelete && styles.deleteBtnHover,
+                  ]}
                   onPress={confirmDeleteAccount}
                   onMouseEnter={() => setHoveredDelete(true)}
                   onMouseLeave={() => setHoveredDelete(false)}
@@ -362,14 +559,24 @@ export default function ProfileScreen({ navigation }) {
         {activeTab === 'reports' && (
           <>
             {reportsLoading ? (
-              <ActivityIndicator size="large" color={COLORS.primary} style={{ marginTop: 40 }} />
+              <ActivityIndicator
+                size="large"
+                color={COLORS.primary}
+                style={{ marginTop: 40 }}
+              />
             ) : reports.length === 0 ? (
               <View style={styles.emptyState}>
                 <Text style={styles.emptyIcon}>📋</Text>
                 <Text style={styles.emptyTitle}>No reports yet</Text>
-                <Text style={styles.emptyText}>When you submit a housing report, it will appear here with its status.</Text>
+                <Text style={styles.emptyText}>
+                  When you submit a housing report, it will appear here with its
+                  status.
+                </Text>
                 <TouchableOpacity
-                  style={[styles.primaryBtn, hoveredEmptyBtn === 'report' && styles.primaryBtnHover]}
+                  style={[
+                    styles.primaryBtn,
+                    hoveredEmptyBtn === 'report' && styles.primaryBtnHover,
+                  ]}
                   onPress={() => navigation.navigate('Report')}
                   onMouseEnter={() => setHoveredEmptyBtn('report')}
                   onMouseLeave={() => setHoveredEmptyBtn(null)}
@@ -378,44 +585,89 @@ export default function ProfileScreen({ navigation }) {
                 </TouchableOpacity>
               </View>
             ) : (
-              reports.map(report => {
+              reports.map((report) => {
                 const status = report.status || 'pending';
                 const colors = STATUS_COLORS[status] || STATUS_COLORS.pending;
                 const date = report.createdAt?.toDate
-                  ? report.createdAt.toDate().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                  ? report.createdAt.toDate().toLocaleDateString('en-US', {
+                      month: 'short',
+                      day: 'numeric',
+                      year: 'numeric',
+                    })
                   : '—';
                 return (
                   <View key={report.id} style={styles.reportCard}>
-                    <View style={[styles.reportAccent, { backgroundColor: colors.text }]} />
+                    <View
+                      style={[
+                        styles.reportAccent,
+                        { backgroundColor: colors.text },
+                      ]}
+                    />
                     <View style={styles.reportBody}>
                       <View style={styles.reportCardTop}>
-                        <View style={[styles.statusBadge, { backgroundColor: colors.bg, borderColor: colors.border }]}>
-                          <Text style={[styles.statusText, { color: colors.text }]}>{STATUS_LABELS[status] || status}</Text>
+                        <View
+                          style={[
+                            styles.statusBadge,
+                            {
+                              backgroundColor: colors.bg,
+                              borderColor: colors.border,
+                            },
+                          ]}>
+                          <Text
+                            style={[styles.statusText, { color: colors.text }]}>
+                            {STATUS_LABELS[status] || status}
+                          </Text>
                         </View>
                         <Text style={styles.reportDate}>{date}</Text>
                       </View>
-                      <Text style={styles.reportType}>{report.housingIssueType || 'Housing Issue'}</Text>
+                      <Text style={styles.reportType}>
+                        {report.housingIssueType || 'Housing Issue'}
+                      </Text>
                       {report.discriminationBasis ? (
                         <View style={styles.reportTagRow}>
                           <View style={styles.reportTag}>
-                            <Text style={styles.reportTagText}>Basis: {report.discriminationBasis}</Text>
+                            <Text style={styles.reportTagText}>
+                              Basis: {report.discriminationBasis}
+                            </Text>
                           </View>
                         </View>
                       ) : null}
-                      <Text style={styles.reportDescription} numberOfLines={3}>{report.description}</Text>
+                      <Text style={styles.reportDescription} numberOfLines={3}>
+                        {report.description}
+                      </Text>
                       {report.desiredResolution ? (
                         <View style={styles.resolutionBox}>
-                          <Text style={styles.resolutionLabel}>DESIRED RESOLUTION</Text>
-                          <Text style={styles.resolutionText}>{report.desiredResolution}</Text>
+                          <Text style={styles.resolutionLabel}>
+                            DESIRED RESOLUTION
+                          </Text>
+                          <Text style={styles.resolutionText}>
+                            {report.desiredResolution}
+                          </Text>
                         </View>
                       ) : null}
                       <TouchableOpacity
-                        style={[styles.scheduleCallBtn, hoveredSchedule === report.id && styles.scheduleCallBtnHover]}
-                        onPress={() => navigation.navigate('ScheduleCall', { reportId: report.id, reportType: report.housingIssueType })}
+                        style={[
+                          styles.scheduleCallBtn,
+                          hoveredSchedule === report.id &&
+                            styles.scheduleCallBtnHover,
+                        ]}
+                        onPress={() =>
+                          navigation.navigate('ScheduleCall', {
+                            reportId: report.id,
+                            reportType: report.housingIssueType,
+                          })
+                        }
                         onMouseEnter={() => setHoveredSchedule(report.id)}
                         onMouseLeave={() => setHoveredSchedule(null)}
                         activeOpacity={0.7}>
-                        <Text style={[styles.scheduleCallText, hoveredSchedule === report.id && styles.scheduleCallTextHover]}>📞 Schedule a Call About This Report</Text>
+                        <Text
+                          style={[
+                            styles.scheduleCallText,
+                            hoveredSchedule === report.id &&
+                              styles.scheduleCallTextHover,
+                          ]}>
+                          📞 Schedule a Call About This Report
+                        </Text>
                       </TouchableOpacity>
                     </View>
                   </View>
@@ -429,14 +681,24 @@ export default function ProfileScreen({ navigation }) {
         {activeTab === 'calls' && (
           <>
             {callsLoading ? (
-              <ActivityIndicator size="large" color={COLORS.primary} style={{ marginTop: 40 }} />
+              <ActivityIndicator
+                size="large"
+                color={COLORS.primary}
+                style={{ marginTop: 40 }}
+              />
             ) : calls.length === 0 ? (
               <View style={styles.emptyState}>
                 <Text style={styles.emptyIcon}>📞</Text>
                 <Text style={styles.emptyTitle}>No calls scheduled</Text>
-                <Text style={styles.emptyText}>When you book a consultation with an advocate or attorney, it will appear here.</Text>
+                <Text style={styles.emptyText}>
+                  When you book a consultation with an advocate or attorney, it
+                  will appear here.
+                </Text>
                 <TouchableOpacity
-                  style={[styles.primaryBtn, hoveredEmptyBtn === 'call' && styles.primaryBtnHover]}
+                  style={[
+                    styles.primaryBtn,
+                    hoveredEmptyBtn === 'call' && styles.primaryBtnHover,
+                  ]}
                   onPress={() => navigation.navigate('ScheduleCall')}
                   onMouseEnter={() => setHoveredEmptyBtn('call')}
                   onMouseLeave={() => setHoveredEmptyBtn(null)}
@@ -445,11 +707,15 @@ export default function ProfileScreen({ navigation }) {
                 </TouchableOpacity>
               </View>
             ) : (
-              calls.map(call => {
+              calls.map((call) => {
                 const status = call.status || 'pending';
                 const colors = STATUS_COLORS[status] || STATUS_COLORS.pending;
                 const date = call.createdAt?.toDate
-                  ? call.createdAt.toDate().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                  ? call.createdAt.toDate().toLocaleDateString('en-US', {
+                      month: 'short',
+                      day: 'numeric',
+                      year: 'numeric',
+                    })
                   : '—';
                 return (
                   <View key={call.id} style={styles.callCard}>
@@ -458,8 +724,18 @@ export default function ProfileScreen({ navigation }) {
                         <Text style={styles.callTypeLabel}>
                           {CALL_TYPE_LABELS[call.callType] || '📞 Call Request'}
                         </Text>
-                        <View style={[styles.statusBadge, { backgroundColor: colors.bg, borderColor: colors.border }]}>
-                          <Text style={[styles.statusText, { color: colors.text }]}>{STATUS_LABELS[status] || status}</Text>
+                        <View
+                          style={[
+                            styles.statusBadge,
+                            {
+                              backgroundColor: colors.bg,
+                              borderColor: colors.border,
+                            },
+                          ]}>
+                          <Text
+                            style={[styles.statusText, { color: colors.text }]}>
+                            {STATUS_LABELS[status] || status}
+                          </Text>
                         </View>
                       </View>
                       <Text style={styles.callDate}>{date}</Text>
@@ -468,20 +744,30 @@ export default function ProfileScreen({ navigation }) {
                     <View style={styles.callDetailGrid}>
                       {call.preferredDate ? (
                         <View style={styles.callDetailItem}>
-                          <Text style={styles.callDetailLabel}>📅 Preferred Date</Text>
-                          <Text style={styles.callDetailValue}>{call.preferredDate}</Text>
+                          <Text style={styles.callDetailLabel}>
+                            📅 Preferred Date
+                          </Text>
+                          <Text style={styles.callDetailValue}>
+                            {call.preferredDate}
+                          </Text>
                         </View>
                       ) : null}
                       {call.timeSlot ? (
                         <View style={styles.callDetailItem}>
-                          <Text style={styles.callDetailLabel}>🕐 Time Slot</Text>
-                          <Text style={styles.callDetailValue}>{call.timeSlot}</Text>
+                          <Text style={styles.callDetailLabel}>
+                            🕐 Time Slot
+                          </Text>
+                          <Text style={styles.callDetailValue}>
+                            {call.timeSlot}
+                          </Text>
                         </View>
                       ) : null}
                       {call.phone ? (
                         <View style={styles.callDetailItem}>
                           <Text style={styles.callDetailLabel}>📱 Contact</Text>
-                          <Text style={styles.callDetailValue}>{call.phone}</Text>
+                          <Text style={styles.callDetailValue}>
+                            {call.phone}
+                          </Text>
                         </View>
                       ) : null}
                     </View>
@@ -495,7 +781,9 @@ export default function ProfileScreen({ navigation }) {
 
                     {call.reportId ? (
                       <View style={styles.callLinkedBadge}>
-                        <Text style={styles.callLinkedText}>📋 Linked to report</Text>
+                        <Text style={styles.callLinkedText}>
+                          📋 Linked to report
+                        </Text>
                       </View>
                     ) : null}
                   </View>
@@ -511,7 +799,7 @@ export default function ProfileScreen({ navigation }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.greenTint },
-  center:    { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
 
   // ── Hero ────────────────────────────────────────────────────────────────
   heroWrap: {
@@ -523,40 +811,84 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   ring1: {
-    position: 'absolute', width: 400, height: 400, borderRadius: 200,
-    borderWidth: 50, borderColor: 'rgba(255,255,255,0.05)',
-    top: -150, right: -120,
+    position: 'absolute',
+    width: 400,
+    height: 400,
+    borderRadius: 200,
+    borderWidth: 50,
+    borderColor: 'rgba(255,255,255,0.05)',
+    top: -150,
+    right: -120,
   },
   ring2: {
-    position: 'absolute', width: 260, height: 260, borderRadius: 130,
-    borderWidth: 40, borderColor: 'rgba(255,255,255,0.04)',
-    bottom: -80, left: -60,
+    position: 'absolute',
+    width: 260,
+    height: 260,
+    borderRadius: 130,
+    borderWidth: 40,
+    borderColor: 'rgba(255,255,255,0.04)',
+    bottom: -80,
+    left: -60,
   },
   ring3: {
-    position: 'absolute', width: 180, height: 180, borderRadius: 90,
-    borderWidth: 30, borderColor: 'rgba(255,255,255,0.04)',
-    top: 20, left: 40,
+    position: 'absolute',
+    width: 180,
+    height: 180,
+    borderRadius: 90,
+    borderWidth: 30,
+    borderColor: 'rgba(255,255,255,0.04)',
+    top: 20,
+    left: 40,
   },
   heroContent: { alignItems: 'center', zIndex: 1 },
   heroAvatar: {
-    width: 88, height: 88, borderRadius: 44,
+    width: 88,
+    height: 88,
+    borderRadius: 44,
     backgroundColor: 'rgba(255,255,255,0.15)',
-    borderWidth: 3, borderColor: 'rgba(255,255,255,0.4)',
-    justifyContent: 'center', alignItems: 'center', marginBottom: 16,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3, shadowRadius: 12, elevation: 8,
+    borderWidth: 3,
+    borderColor: 'rgba(255,255,255,0.4)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 8,
   },
   heroAvatarText: { fontSize: 36, fontWeight: '800', color: '#fff' },
-  heroName:       { fontSize: 22, fontWeight: '800', color: '#fff', marginBottom: 4, letterSpacing: -0.3 },
-  heroEmail:      { fontSize: 14, color: 'rgba(255,255,255,0.7)', marginBottom: 16 },
-  heroBadge: {
-    flexDirection: 'row', alignItems: 'center', gap: 6,
-    backgroundColor: 'rgba(255,255,255,0.12)',
-    borderRadius: 20, paddingHorizontal: 14, paddingVertical: 6,
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.25)',
+  heroName: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: '#fff',
+    marginBottom: 4,
+    letterSpacing: -0.3,
   },
-  heroBadgeDot:  { width: 6, height: 6, borderRadius: 3, backgroundColor: COLORS.amber },
-  heroBadgeText: { fontSize: 11, color: 'rgba(255,255,255,0.9)', fontWeight: '700', letterSpacing: 1.5 },
+  heroEmail: { fontSize: 14, color: 'rgba(255,255,255,0.7)', marginBottom: 16 },
+  heroBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: 'rgba(255,255,255,0.12)',
+    borderRadius: 20,
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.25)',
+  },
+  heroBadgeDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: COLORS.amber,
+  },
+  heroBadgeText: {
+    fontSize: 11,
+    color: 'rgba(255,255,255,0.9)',
+    fontWeight: '700',
+    letterSpacing: 1.5,
+  },
 
   // ── Tab Bar ──────────────────────────────────────────────────────────────
   tabBar: {
@@ -567,31 +899,41 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
   },
   tabBtn: {
-    flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    gap: 6, paddingVertical: 14, paddingHorizontal: 8,
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 14,
+    paddingHorizontal: 8,
     position: 'relative',
   },
   tabBtnActive: {},
-  tabBtnHover:  { backgroundColor: COLORS.greenTint },
-  tabEmoji:     { fontSize: 15 },
-  tabText:      { fontSize: 13, color: '#999', fontWeight: '500' },
-  tabTextActive:{ color: COLORS.primaryDeep, fontWeight: '700' },
+  tabBtnHover: { backgroundColor: COLORS.greenTint },
+  tabEmoji: { fontSize: 15 },
+  tabText: { fontSize: 13, color: '#999', fontWeight: '500' },
+  tabTextActive: { color: COLORS.primaryDeep, fontWeight: '700' },
   tabUnderline: {
-    position: 'absolute', bottom: 0, left: 12, right: 12,
-    height: 3, borderRadius: 2, backgroundColor: COLORS.primaryDeep,
+    position: 'absolute',
+    bottom: 0,
+    left: 12,
+    right: 12,
+    height: 3,
+    borderRadius: 2,
+    backgroundColor: COLORS.primaryDeep,
   },
 
   // ── Body ──────────────────────────────────────────────────────────────────
-  body:     { padding: 20, maxWidth: 860, alignSelf: 'center', width: '100%' },
+  body: { padding: 20, maxWidth: 860, alignSelf: 'center', width: '100%' },
   bodyWide: { paddingHorizontal: 32 },
 
   // ── Feedback ──────────────────────────────────────────────────────────────
-  feedback:            { padding: 14, borderRadius: 10, marginBottom: 16, borderWidth: 1 },
-  feedbackSuccess:     { backgroundColor: '#E8F5E9', borderColor: '#A5D6A7' },
-  feedbackError:       { backgroundColor: '#FFEBEE', borderColor: '#EF9A9A' },
-  feedbackText:        { fontSize: 14, textAlign: 'center', fontWeight: '500' },
+  feedback: { padding: 14, borderRadius: 10, marginBottom: 16, borderWidth: 1 },
+  feedbackSuccess: { backgroundColor: '#E8F5E9', borderColor: '#A5D6A7' },
+  feedbackError: { backgroundColor: '#FFEBEE', borderColor: '#EF9A9A' },
+  feedbackText: { fontSize: 14, textAlign: 'center', fontWeight: '500' },
   feedbackTextSuccess: { color: '#2E7D32' },
-  feedbackTextError:   { color: '#C62828' },
+  feedbackTextError: { color: '#C62828' },
 
   // ── Cards ─────────────────────────────────────────────────────────────────
   card: {
@@ -608,98 +950,223 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#f0f0f0',
   },
-  dangerCard:   { borderColor: '#FFCDD2' },
-  cardAccent:   { width: 5, backgroundColor: COLORS.primary },
-  cardInner:    { flex: 1, padding: 22 },
-  cardHeader:   { flexDirection: 'row', alignItems: 'center', gap: 14, marginBottom: 20 },
+  dangerCard: { borderColor: '#FFCDD2' },
+  cardAccent: { width: 5, backgroundColor: COLORS.primary },
+  cardInner: { flex: 1, padding: 22 },
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+    marginBottom: 20,
+  },
   cardIconWrap: {
-    width: 44, height: 44, borderRadius: 12,
-    backgroundColor: '#E8F5E9', justifyContent: 'center', alignItems: 'center',
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: '#E8F5E9',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   cardIconEmoji: { fontSize: 22 },
-  cardTitle:     { fontSize: 16, fontWeight: '700', color: '#1a1a1a' },
-  cardSubtitle:  { fontSize: 12, color: '#999', marginTop: 2 },
+  cardTitle: { fontSize: 16, fontWeight: '700', color: '#1a1a1a' },
+  cardSubtitle: { fontSize: 12, color: '#999', marginTop: 2 },
 
   // ── Form ──────────────────────────────────────────────────────────────────
-  row:      { gap: 12 },
-  rowWide:  { flexDirection: 'row', gap: 16 },
-  field:    { marginBottom: 16 },
-  label:    { fontSize: 13, fontWeight: '600', color: '#555', marginBottom: 7 },
+  row: { gap: 12 },
+  rowWide: { flexDirection: 'row', gap: 16 },
+  field: { marginBottom: 16 },
+  label: { fontSize: 13, fontWeight: '600', color: '#555', marginBottom: 7 },
   optional: { fontWeight: '400', color: '#bbb' },
   input: {
-    borderWidth: 1.5, borderColor: '#e8e8e8', borderRadius: 10,
-    paddingHorizontal: 14, paddingVertical: 12,
-    fontSize: 14, backgroundColor: COLORS.greenTint, color: '#1a1a1a',
+    borderWidth: 1.5,
+    borderColor: '#e8e8e8',
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    fontSize: 14,
+    backgroundColor: COLORS.greenTint,
+    color: '#1a1a1a',
   },
 
   // ── Buttons ───────────────────────────────────────────────────────────────
-  primaryBtn:        { backgroundColor: COLORS.primaryDeep, padding: 15, borderRadius: 10, alignItems: 'center', marginTop: 4 },
-  primaryBtnHover:   { backgroundColor: '#163d18' },
-  primaryBtnText:    { color: '#fff', fontWeight: '800', fontSize: 14 },
-  secondaryBtn:      { backgroundColor: '#37474F', padding: 14, borderRadius: 10, alignItems: 'center' },
+  primaryBtn: {
+    backgroundColor: COLORS.primaryDeep,
+    padding: 15,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  primaryBtnHover: { backgroundColor: '#163d18' },
+  primaryBtnText: { color: '#fff', fontWeight: '800', fontSize: 14 },
+  secondaryBtn: {
+    backgroundColor: '#37474F',
+    padding: 14,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
   secondaryBtnHover: { backgroundColor: '#263238' },
-  secondaryBtnText:  { color: '#fff', fontWeight: '700', fontSize: 14 },
-  deleteBtn:         { backgroundColor: '#D32F2F', padding: 14, borderRadius: 10, alignItems: 'center', marginTop: 8 },
-  deleteBtnHover:    { backgroundColor: '#b71c1c' },
-  deleteBtnText:     { color: '#fff', fontWeight: '700', fontSize: 14 },
+  secondaryBtnText: { color: '#fff', fontWeight: '700', fontSize: 14 },
+  deleteBtn: {
+    backgroundColor: '#D32F2F',
+    padding: 14,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  deleteBtnHover: { backgroundColor: '#b71c1c' },
+  deleteBtnText: { color: '#fff', fontWeight: '700', fontSize: 14 },
 
   // ── Empty state ────────────────────────────────────────────────────────────
   emptyState: { alignItems: 'center', paddingVertical: 60, gap: 12 },
-  emptyIcon:  { fontSize: 52 },
+  emptyIcon: { fontSize: 52 },
   emptyTitle: { fontSize: 20, fontWeight: '700', color: '#333' },
-  emptyText:  { fontSize: 14, color: '#777', textAlign: 'center', maxWidth: 320, lineHeight: 22 },
+  emptyText: {
+    fontSize: 14,
+    color: '#777',
+    textAlign: 'center',
+    maxWidth: 320,
+    lineHeight: 22,
+  },
 
   // ── Report cards ──────────────────────────────────────────────────────────
   reportCard: {
-    backgroundColor: COLORS.white, borderRadius: 14, marginBottom: 14,
-    flexDirection: 'row', overflow: 'hidden',
-    borderWidth: 1, borderColor: '#e8e8e8',
-    shadowColor: '#000', shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05, shadowRadius: 4, elevation: 1,
+    backgroundColor: COLORS.white,
+    borderRadius: 14,
+    marginBottom: 14,
+    flexDirection: 'row',
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#e8e8e8',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 1,
   },
-  reportAccent:     { width: 5 },
-  reportBody:       { flex: 1, padding: 18 },
-  reportCardTop:    { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
-  reportType:       { fontSize: 16, fontWeight: '700', color: '#1a1a1a', marginBottom: 8 },
-  reportDate:       { fontSize: 12, color: '#999' },
-  statusBadge:      { borderWidth: 1, borderRadius: 20, paddingHorizontal: 12, paddingVertical: 4 },
-  statusText:       { fontSize: 11, fontWeight: '700' },
-  reportTagRow:     { flexDirection: 'row', marginBottom: 10 },
-  reportTag:        { backgroundColor: '#E8F5E9', borderRadius: 6, paddingHorizontal: 10, paddingVertical: 4 },
-  reportTagText:    { fontSize: 12, color: '#2E7D32', fontWeight: '600' },
-  reportDescription:{ fontSize: 14, color: '#555', lineHeight: 22, marginBottom: 12 },
-  resolutionBox:    { backgroundColor: '#f9f9f9', borderRadius: 8, padding: 12, marginBottom: 12, borderLeftWidth: 3, borderLeftColor: COLORS.primary },
-  resolutionLabel:  { fontSize: 10, fontWeight: '700', color: COLORS.primary, letterSpacing: 1, marginBottom: 4 },
-  resolutionText:   { fontSize: 13, color: '#555', lineHeight: 20 },
-  scheduleCallBtn:  {
-    borderWidth: 1.5, borderColor: COLORS.primary, borderRadius: 8,
-    padding: 10, alignItems: 'center', marginTop: 4,
+  reportAccent: { width: 5 },
+  reportBody: { flex: 1, padding: 18 },
+  reportCardTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
   },
-  scheduleCallBtnHover:  { backgroundColor: COLORS.primary },
-  scheduleCallText:      { fontSize: 13, color: COLORS.primary, fontWeight: '600' },
+  reportType: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#1a1a1a',
+    marginBottom: 8,
+  },
+  reportDate: { fontSize: 12, color: '#999' },
+  statusBadge: {
+    borderWidth: 1,
+    borderRadius: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+  },
+  statusText: { fontSize: 11, fontWeight: '700' },
+  reportTagRow: { flexDirection: 'row', marginBottom: 10 },
+  reportTag: {
+    backgroundColor: '#E8F5E9',
+    borderRadius: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+  },
+  reportTagText: { fontSize: 12, color: '#2E7D32', fontWeight: '600' },
+  reportDescription: {
+    fontSize: 14,
+    color: '#555',
+    lineHeight: 22,
+    marginBottom: 12,
+  },
+  resolutionBox: {
+    backgroundColor: '#f9f9f9',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 12,
+    borderLeftWidth: 3,
+    borderLeftColor: COLORS.primary,
+  },
+  resolutionLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: COLORS.primary,
+    letterSpacing: 1,
+    marginBottom: 4,
+  },
+  resolutionText: { fontSize: 13, color: '#555', lineHeight: 20 },
+  scheduleCallBtn: {
+    borderWidth: 1.5,
+    borderColor: COLORS.primary,
+    borderRadius: 8,
+    padding: 10,
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  scheduleCallBtnHover: { backgroundColor: COLORS.primary },
+  scheduleCallText: { fontSize: 13, color: COLORS.primary, fontWeight: '600' },
   scheduleCallTextHover: { color: '#fff' },
 
   // ── Call cards ────────────────────────────────────────────────────────────
   callCard: {
-    backgroundColor: COLORS.white, borderRadius: 14, padding: 18, marginBottom: 14,
-    borderWidth: 1, borderColor: '#e8e8e8',
-    shadowColor: '#000', shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05, shadowRadius: 4, elevation: 1,
+    backgroundColor: COLORS.white,
+    borderRadius: 14,
+    padding: 18,
+    marginBottom: 14,
+    borderWidth: 1,
+    borderColor: '#e8e8e8',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 1,
   },
-  callCardTop:    { marginBottom: 14 },
-  callTypeRow:    { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 },
-  callTypeLabel:  { fontSize: 16, fontWeight: '700', color: '#1a1a1a' },
-  callDate:       { fontSize: 12, color: '#999' },
-  callDetailGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 12 },
+  callCardTop: { marginBottom: 14 },
+  callTypeRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  callTypeLabel: { fontSize: 16, fontWeight: '700', color: '#1a1a1a' },
+  callDate: { fontSize: 12, color: '#999' },
+  callDetailGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+    marginBottom: 12,
+  },
   callDetailItem: {
-    backgroundColor: COLORS.greenTint, borderRadius: 8,
-    paddingHorizontal: 12, paddingVertical: 8, minWidth: 130,
+    backgroundColor: COLORS.greenTint,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    minWidth: 130,
   },
   callDetailLabel: { fontSize: 11, color: '#888', marginBottom: 2 },
   callDetailValue: { fontSize: 13, fontWeight: '600', color: '#1a1a1a' },
-  callNotesBox:    { backgroundColor: '#f9f9f9', borderRadius: 8, padding: 12, marginBottom: 10, borderLeftWidth: 3, borderLeftColor: COLORS.primary },
-  callNotesLabel:  { fontSize: 10, fontWeight: '700', color: COLORS.primary, letterSpacing: 1, marginBottom: 4 },
-  callNotesText:   { fontSize: 13, color: '#555', lineHeight: 20 },
-  callLinkedBadge: { backgroundColor: '#E8F5E9', borderRadius: 6, paddingHorizontal: 10, paddingVertical: 5, alignSelf: 'flex-start' },
-  callLinkedText:  { fontSize: 12, color: '#2E7D32', fontWeight: '600' },
+  callNotesBox: {
+    backgroundColor: '#f9f9f9',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 10,
+    borderLeftWidth: 3,
+    borderLeftColor: COLORS.primary,
+  },
+  callNotesLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: COLORS.primary,
+    letterSpacing: 1,
+    marginBottom: 4,
+  },
+  callNotesText: { fontSize: 13, color: '#555', lineHeight: 20 },
+  callLinkedBadge: {
+    backgroundColor: '#E8F5E9',
+    borderRadius: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    alignSelf: 'flex-start',
+  },
+  callLinkedText: { fontSize: 12, color: '#2E7D32', fontWeight: '600' },
 });

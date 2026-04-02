@@ -1,159 +1,264 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   useWindowDimensions,
+  ImageBackground,
+  TouchableOpacity,
 } from 'react-native';
 
 import Navbar from '../components/Navbar';
 import { fontSize } from '../theme/typography';
+import { COLORS } from '../utils/constants';
+
+const STORY_COLUMNS = [
+  {
+    label: 'Origin',
+    title: 'Built in Durham for Durham residents',
+    body: 'FairNest began as an NCCU IT capstone focused on making fair housing support easier to find, understand, and use. The goal was to design something that feels clear and practical for real community needs.',
+  },
+  {
+    label: 'Mission',
+    title: 'Reduce friction at the moment someone needs help',
+    body: 'People dealing with housing stress should not have to decode legal language or hunt across disconnected websites. FairNest brings reporting, guidance, and local support into one calmer experience.',
+  },
+  {
+    label: 'Values',
+    title: 'Human-centered, local, and action-oriented',
+    body: 'We care about plain language, trustworthy information, and pathways to real next steps. Every part of the product is meant to help residents move from uncertainty toward support.',
+  },
+];
+
+const PLATFORM_PILLARS = [
+  {
+    title: 'Understand your rights',
+    text: 'Plain-language guidance helps residents recognize when housing treatment may be unfair or discriminatory.',
+  },
+  {
+    title: 'Take the next step',
+    text: 'Residents can file a report, request a consultation, and find local support without bouncing between systems.',
+  },
+  {
+    title: 'Stay connected to local help',
+    text: 'FairNest points people toward Durham-centered resources, advocates, and organizations that can continue the conversation.',
+  },
+];
+
+const TEAM_PLACEHOLDERS = [
+  {
+    emoji: '🧠',
+    name: 'Project Lead',
+    role: 'Strategy & Product',
+    bio: 'Placeholder for the team member leading the vision, planning, and overall direction of FairNest.',
+  },
+  {
+    emoji: '🎨',
+    name: 'Design Lead',
+    role: 'Frontend & UX',
+    bio: 'Placeholder for the teammate shaping the interface, user flows, and the look and feel of the platform.',
+  },
+  {
+    emoji: '🛠️',
+    name: 'Platform Lead',
+    role: 'Firebase & Systems',
+    bio: 'Placeholder for the teammate responsible for the data layer, app logic, and connected platform features.',
+  },
+  {
+    emoji: '🤝',
+    name: 'Community Lead',
+    role: 'Research & Outreach',
+    bio: 'Placeholder for the teammate focused on user needs, housing context, and community-centered research.',
+  },
+];
 
 export default function AboutScreen({ navigation }) {
   const { width } = useWindowDimensions();
-  const isWide = width >= 800;
+  const isMedium = width >= 760;
+  const isWide = width >= 1120;
+
+  const [hoveredTeam, setHoveredTeam] = useState(null);
+  const [hoveredPrimary, setHoveredPrimary] = useState(false);
+  const [hoveredSecondary, setHoveredSecondary] = useState(false);
 
   return (
-    <ScrollView style={styles.container}>
-      <Navbar navigation={navigation} currentRoute="About" />
-
-      {/* HERO */}
-      <View style={styles.hero}>
-        <View style={styles.heroInner}>
-          <Text style={styles.heroLabel}>ABOUT FAIRNEST</Text>
-          <Text style={styles.heroTitle}>
-            Built for Durham,{'\n'}Powered by Purpose
-          </Text>
-          <Text style={styles.heroSubtitle}>
-            FairNest was created to close the gap between Durham residents and
-            the housing resources, rights, and support services they deserve.
-          </Text>
-        </View>
-      </View>
-
-      {/* CARDS SECTION */}
-      <View style={[styles.cardsSection, isWide && styles.cardsSectionWide]}>
-        {/* THE ORGANIZATION */}
-        <View style={styles.card}>
-          <Text style={styles.cardLabel}>THE ORGANIZATION</Text>
-          <Text style={styles.cardTitle}>
-            North Carolina Central University — IT Department
-          </Text>
-          <Text style={styles.cardText}>
-            FairNest is a capstone project developed by students in the
-            Information Technology (IT) program at North Carolina Central
-            University (NCCU) — a historically Black university in Durham, NC.
-          </Text>
-          <Text style={styles.cardText}>
-            Rooted in a commitment to social justice and community impact, NCCU
-            IT students built FairNest to demonstrate how technology can
-            empower underserved communities to navigate housing challenges and
-            assert their rights.
-          </Text>
-        </View>
-
-        {/* THE PROJECT */}
-        <View style={styles.card}>
-          <Text style={styles.cardLabel}>THE PROJECT</Text>
-          <Text style={styles.cardTitle}>Our Capstone</Text>
-          <Text style={styles.cardText}>
-            FairNest is a two-semester capstone project. NCCU IT students
-            designed, built, and deployed this platform as a prototype
-            demonstrating how AI-assisted tools can modernize access to housing
-            resources and civil rights services.
-          </Text>
-          <Text style={styles.cardText}>
-            The platform integrates Firebase authentication, a Firestore
-            database, and an AI chat assistant — making it easy for any Durham
-            resident to get help, file a report, or find local support without
-            navigating complex government systems alone.
-          </Text>
-        </View>
-      </View>
-
-      {/* OUR MISSION */}
-      <View style={styles.missionSection}>
-        <Text style={styles.sectionLabel}>OUR MISSION</Text>
-        <Text style={styles.missionText}>
-          Our mission is to provide Durham residents with an easy and accessible
-          way to recognize housing discrimination and available resources
-          through an AI-powered support system.
-        </Text>
-        <Text style={styles.missionText}>
-          By combining AI assistance with simple, user-friendly tools, FairNest
-          helps people understand what steps they can take when facing unfair
-          treatment — and connects them with the local organizations and
-          services that can help.
-        </Text>
-      </View>
-
-      {/* PROJECT GOAL */}
-      <View style={styles.goalSection}>
-        <View style={styles.goalInner}>
-          <Text style={styles.sectionLabel}>PROJECT GOAL</Text>
-          <Text style={styles.goalTitle}>How FairNest Helps</Text>
-
-          <View style={[styles.goalGrid, isWide && styles.goalGridWide]}>
-            <View style={styles.goalCard}>
-              <View style={styles.goalIconCircle}>
-                <Text style={{ fontSize: 24 }}>📋</Text>
-              </View>
-              <Text style={styles.goalCardTitle}>Report Discrimination</Text>
-              <Text style={styles.goalCardText}>
-                Easily document and submit housing discrimination reports to the
-                right local authorities.
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.pageFill}>
+      <ImageBackground
+        source={require('../../assets/pexel-durham2.jpg')}
+        style={styles.hero}
+        imageStyle={styles.heroImage}
+        resizeMode="cover">
+        <View style={styles.heroOverlay} />
+        <View style={styles.heroShade} />
+        <View style={styles.heroContent}>
+          <Navbar navigation={navigation} currentRoute="About" transparent />
+          <View style={[styles.heroInner, isWide && styles.heroInnerWide]}>
+            <View style={[styles.heroCopy, isWide && styles.heroCopyWide]}>
+              <Text style={styles.heroLabel}>ABOUT FAIRNEST</Text>
+              <Text style={[styles.heroTitle, isWide && styles.heroTitleWide]}>
+                A calmer way to navigate housing support in Durham
               </Text>
-            </View>
-            <View style={styles.goalCard}>
-              <View style={styles.goalIconCircle}>
-                <Text style={{ fontSize: 24 }}>📖</Text>
-              </View>
-              <Text style={styles.goalCardTitle}>Know Your Rights</Text>
-              <Text style={styles.goalCardText}>
-                Access clear, plain-language guides on Durham tenant rights and
-                fair housing law.
-              </Text>
-            </View>
-            <View style={styles.goalCard}>
-              <View style={styles.goalIconCircle}>
-                <Text style={{ fontSize: 24 }}>💬</Text>
-              </View>
-              <Text style={styles.goalCardTitle}>AI-Powered Guidance</Text>
-              <Text style={styles.goalCardText}>
-                Get instant answers to housing questions from our AI assistant,
-                available 24/7.
-              </Text>
-            </View>
-            <View style={styles.goalCard}>
-              <View style={styles.goalIconCircle}>
-                <Text style={{ fontSize: 24 }}>🧭</Text>
-              </View>
-              <Text style={styles.goalCardTitle}>Find Local Resources</Text>
-              <Text style={styles.goalCardText}>
-                Discover Durham housing assistance programs, shelters, legal
-                aid, and support organizations.
+              <Text style={styles.heroSubtitle}>
+                FairNest connects residents to reporting tools, local resources,
+                and guided next steps so getting help feels more approachable
+                and less overwhelming.
               </Text>
             </View>
           </View>
         </View>
+      </ImageBackground>
+
+      <View style={styles.storySection}>
+        <View style={styles.storyIntro}>
+          <Text style={styles.sectionEyebrow}>Our Story</Text>
+          <Text style={styles.sectionTitle}>Why FairNest exists</Text>
+          <Text style={styles.sectionText}>
+            The project brings together housing guidance, reporting, and local
+            support in one place so residents can understand what is happening
+            and know what to do next.
+          </Text>
+        </View>
+
+        <View style={[styles.storyGrid, isWide && styles.storyGridWide]}>
+          {STORY_COLUMNS.map((item, index) => (
+            <View
+              key={item.label}
+              style={[
+                styles.storyColumn,
+                isWide && styles.storyColumnWide,
+                isWide &&
+                  index < STORY_COLUMNS.length - 1 &&
+                  styles.storyColumnDivider,
+              ]}>
+              <Text style={styles.storyColumnLabel}>{item.label}</Text>
+              <Text style={styles.storyColumnTitle}>{item.title}</Text>
+              <Text style={styles.storyColumnText}>{item.body}</Text>
+            </View>
+          ))}
+        </View>
       </View>
 
-      {/* DISCLAIMER */}
+      <View style={styles.purposeSection}>
+        <View style={[styles.purposeInner, isWide && styles.purposeInnerWide]}>
+          <View style={styles.purposeLead}>
+            <Text style={styles.sectionEyebrow}>What FairNest Does</Text>
+            <Text style={styles.sectionTitle}>
+              Support that moves from confusion to action
+            </Text>
+            <Text style={styles.sectionText}>
+              The platform is designed to make the first step easier. Whether
+              someone wants to learn, document, or connect, FairNest keeps the
+              experience grounded in clear language and useful next moves.
+            </Text>
+          </View>
+
+          <View style={styles.pillarList}>
+            {PLATFORM_PILLARS.map((pillar) => (
+              <View key={pillar.title} style={styles.pillarRow}>
+                <View style={styles.pillarDot} />
+                <View style={styles.pillarCopy}>
+                  <Text style={styles.pillarTitle}>{pillar.title}</Text>
+                  <Text style={styles.pillarText}>{pillar.text}</Text>
+                </View>
+              </View>
+            ))}
+          </View>
+        </View>
+      </View>
+
+      <View style={styles.teamSection}>
+        <View style={styles.teamIntro}>
+          <Text style={styles.sectionEyebrow}>Meet Our Team</Text>
+          <Text style={styles.sectionTitle}>
+            The people building the platform
+          </Text>
+          <Text style={styles.sectionText}>
+            These cards are ready for real headshots and bios later. For now,
+            the layout uses emoji placeholders so the section already feels
+            complete and easy to update.
+          </Text>
+        </View>
+
+        <View style={[styles.teamGrid, isMedium && styles.teamGridMedium]}>
+          {TEAM_PLACEHOLDERS.map((member) => (
+            <TouchableOpacity
+              key={member.role}
+              activeOpacity={0.92}
+              onPress={() => {}}
+              onMouseEnter={() => setHoveredTeam(member.role)}
+              onMouseLeave={() => setHoveredTeam(null)}
+              style={[
+                styles.teamCard,
+                hoveredTeam === member.role && styles.teamCardHover,
+              ]}>
+              <View style={styles.teamAvatar}>
+                <Text style={styles.teamAvatarText}>{member.emoji}</Text>
+              </View>
+              <Text style={styles.teamName}>{member.name}</Text>
+              <Text style={styles.teamRole}>{member.role}</Text>
+              <Text style={styles.teamBio}>{member.bio}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </View>
+
+      <View style={styles.ctaSection}>
+        <View style={[styles.ctaInner, isWide && styles.ctaInnerWide]}>
+          <View style={styles.ctaCopy}>
+            <Text style={styles.ctaLabel}>Need help now?</Text>
+            <Text style={styles.ctaTitle}>
+              Use FairNest to take the next step
+            </Text>
+            <Text style={styles.ctaText}>
+              Whether someone wants to document an issue or talk with an
+              advocate, the platform is built to make the process more direct.
+            </Text>
+          </View>
+
+          <View style={styles.ctaActions}>
+            <TouchableOpacity
+              style={[
+                styles.primaryBtn,
+                hoveredPrimary && styles.primaryBtnHover,
+              ]}
+              onPress={() => navigation.navigate('Report')}
+              onMouseEnter={() => setHoveredPrimary(true)}
+              onMouseLeave={() => setHoveredPrimary(false)}
+              activeOpacity={0.88}>
+              <Text style={styles.primaryBtnText}>File a Report</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.secondaryBtn,
+                hoveredSecondary && styles.secondaryBtnHover,
+              ]}
+              onPress={() => navigation.navigate('ScheduleCall')}
+              onMouseEnter={() => setHoveredSecondary(true)}
+              onMouseLeave={() => setHoveredSecondary(false)}
+              activeOpacity={0.88}>
+              <Text
+                style={[
+                  styles.secondaryBtnText,
+                  hoveredSecondary && styles.secondaryBtnTextHover,
+                ]}>
+                Book a Call
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+
       <View style={styles.disclaimerSection}>
-        <Text style={styles.disclaimerLabel}>DISCLAIMER</Text>
+        <Text style={styles.disclaimerLabel}>Disclaimer</Text>
         <Text style={styles.disclaimerText}>
-          FairNest provides educational information and resource guidance only.
-          It does not provide legal advice, real-time case management, or
-          official government services. Always consult a qualified attorney or
-          housing counselor for legal matters.
+          FairNest provides educational guidance and resource direction. It does
+          not replace legal advice, government case management, or emergency
+          services.
         </Text>
-      </View>
-
-      {/* FOOTER */}
-      <View style={styles.footer}>
-        <Text style={styles.footerText}>Serving Durham, North Carolina</Text>
-        <Text style={styles.footerText}>NCCU IT Capstone Prototype</Text>
       </View>
     </ScrollView>
   );
@@ -162,210 +267,386 @@ export default function AboutScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#F3F5EF',
   },
-
-  // ── Hero ───────────────────────────────────────────────────────────
+  pageFill: {
+    paddingBottom: 52,
+  },
   hero: {
-    backgroundColor: '#1B5E20',
-    paddingVertical: 70,
-    paddingHorizontal: 24,
-    alignItems: 'center',
+    minHeight: 820,
+    paddingBottom: 40,
+    paddingHorizontal: 0,
+    justifyContent: 'space-between',
+  },
+  heroContent: {
+    flex: 1,
+    justifyContent: 'space-between',
+    paddingHorizontal: 28,
+    paddingVertical: 0,
+  },
+  heroImage: {
+    opacity: 0.98,
+  },
+  heroOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(7, 31, 12, 0.44)',
+  },
+  heroShade: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(8, 22, 12, 0.16)',
   },
   heroInner: {
-    maxWidth: 720,
+    width: '100%',
+    maxWidth: 1380,
+    alignSelf: 'center',
+    flex: 1,
     alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 24,
+    paddingBottom: 72,
+  },
+  heroInnerWide: {
+    justifyContent: 'center',
+  },
+  heroCopy: {
+    width: '100%',
+    maxWidth: 920,
+    alignItems: 'center',
+    paddingHorizontal: 24,
+  },
+  heroCopyWide: {
+    maxWidth: 980,
   },
   heroLabel: {
-    fontSize: fontSize.tiny,
-    fontWeight: 'bold',
-    color: 'rgba(255,255,255,0.65)',
-    letterSpacing: 2.5,
-    marginBottom: 16,
+    color: COLORS.gold,
+    fontSize: 12,
+    fontWeight: '800',
+    letterSpacing: 4,
+    marginBottom: 20,
+    textAlign: 'center',
   },
   heroTitle: {
-    fontSize: fontSize.hero,
-    fontWeight: 'bold',
-    color: '#fff',
+    color: '#FFFFFF',
+    fontSize: 60,
+    fontWeight: '800',
+    lineHeight: 66,
+    letterSpacing: -2,
     textAlign: 'center',
-    lineHeight: 50,
-    marginBottom: 18,
+    marginBottom: 22,
+  },
+  heroTitleWide: {
+    fontSize: 76,
+    lineHeight: 80,
   },
   heroSubtitle: {
+    color: 'rgba(255,255,255,0.9)',
     fontSize: fontSize.bodyLg,
-    color: 'rgba(255,255,255,0.82)',
-    textAlign: 'center',
-    lineHeight: 26,
-    maxWidth: 600,
-  },
-
-  // ── Cards ──────────────────────────────────────────────────────────
-  cardsSection: {
-    padding: 24,
-    gap: 20,
-  },
-  cardsSectionWide: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-  },
-  card: {
-    flex: 1,
-    backgroundColor: '#fff',
-    borderRadius: 14,
-    padding: 28,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.07,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  cardLabel: {
-    fontSize: fontSize.tiny,
-    fontWeight: 'bold',
-    color: '#2E7D32',
-    letterSpacing: 2,
-    marginBottom: 10,
-    textTransform: 'uppercase',
-  },
-  cardTitle: {
-    fontSize: fontSize.h2,
-    fontWeight: 'bold',
-    color: '#1a1a1a',
-    marginBottom: 14,
     lineHeight: 30,
+    textAlign: 'center',
+    maxWidth: 720,
   },
-  cardText: {
-    fontSize: fontSize.body,
-    color: '#444',
-    lineHeight: 24,
-    marginBottom: 10,
+  storySection: {
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 28,
+    paddingTop: 54,
+    paddingBottom: 38,
   },
-
-  // ── Mission ────────────────────────────────────────────────────────
-  missionSection: {
-    backgroundColor: '#fff',
-    paddingVertical: 56,
-    paddingHorizontal: 40,
+  storyIntro: {
+    width: '100%',
+    maxWidth: 860,
+    alignSelf: 'center',
     alignItems: 'center',
-    borderTopWidth: 1,
-    borderTopColor: '#eee',
+    marginBottom: 34,
   },
-  sectionLabel: {
-    fontSize: fontSize.tiny,
-    fontWeight: 'bold',
-    color: '#2E7D32',
-    letterSpacing: 2.5,
-    marginBottom: 20,
+  sectionEyebrow: {
+    color: COLORS.primary,
+    fontSize: fontSize.caption,
+    fontWeight: '800',
+    letterSpacing: 1.8,
     textTransform: 'uppercase',
+    marginBottom: 10,
     textAlign: 'center',
   },
-  missionText: {
-    fontSize: fontSize.h3,
-    fontStyle: 'italic',
-    color: '#222',
-    lineHeight: 32,
+  sectionTitle: {
+    color: COLORS.textPrimary,
+    fontSize: fontSize.h1,
+    fontWeight: '800',
+    textAlign: 'center',
+    marginBottom: 14,
+  },
+  sectionText: {
+    color: COLORS.textMuted,
+    fontSize: fontSize.body,
+    lineHeight: 28,
     textAlign: 'center',
     maxWidth: 760,
-    marginBottom: 16,
   },
-
-  // ── Goal ───────────────────────────────────────────────────────────
-  goalSection: {
-    backgroundColor: '#f0f7f0',
+  storyGrid: {
+    width: '100%',
+    maxWidth: 1240,
+    alignSelf: 'center',
+    gap: 18,
+  },
+  storyGridWide: {
+    flexDirection: 'row',
+    alignItems: 'stretch',
+  },
+  storyColumn: {
+    flex: 1,
+    paddingVertical: 10,
+  },
+  storyColumnWide: {
+    paddingHorizontal: 28,
+  },
+  storyColumnDivider: {
+    borderRightWidth: 1,
+    borderRightColor: 'rgba(20, 32, 51, 0.1)',
+  },
+  storyColumnLabel: {
+    color: COLORS.primary,
+    fontSize: fontSize.tiny,
+    fontWeight: '800',
+    letterSpacing: 1.6,
+    textTransform: 'uppercase',
+    marginBottom: 10,
+  },
+  storyColumnTitle: {
+    color: COLORS.textPrimary,
+    fontSize: fontSize.h4,
+    fontWeight: '800',
+    lineHeight: 28,
+    marginBottom: 12,
+  },
+  storyColumnText: {
+    color: COLORS.textMuted,
+    fontSize: fontSize.small,
+    lineHeight: 24,
+  },
+  purposeSection: {
+    paddingHorizontal: 28,
+    paddingVertical: 54,
+    backgroundColor: '#EEF3EA',
+  },
+  purposeInner: {
+    width: '100%',
+    maxWidth: 1240,
+    alignSelf: 'center',
+    gap: 26,
+  },
+  purposeInnerWide: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  purposeLead: {
+    flex: 1,
+    maxWidth: 500,
+  },
+  pillarList: {
+    flex: 1.2,
+    gap: 18,
+  },
+  pillarRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 14,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(20, 32, 51, 0.08)',
+  },
+  pillarDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: COLORS.primary,
+    marginTop: 8,
+  },
+  pillarCopy: {
+    flex: 1,
+  },
+  pillarTitle: {
+    color: COLORS.textPrimary,
+    fontSize: fontSize.body,
+    fontWeight: '800',
+    marginBottom: 6,
+  },
+  pillarText: {
+    color: COLORS.textMuted,
+    fontSize: fontSize.small,
+    lineHeight: 24,
+  },
+  teamSection: {
+    paddingHorizontal: 28,
     paddingVertical: 56,
-    paddingHorizontal: 24,
-    alignItems: 'center',
+    backgroundColor: '#F7F9F4',
   },
-  goalInner: {
+  teamIntro: {
     width: '100%',
-    maxWidth: 960,
+    maxWidth: 860,
+    alignSelf: 'center',
     alignItems: 'center',
-  },
-  goalTitle: {
-    fontSize: fontSize.h1,
-    fontWeight: 'bold',
-    color: '#1a1a1a',
     marginBottom: 32,
-    textAlign: 'center',
   },
-  goalGrid: {
+  teamGrid: {
     width: '100%',
-    gap: 16,
+    maxWidth: 1240,
+    alignSelf: 'center',
+    gap: 18,
   },
-  goalGridWide: {
+  teamGridMedium: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'center',
   },
-  goalCard: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 22,
+  teamCard: {
     flex: 1,
-    minWidth: 200,
-    maxWidth: 260,
-    alignItems: 'flex-start',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06,
-    shadowRadius: 6,
-    elevation: 1,
+    minWidth: 240,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    paddingHorizontal: 22,
+    paddingVertical: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(20, 32, 51, 0.08)',
+    shadowColor: '#142013',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.05,
+    shadowRadius: 20,
+    elevation: 3,
   },
-  goalIconCircle: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: '#E8F5E9',
-    justifyContent: 'center',
+  teamCardHover: {
+    transform: [{ translateY: -3 }],
+    borderColor: 'rgba(46, 125, 50, 0.3)',
+    shadowOpacity: 0.08,
+  },
+  teamAvatar: {
+    width: 78,
+    height: 78,
+    borderRadius: 39,
+    backgroundColor: '#EDF4E9',
     alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
+  teamAvatarText: {
+    fontSize: 34,
+  },
+  teamName: {
+    color: COLORS.textPrimary,
+    fontSize: fontSize.body,
+    fontWeight: '800',
+    marginBottom: 4,
+  },
+  teamRole: {
+    color: COLORS.primary,
+    fontSize: fontSize.caption,
+    fontWeight: '700',
     marginBottom: 12,
   },
-  goalCardTitle: {
-    fontSize: fontSize.body,
-    fontWeight: 'bold',
-    color: '#1a1a1a',
-    marginBottom: 8,
-  },
-  goalCardText: {
+  teamBio: {
+    color: COLORS.textMuted,
     fontSize: fontSize.small,
-    color: '#555',
-    lineHeight: 21,
+    lineHeight: 23,
   },
-
-  // ── Disclaimer ─────────────────────────────────────────────────────
-  disclaimerSection: {
-    backgroundColor: '#fff',
-    paddingVertical: 36,
-    paddingHorizontal: 40,
+  ctaSection: {
+    paddingHorizontal: 28,
+    paddingVertical: 54,
+    backgroundColor: COLORS.primaryDeep,
+  },
+  ctaInner: {
+    width: '100%',
+    maxWidth: 1240,
+    alignSelf: 'center',
+    gap: 22,
+  },
+  ctaInnerWide: {
+    flexDirection: 'row',
     alignItems: 'center',
-    borderTopWidth: 1,
-    borderTopColor: '#eee',
+    justifyContent: 'space-between',
+  },
+  ctaCopy: {
+    flex: 1,
+    maxWidth: 620,
+  },
+  ctaLabel: {
+    color: '#CBE8B8',
+    fontSize: fontSize.caption,
+    fontWeight: '800',
+    letterSpacing: 1.8,
+    textTransform: 'uppercase',
+    marginBottom: 10,
+  },
+  ctaTitle: {
+    color: '#FFFFFF',
+    fontSize: fontSize.h1,
+    fontWeight: '800',
+    marginBottom: 14,
+  },
+  ctaText: {
+    color: 'rgba(255,255,255,0.82)',
+    fontSize: fontSize.body,
+    lineHeight: 28,
+  },
+  ctaActions: {
+    gap: 14,
+  },
+  primaryBtn: {
+    minWidth: 220,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 22,
+    paddingVertical: 16,
+    borderRadius: 18,
+    backgroundColor: '#F6FBF2',
+  },
+  primaryBtnHover: {
+    backgroundColor: '#E8F3E2',
+    transform: [{ translateY: -1 }],
+  },
+  primaryBtnText: {
+    color: COLORS.primaryDeep,
+    fontSize: fontSize.button,
+    fontWeight: '800',
+  },
+  secondaryBtn: {
+    minWidth: 220,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 22,
+    paddingVertical: 16,
+    borderRadius: 18,
+    borderWidth: 1.5,
+    borderColor: 'rgba(255,255,255,0.35)',
+    backgroundColor: 'transparent',
+  },
+  secondaryBtnHover: {
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderColor: 'rgba(255,255,255,0.55)',
+    transform: [{ translateY: -1 }],
+  },
+  secondaryBtnText: {
+    color: '#FFFFFF',
+    fontSize: fontSize.button,
+    fontWeight: '800',
+  },
+  secondaryBtnTextHover: {
+    color: '#FFFFFF',
+  },
+  disclaimerSection: {
+    paddingHorizontal: 28,
+    paddingTop: 24,
+    alignItems: 'center',
   },
   disclaimerLabel: {
-    fontSize: fontSize.tiny,
-    fontWeight: 'bold',
-    color: '#999',
-    letterSpacing: 2,
-    marginBottom: 12,
+    color: '#72806E',
+    fontSize: fontSize.caption,
+    fontWeight: '800',
+    letterSpacing: 1.5,
     textTransform: 'uppercase',
+    marginBottom: 10,
   },
   disclaimerText: {
+    color: '#6C756A',
     fontSize: fontSize.small,
-    color: '#666',
-    lineHeight: 22,
+    lineHeight: 24,
     textAlign: 'center',
-    maxWidth: 680,
-  },
-
-  // ── Footer ─────────────────────────────────────────────────────────
-  footer: {
-    backgroundColor: '#1B5E20',
-    paddingVertical: 24,
-    alignItems: 'center',
-    gap: 4,
-  },
-  footerText: {
-    fontSize: fontSize.caption,
-    color: 'rgba(255,255,255,0.7)',
+    maxWidth: 760,
   },
 });

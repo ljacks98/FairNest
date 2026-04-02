@@ -13,42 +13,181 @@ import { collection, getDocs, orderBy, query } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 import { resources as staticResources } from '../data/resources';
 import Navbar from '../components/Navbar';
+import { COLORS } from '../utils/constants';
+import { fontSize } from '../theme/typography';
 
 const FILTERS = [
-  { label: 'All',                value: null },
-  { label: 'Rental Assistance',  value: 'assistance' },
+  { label: 'All', value: null },
+  { label: 'Rental Assistance', value: 'assistance' },
   { label: 'Affordable Housing', value: 'affordable' },
-  { label: 'Legal Help',         value: 'legal' },
+  { label: 'Legal Help', value: 'legal' },
 ];
 
-export default function ResourceScreen({ route }) {
+const CATEGORY_CONTENT = {
+  housing: {
+    title: 'Housing Resources',
+    subtitle:
+      'Local Durham programs, eviction support, legal help, affordability tools, and housing stability resources.',
+    facts: [
+      {
+        label: 'Local programs',
+        value:
+          'Durham resources span public housing, homelessness prevention, eviction support, and affordable homeownership pathways.',
+      },
+      {
+        label: 'Best first move',
+        value:
+          'If housing is unstable right now, start with the provider that matches the urgency of the situation, then document everything as you go.',
+      },
+      {
+        label: 'Good companion pages',
+        value:
+          'Use Learn More for fair housing rights and Fair Housing Support if the issue may involve discrimination.',
+      },
+    ],
+    notes: [
+      'Need-based programs may have waitlists, appointment requirements, or eligibility screening.',
+      'If the issue includes discrimination, a complaint pathway may matter as much as the housing resource itself.',
+      'Keep the exact program name, website, and phone number saved after you call so follow-up is easier.',
+    ],
+    links: [
+      {
+        id: 'durham-community-development',
+        eyebrow: 'City of Durham',
+        title: 'Community Development',
+        desc: 'City housing and neighborhood support information tied to affordability, preservation, and community development work.',
+        url: 'https://www.durhamnc.gov/445/Community-Development',
+      },
+      {
+        id: 'durham-eviction-diversion',
+        eyebrow: 'City of Durham',
+        title: 'Eviction Diversion Program',
+        desc: 'Durham-backed program information for eviction support administered through Legal Aid of North Carolina.',
+        url: 'https://www.durhamnc.gov/4611/Eviction-Diversion',
+      },
+      {
+        id: 'nc211-housing',
+        eyebrow: 'NC 211',
+        title: 'NC 211 Housing Help',
+        desc: 'Statewide referral service that can help residents locate housing, shelter, food, and crisis support resources.',
+        url: 'https://nc211.org',
+      },
+    ],
+  },
+  employment: {
+    title: 'Employment Resources',
+    subtitle:
+      'Career support, workforce training, and local employment programs connected to Durham and North Carolina.',
+    facts: [
+      {
+        label: 'Local access',
+        value:
+          'Employment help often includes resume support, training pathways, job listings, and certification programs.',
+      },
+      {
+        label: 'Useful pairing',
+        value:
+          'If housing hardship is tied to job loss or reduced income, combining employment support with housing assistance is often the strongest route.',
+      },
+    ],
+    notes: [
+      'Bring an updated resume and any training history when possible.',
+      'Ask whether a program offers remote, evening, or certification-based options if scheduling is difficult.',
+    ],
+    links: [
+      {
+        id: 'ncworks',
+        eyebrow: 'NCWorks',
+        title: 'NCWorks Career Center',
+        desc: 'Official statewide employment and workforce system for job search and training support.',
+        url: 'https://www.ncworks.gov',
+      },
+      {
+        id: 'durham-tech',
+        eyebrow: 'Durham Tech',
+        title: 'Durham Tech Workforce and Career Services',
+        desc: 'Training, certification, and career support through Durham Technical Community College.',
+        url: 'https://www.durhamtech.edu',
+      },
+    ],
+  },
+  accessibility: {
+    title: 'Accessibility Resources',
+    subtitle:
+      'Disability rights, independent living, and support services relevant to housing access and accommodation issues.',
+    facts: [
+      {
+        label: 'Accommodation support',
+        value:
+          'Accessibility issues may involve both service navigation and civil rights protections, especially in housing settings.',
+      },
+      {
+        label: 'Good next step',
+        value:
+          'If the barrier involves a disability accommodation request, keep the request and any response in writing whenever possible.',
+      },
+    ],
+    notes: [
+      'Accessibility-related housing issues can overlap with fair housing disability protections.',
+      'Independent living and legal advocacy organizations may play different roles, so contacting both can be useful.',
+    ],
+    links: [
+      {
+        id: 'drnc',
+        eyebrow: 'Disability Rights NC',
+        title: 'Disability Rights NC',
+        desc: 'Official disability rights advocacy organization for North Carolina.',
+        url: 'https://disabilityrightsnc.org',
+      },
+      {
+        id: 'alliance',
+        eyebrow: 'Alliance of Disability Advocates',
+        title: 'Alliance of Disability Advocates',
+        desc: 'Independent living and accessibility support organization serving North Carolina residents.',
+        url: 'https://alliancecil.org',
+      },
+    ],
+  },
+};
+
+function SnapshotRow({ label, value }) {
+  return (
+    <View style={styles.snapshotRow}>
+      <Text style={styles.snapshotLabel}>{label}</Text>
+      <Text style={styles.snapshotValue}>{value}</Text>
+    </View>
+  );
+}
+
+export default function ResourceScreen({ navigation, route }) {
   const { category, type } = route.params || {};
   const { width } = useWindowDimensions();
-  const isWide = width >= 700;
+  const isMedium = width >= 760;
+  const isWide = width >= 1120;
 
-  const [activeType, setActiveType]   = useState(type || null);
-  const [resources, setResources]     = useState([]);
-  const [loading, setLoading]         = useState(true);
-  const [hoveredFilter, setHoveredFilter]   = useState(null);
-  const [hoveredCard, setHoveredCard]       = useState(null);
+  const resolvedCategory = category || 'housing';
+  const content =
+    CATEGORY_CONTENT[resolvedCategory] || CATEGORY_CONTENT.housing;
+
+  const [activeType, setActiveType] = useState(type || null);
+  const [resources, setResources] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [hoveredFilter, setHoveredFilter] = useState(null);
+  const [hoveredCard, setHoveredCard] = useState(null);
   const [hoveredWebsite, setHoveredWebsite] = useState(null);
+  const [hoveredLink, setHoveredLink] = useState(null);
 
-  // Try Firestore first, fall back to static data
   useEffect(() => {
     const fetchResources = async () => {
       try {
-        const q = query(
-          collection(db, 'resources'),
-          orderBy('title', 'asc')
-        );
+        const q = query(collection(db, 'resources'), orderBy('title', 'asc'));
         const snap = await getDocs(q);
         if (!snap.empty) {
-          setResources(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+          setResources(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
         } else {
           setResources(staticResources);
         }
       } catch {
-        // Firestore collection doesn't exist yet — use static data
         setResources(staticResources);
       }
       setLoading(false);
@@ -56,7 +195,7 @@ export default function ResourceScreen({ route }) {
     fetchResources();
   }, []);
 
-  const filtered = resources.filter(item => {
+  const filtered = resources.filter((item) => {
     if (category && category !== 'housing') {
       return item.category === category;
     }
@@ -69,213 +208,791 @@ export default function ResourceScreen({ route }) {
   if (loading) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator size="large" color="#2E7D32" />
+        <ActivityIndicator size="large" color={COLORS.primary} />
       </View>
     );
   }
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.pageFill}>
       <Navbar navigation={navigation} currentRoute="Resources" />
 
-      {/* Breadcrumb */}
-      <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingVertical: 10, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#eee' }}>
-        <Text onPress={() => navigation.navigate('Home')} style={{ fontSize: 13, color: '#2E7D32', fontWeight: '600' }}>Home</Text>
-        <Text style={{ fontSize: 13, color: '#bbb', marginHorizontal: 4 }}> / </Text>
-        <Text style={{ fontSize: 13, color: '#666' }}>Resources</Text>
+      <View style={styles.breadcrumb}>
+        <Text
+          onPress={() => navigation.navigate('Home')}
+          style={styles.breadcrumbLink}>
+          Home
+        </Text>
+        <Text style={styles.breadcrumbSep}> / </Text>
+        <Text style={styles.breadcrumbCurrent}>Resources</Text>
       </View>
 
-      <View style={styles.pageHeader}>
-        <Text style={styles.pageTitle}>
-          {category === 'employment' ? 'Employment Resources'
-            : category === 'accessibility' ? 'Accessibility Resources'
-            : 'Housing Resources'}
-        </Text>
-        <Text style={styles.pageSubtitle}>
-          Local Durham programs, services, and legal aid
-        </Text>
-      </View>
-
-      <View style={styles.body}>
-        {/* Filters — only for housing */}
-        {(!category || category === 'housing') && (
-          <View style={styles.filterRow}>
-            {FILTERS.map(f => (
-              <TouchableOpacity
-                key={String(f.value)}
-                style={[
-                  styles.filterBtn,
-                  activeType === f.value && styles.filterBtnActive,
-                  activeType !== f.value && hoveredFilter === f.value && styles.filterBtnHover,
-                ]}
-                onPress={() => setActiveType(f.value)}
-                onMouseEnter={() => setHoveredFilter(f.value)}
-                onMouseLeave={() => setHoveredFilter(null)}
-                activeOpacity={0.7}
-                accessibilityLabel={`Filter by ${f.label}`}>
-                <Text style={[styles.filterText, activeType === f.value && styles.filterTextActive]}>
-                  {f.label}
+      <View style={styles.hero}>
+        <View style={styles.heroGlowA} />
+        <View style={styles.heroGlowB} />
+        <View style={[styles.heroInner, isMedium && styles.heroInnerWide]}>
+          <View style={styles.heroCopy}>
+            <Text style={styles.heroLabel}>RESOURCE LIBRARY</Text>
+            <Text style={styles.heroTitle}>{content.title}</Text>
+            <Text style={styles.heroSub}>{content.subtitle}</Text>
+            <View style={styles.heroBadgeRow}>
+              <View style={styles.heroBadge}>
+                <Text style={styles.heroBadgeText}>
+                  {filtered.length} results available
                 </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        )}
-
-        {/* Results count */}
-        <Text style={styles.resultsCount}>{filtered.length} resource{filtered.length !== 1 ? 's' : ''} found</Text>
-
-        {/* Cards */}
-        <View style={[styles.grid, isWide && styles.gridWide]}>
-          {filtered.map(resource => (
-            <TouchableOpacity
-              key={resource.id}
-              style={[styles.card, isWide && styles.cardWide, hoveredCard === resource.id && styles.cardHover]}
-              onMouseEnter={() => setHoveredCard(resource.id)}
-              onMouseLeave={() => setHoveredCard(null)}
-              activeOpacity={1}
-              accessibilityLabel={resource.title}>
-              {resource.type && (
-                <View style={styles.typeBadge}>
-                  <Text style={styles.typeBadgeText}>
-                    {resource.type === 'assistance' ? 'Rental Assistance'
-                      : resource.type === 'affordable' ? 'Affordable Housing'
-                      : resource.type === 'legal' ? 'Legal Help'
-                      : resource.type}
+              </View>
+              {resolvedCategory === 'housing' && (
+                <View style={styles.heroBadge}>
+                  <Text style={styles.heroBadgeText}>
+                    Filter by housing need
                   </Text>
                 </View>
               )}
+            </View>
+          </View>
 
-              <Text style={styles.cardTitle}>{resource.title}</Text>
-              <Text style={styles.cardDescription}>{resource.description}</Text>
-
-              <View style={styles.cardDetails}>
-                {resource.phone && (
-                  <TouchableOpacity onPress={() => Linking.openURL(`tel:${resource.phone}`)}>
-                    <Text style={styles.detailRow}>📞 {resource.phone}</Text>
-                  </TouchableOpacity>
-                )}
-                {resource.address && (
-                  <Text style={styles.detailRow}>📍 {resource.address}</Text>
-                )}
-                {resource.eligibility && (
-                  <Text style={styles.detailRow}>✅ {resource.eligibility}</Text>
-                )}
+          <View style={styles.heroGuide}>
+            <Text style={styles.heroGuideLabel}>Using this page</Text>
+            {content.facts.map((fact) => (
+              <View key={fact.label} style={styles.heroGuideRow}>
+                <View style={styles.heroGuideDot} />
+                <View style={styles.heroGuideCopy}>
+                  <Text style={styles.heroGuideTitle}>{fact.label}</Text>
+                  <Text style={styles.heroGuideText}>{fact.value}</Text>
+                </View>
               </View>
+            ))}
+          </View>
+        </View>
+      </View>
 
-              {resource.website && (
-                <TouchableOpacity
-                  style={[styles.websiteBtn, hoveredWebsite === resource.id && styles.websiteBtnHover]}
-                  onPress={() => Linking.openURL(resource.website)}
-                  onMouseEnter={() => setHoveredWebsite(resource.id)}
-                  onMouseLeave={() => setHoveredWebsite(null)}
-                  activeOpacity={0.7}
-                  accessibilityLabel={`Visit ${resource.title} website`}>
-                  <Text style={[styles.websiteBtnText, hoveredWebsite === resource.id && styles.websiteBtnTextHover]}>Visit Website →</Text>
-                </TouchableOpacity>
-              )}
-            </TouchableOpacity>
-          ))}
+      <View style={[styles.workspace, isWide && styles.workspaceWide]}>
+        <View style={[styles.sideRail, isWide && styles.sideRailWide]}>
+          <View style={styles.sidePanel}>
+            <Text style={styles.sidePanelEyebrow}>Quick Summary</Text>
+            <Text style={styles.sidePanelTitle}>What is on this page</Text>
+            <View style={styles.snapshotCard}>
+              <SnapshotRow label="Category" value={content.title} />
+              <SnapshotRow
+                label="Visible results"
+                value={`${filtered.length} resource${filtered.length === 1 ? '' : 's'}`}
+              />
+              {resolvedCategory === 'housing' ? (
+                <SnapshotRow
+                  label="Active filter"
+                  value={
+                    FILTERS.find((item) => item.value === activeType)?.label ||
+                    'All housing resources'
+                  }
+                />
+              ) : null}
+            </View>
+          </View>
+
+          <View style={styles.sidePanelMuted}>
+            <Text style={styles.sidePanelEyebrow}>Helpful Notes</Text>
+            <Text style={styles.sidePanelTitle}>
+              Things worth keeping in mind
+            </Text>
+            <View style={styles.noteList}>
+              {content.notes.map((item) => (
+                <View key={item} style={styles.noteRow}>
+                  <View style={styles.noteDot} />
+                  <Text style={styles.noteText}>{item}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
         </View>
 
-        {filtered.length === 0 && (
-          <View style={styles.empty}>
-            <Text style={styles.emptyText}>No resources found for this filter.</Text>
+        <View style={styles.mainColumn}>
+          <View style={styles.resourcesTopCard}>
+            <Text style={styles.sectionLabel}>Browse Resources</Text>
+            <Text style={styles.sectionTitle}>
+              Find support that matches the situation
+            </Text>
+            <Text style={styles.sectionDesc}>
+              This library combines local Durham programs with broader North
+              Carolina support resources. Hover over cards and links for a
+              little more visual guidance as you scan.
+            </Text>
+
+            {(!category || category === 'housing') && (
+              <View style={styles.filterRow}>
+                {FILTERS.map((f) => (
+                  <TouchableOpacity
+                    key={String(f.value)}
+                    style={[
+                      styles.filterBtn,
+                      activeType === f.value && styles.filterBtnActive,
+                      activeType !== f.value &&
+                        hoveredFilter === String(f.value) &&
+                        styles.filterBtnHover,
+                    ]}
+                    onPress={() => setActiveType(f.value)}
+                    onMouseEnter={() => setHoveredFilter(String(f.value))}
+                    onMouseLeave={() => setHoveredFilter(null)}
+                    activeOpacity={0.75}>
+                    <Text
+                      style={[
+                        styles.filterText,
+                        activeType === f.value && styles.filterTextActive,
+                      ]}>
+                      {f.label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
+
+            <Text style={styles.resultsCount}>
+              {filtered.length} resource{filtered.length !== 1 ? 's' : ''} found
+            </Text>
           </View>
-        )}
+
+          <View style={[styles.grid, isMedium && styles.gridWide]}>
+            {filtered.map((resource) => (
+              <TouchableOpacity
+                key={resource.id}
+                style={[
+                  styles.card,
+                  isMedium && styles.cardWide,
+                  hoveredCard === resource.id && styles.cardHover,
+                ]}
+                onMouseEnter={() => setHoveredCard(resource.id)}
+                onMouseLeave={() => setHoveredCard(null)}
+                activeOpacity={1}>
+                {resource.type && (
+                  <View style={styles.typeBadge}>
+                    <Text style={styles.typeBadgeText}>
+                      {resource.type === 'assistance'
+                        ? 'Rental Assistance'
+                        : resource.type === 'affordable'
+                          ? 'Affordable Housing'
+                          : resource.type === 'legal'
+                            ? 'Legal Help'
+                            : resource.type}
+                    </Text>
+                  </View>
+                )}
+
+                <Text style={styles.cardResourceTitle}>{resource.title}</Text>
+                <Text style={styles.cardDescription}>
+                  {resource.description}
+                </Text>
+
+                <View style={styles.cardDetails}>
+                  {resource.phone ? (
+                    <TouchableOpacity
+                      onPress={() => Linking.openURL(`tel:${resource.phone}`)}
+                      activeOpacity={0.75}>
+                      <Text style={styles.detailRow}>
+                        Phone: {resource.phone}
+                      </Text>
+                    </TouchableOpacity>
+                  ) : null}
+                  {resource.address ? (
+                    <Text style={styles.detailRow}>
+                      Address: {resource.address}
+                    </Text>
+                  ) : null}
+                  {resource.eligibility ? (
+                    <Text style={styles.detailRow}>
+                      Eligibility: {resource.eligibility}
+                    </Text>
+                  ) : null}
+                </View>
+
+                {resource.website ? (
+                  <TouchableOpacity
+                    style={[
+                      styles.websiteBtn,
+                      hoveredWebsite === resource.id && styles.websiteBtnHover,
+                    ]}
+                    onPress={() => Linking.openURL(resource.website)}
+                    onMouseEnter={() => setHoveredWebsite(resource.id)}
+                    onMouseLeave={() => setHoveredWebsite(null)}
+                    activeOpacity={0.75}>
+                    <Text
+                      style={[
+                        styles.websiteBtnText,
+                        hoveredWebsite === resource.id &&
+                          styles.websiteBtnTextHover,
+                      ]}>
+                      Visit Website
+                    </Text>
+                  </TouchableOpacity>
+                ) : null}
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          {filtered.length === 0 && (
+            <View style={styles.empty}>
+              <Text style={styles.emptyText}>
+                No resources matched this filter.
+              </Text>
+            </View>
+          )}
+
+          <View style={styles.linksCard}>
+            <Text style={styles.cardLabel}>OFFICIAL QUICK LINKS</Text>
+            <Text style={styles.cardTitle}>More places to look next</Text>
+            <Text style={styles.cardDesc}>
+              These official or organization-backed links complement the list
+              above and can help residents move one step further.
+            </Text>
+
+            {content.links.map((item, index) => (
+              <TouchableOpacity
+                key={item.id}
+                style={[
+                  styles.linkRow,
+                  index === content.links.length - 1 && styles.linkRowLast,
+                  hoveredLink === item.id && styles.linkRowHover,
+                ]}
+                onPress={() => Linking.openURL(item.url)}
+                onMouseEnter={() => setHoveredLink(item.id)}
+                onMouseLeave={() => setHoveredLink(null)}
+                activeOpacity={0.75}>
+                <View style={styles.linkIconBox}>
+                  <Text style={styles.linkIconText}>Go</Text>
+                </View>
+                <View style={styles.linkContent}>
+                  <Text style={styles.linkEyebrow}>{item.eyebrow}</Text>
+                  <Text
+                    style={[
+                      styles.linkTitle,
+                      hoveredLink === item.id && styles.linkTitleHover,
+                    ]}>
+                    {item.title}
+                  </Text>
+                  <Text style={styles.linkSub}>{item.desc}</Text>
+                </View>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
       </View>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f5f5f5' },
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center', marginTop: 60 },
-
-  pageHeader: {
-    backgroundColor: '#1B5E20',
-    paddingVertical: 32,
-    paddingHorizontal: 24,
-    alignItems: 'center',
+  container: {
+    flex: 1,
+    backgroundColor: '#F3F5EF',
   },
-  pageTitle:    { fontSize: 26, fontWeight: 'bold', color: '#fff', marginBottom: 6 },
-  pageSubtitle: { fontSize: 15, color: 'rgba(255,255,255,0.8)' },
-
-  body: { padding: 20, maxWidth: 1000, alignSelf: 'center', width: '100%' },
-
+  pageFill: {
+    paddingBottom: 56,
+  },
+  center: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 60,
+  },
+  breadcrumb: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    backgroundColor: COLORS.white,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+  },
+  breadcrumbLink: {
+    fontSize: fontSize.caption,
+    color: COLORS.primary,
+    fontWeight: '700',
+  },
+  breadcrumbSep: {
+    fontSize: fontSize.caption,
+    color: '#A1A79F',
+    marginHorizontal: 4,
+  },
+  breadcrumbCurrent: {
+    fontSize: fontSize.caption,
+    color: COLORS.textMuted,
+  },
+  hero: {
+    position: 'relative',
+    overflow: 'hidden',
+    backgroundColor: COLORS.primaryDeep,
+    paddingHorizontal: 24,
+    paddingTop: 48,
+    paddingBottom: 112,
+  },
+  heroGlowA: {
+    position: 'absolute',
+    top: -120,
+    right: -40,
+    width: 320,
+    height: 320,
+    borderRadius: 160,
+    backgroundColor: 'rgba(133, 196, 112, 0.18)',
+  },
+  heroGlowB: {
+    position: 'absolute',
+    bottom: -180,
+    left: -80,
+    width: 360,
+    height: 360,
+    borderRadius: 180,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+  },
+  heroInner: {
+    width: '100%',
+    maxWidth: 1380,
+    alignSelf: 'center',
+    gap: 28,
+  },
+  heroInnerWide: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+  },
+  heroCopy: {
+    flex: 1,
+    maxWidth: 720,
+  },
+  heroLabel: {
+    color: COLORS.gold,
+    fontSize: fontSize.caption,
+    fontWeight: '800',
+    letterSpacing: 2.2,
+    marginBottom: 14,
+  },
+  heroTitle: {
+    color: COLORS.white,
+    fontSize: fontSize.hero,
+    fontWeight: '800',
+    lineHeight: fontSize.hero * 1.08,
+    marginBottom: 14,
+  },
+  heroSub: {
+    color: 'rgba(255,255,255,0.88)',
+    fontSize: fontSize.bodyLg,
+    lineHeight: 30,
+    maxWidth: 650,
+  },
+  heroBadgeRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+    marginTop: 24,
+  },
+  heroBadge: {
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+    borderRadius: 999,
+    backgroundColor: 'rgba(255,255,255,0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.12)',
+  },
+  heroBadgeText: {
+    color: '#F5FAF0',
+    fontSize: fontSize.caption,
+    fontWeight: '700',
+  },
+  heroGuide: {
+    width: '100%',
+    maxWidth: 390,
+    padding: 24,
+    borderRadius: 28,
+    backgroundColor: 'rgba(255,255,255,0.11)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
+    gap: 16,
+  },
+  heroGuideLabel: {
+    color: '#E7F3DD',
+    fontSize: fontSize.caption,
+    fontWeight: '800',
+    textTransform: 'uppercase',
+    letterSpacing: 1.4,
+  },
+  heroGuideRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 12,
+  },
+  heroGuideDot: {
+    width: 9,
+    height: 9,
+    borderRadius: 5,
+    backgroundColor: '#D5EEBE',
+    marginTop: 8,
+  },
+  heroGuideCopy: {
+    flex: 1,
+  },
+  heroGuideTitle: {
+    color: '#FFFFFF',
+    fontSize: fontSize.small,
+    fontWeight: '800',
+    marginBottom: 5,
+    textTransform: 'capitalize',
+  },
+  heroGuideText: {
+    color: 'rgba(255,255,255,0.86)',
+    fontSize: fontSize.caption,
+    lineHeight: 20,
+  },
+  workspace: {
+    width: '100%',
+    maxWidth: 1380,
+    alignSelf: 'center',
+    paddingHorizontal: 24,
+    marginTop: 28,
+    gap: 28,
+  },
+  workspaceWide: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  sideRail: {
+    width: '100%',
+    gap: 18,
+  },
+  sideRailWide: {
+    width: 340,
+  },
+  sidePanel: {
+    borderRadius: 28,
+    padding: 24,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: 'rgba(27, 94, 32, 0.08)',
+    shadowColor: '#142013',
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.08,
+    shadowRadius: 28,
+    elevation: 4,
+  },
+  sidePanelMuted: {
+    borderRadius: 28,
+    padding: 24,
+    backgroundColor: '#EEF5E9',
+    borderWidth: 1,
+    borderColor: 'rgba(27, 94, 32, 0.08)',
+  },
+  sidePanelEyebrow: {
+    color: COLORS.primary,
+    fontSize: fontSize.caption,
+    fontWeight: '800',
+    letterSpacing: 1.4,
+    textTransform: 'uppercase',
+    marginBottom: 8,
+  },
+  sidePanelTitle: {
+    color: COLORS.textPrimary,
+    fontSize: fontSize.h4,
+    fontWeight: '800',
+    marginBottom: 12,
+  },
+  snapshotCard: {
+    borderRadius: 22,
+    backgroundColor: '#F7FAF4',
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(27, 94, 32, 0.08)',
+  },
+  snapshotRow: {
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(27, 94, 32, 0.08)',
+  },
+  snapshotLabel: {
+    color: COLORS.textMuted,
+    fontSize: fontSize.tiny,
+    fontWeight: '800',
+    textTransform: 'uppercase',
+    letterSpacing: 1.1,
+    marginBottom: 6,
+  },
+  snapshotValue: {
+    color: COLORS.textPrimary,
+    fontSize: fontSize.small,
+    lineHeight: 21,
+  },
+  noteList: {
+    gap: 14,
+  },
+  noteRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 12,
+  },
+  noteDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: COLORS.primary,
+    marginTop: 7,
+  },
+  noteText: {
+    flex: 1,
+    color: COLORS.textMuted,
+    fontSize: fontSize.small,
+    lineHeight: 22,
+  },
+  mainColumn: {
+    flex: 1,
+    minWidth: 0,
+  },
+  resourcesTopCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 28,
+    padding: 24,
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(27, 94, 32, 0.08)',
+    shadowColor: '#142013',
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.06,
+    shadowRadius: 24,
+    elevation: 3,
+  },
+  sectionLabel: {
+    color: COLORS.primary,
+    fontSize: fontSize.caption,
+    fontWeight: '800',
+    letterSpacing: 1.5,
+    textTransform: 'uppercase',
+    marginBottom: 10,
+  },
+  sectionTitle: {
+    color: COLORS.textPrimary,
+    fontSize: fontSize.h2,
+    fontWeight: '800',
+    marginBottom: 12,
+  },
+  sectionDesc: {
+    color: COLORS.textMuted,
+    fontSize: fontSize.body,
+    lineHeight: 27,
+    marginBottom: 18,
+    maxWidth: 860,
+  },
   filterRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
+    gap: 10,
     marginBottom: 16,
-    marginTop: 4,
   },
   filterBtn: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 999,
     borderWidth: 1,
-    borderColor: '#ddd',
-    backgroundColor: '#fff',
+    borderColor: COLORS.border,
+    backgroundColor: '#FBFCF8',
   },
-  filterBtnActive:  { backgroundColor: '#2E7D32', borderColor: '#2E7D32' },
-  filterText:       { fontSize: 14, color: '#555' },
-  filterTextActive: { color: '#fff', fontWeight: 'bold' },
-
-  resultsCount: { fontSize: 13, color: '#888', marginBottom: 14 },
-
-  grid:     { gap: 14 },
-  gridWide: { flexDirection: 'row', flexWrap: 'wrap' },
-
+  filterBtnActive: {
+    backgroundColor: COLORS.primary,
+    borderColor: COLORS.primary,
+  },
+  filterBtnHover: {
+    backgroundColor: '#EEF7E8',
+    borderColor: 'rgba(46, 125, 50, 0.35)',
+  },
+  filterText: {
+    fontSize: fontSize.caption,
+    color: COLORS.textMuted,
+    fontWeight: '700',
+  },
+  filterTextActive: {
+    color: '#FFFFFF',
+  },
+  resultsCount: {
+    fontSize: fontSize.caption,
+    color: '#6F7A6F',
+  },
+  grid: {
+    gap: 14,
+  },
+  gridWide: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
   card: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 18,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    padding: 20,
     borderWidth: 1,
-    borderColor: '#e8e8e8',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 1,
+    borderColor: 'rgba(27, 94, 32, 0.08)',
+    shadowColor: '#142013',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.04,
+    shadowRadius: 20,
+    elevation: 2,
   },
-  cardWide: { flex: 1, minWidth: 280, maxWidth: '48%' },
-
+  cardWide: {
+    flex: 1,
+    minWidth: 290,
+  },
+  cardHover: {
+    transform: [{ translateY: -2 }],
+    borderColor: 'rgba(46, 125, 50, 0.28)',
+    backgroundColor: '#F9FCF6',
+    shadowOpacity: 0.08,
+  },
   typeBadge: {
     alignSelf: 'flex-start',
-    backgroundColor: '#E8F5E9',
-    borderRadius: 4,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
+    backgroundColor: '#EAF4E3',
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    marginBottom: 10,
+  },
+  typeBadgeText: {
+    fontSize: fontSize.tiny,
+    color: COLORS.primary,
+    fontWeight: '800',
+    letterSpacing: 0.7,
+  },
+  cardResourceTitle: {
+    fontSize: fontSize.body,
+    fontWeight: '800',
+    color: COLORS.textPrimary,
     marginBottom: 8,
+    lineHeight: 23,
   },
-  typeBadgeText: { fontSize: 11, color: '#2E7D32', fontWeight: 'bold' },
-
-  cardTitle:       { fontSize: 16, fontWeight: 'bold', color: '#1a1a1a', marginBottom: 6 },
-  cardDescription: { fontSize: 14, color: '#555', lineHeight: 20, marginBottom: 12 },
-
-  cardDetails: { gap: 5, marginBottom: 14 },
-  detailRow:   { fontSize: 13, color: '#555', lineHeight: 20 },
-
+  cardDescription: {
+    fontSize: fontSize.caption,
+    color: COLORS.textMuted,
+    lineHeight: 22,
+    marginBottom: 14,
+  },
+  cardDetails: {
+    gap: 7,
+    marginBottom: 16,
+  },
+  detailRow: {
+    fontSize: fontSize.caption,
+    color: COLORS.textPrimary,
+    lineHeight: 20,
+  },
   websiteBtn: {
-    borderWidth: 1,
-    borderColor: '#2E7D32',
-    borderRadius: 6,
-    paddingVertical: 8,
+    borderWidth: 1.5,
+    borderColor: COLORS.primary,
+    borderRadius: 14,
+    paddingVertical: 11,
     alignItems: 'center',
+    backgroundColor: '#FFFFFF',
   },
-  websiteBtnHover:     { backgroundColor: '#2E7D32' },
-  websiteBtnText:      { color: '#2E7D32', fontWeight: 'bold', fontSize: 13 },
-  websiteBtnTextHover: { color: '#fff' },
-
-  filterBtnHover: { backgroundColor: '#f0f7f0', borderColor: '#2E7D32' },
-
-  cardHover: {
-    borderColor: '#2E7D32',
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
+  websiteBtnHover: {
+    backgroundColor: COLORS.primary,
+    borderColor: COLORS.primary,
+  },
+  websiteBtnText: {
+    color: COLORS.primary,
+    fontWeight: '800',
+    fontSize: fontSize.caption,
+  },
+  websiteBtnTextHover: {
+    color: '#FFFFFF',
+  },
+  linksCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 28,
+    padding: 24,
+    marginTop: 24,
+    marginBottom: 18,
+    borderWidth: 1,
+    borderColor: 'rgba(27, 94, 32, 0.08)',
+    shadowColor: '#142013',
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.06,
+    shadowRadius: 24,
     elevation: 3,
   },
-
-  empty:     { paddingVertical: 40, alignItems: 'center' },
-  emptyText: { fontSize: 15, color: '#999' },
+  cardLabel: {
+    color: COLORS.primary,
+    fontSize: fontSize.caption,
+    fontWeight: '800',
+    letterSpacing: 1.5,
+    textTransform: 'uppercase',
+    marginBottom: 10,
+  },
+  cardTitle: {
+    color: COLORS.textPrimary,
+    fontSize: fontSize.h3,
+    fontWeight: '800',
+    marginBottom: 8,
+  },
+  cardDesc: {
+    color: COLORS.textMuted,
+    fontSize: fontSize.small,
+    lineHeight: 24,
+    marginBottom: 12,
+  },
+  linkRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 14,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#EDF1EA',
+    borderRadius: 18,
+  },
+  linkRowLast: {
+    borderBottomWidth: 0,
+  },
+  linkRowHover: {
+    backgroundColor: '#F4F9EF',
+    paddingHorizontal: 10,
+  },
+  linkIconBox: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: '#EAF4E3',
+    justifyContent: 'center',
+    alignItems: 'center',
+    flexShrink: 0,
+    marginTop: 2,
+  },
+  linkIconText: {
+    color: COLORS.primaryDeep,
+    fontSize: fontSize.caption,
+    fontWeight: '800',
+  },
+  linkContent: {
+    flex: 1,
+  },
+  linkEyebrow: {
+    color: COLORS.primary,
+    fontSize: fontSize.tiny,
+    fontWeight: '800',
+    letterSpacing: 1.1,
+    textTransform: 'uppercase',
+    marginBottom: 4,
+  },
+  linkTitle: {
+    color: COLORS.textPrimary,
+    fontSize: fontSize.small,
+    fontWeight: '800',
+    marginBottom: 4,
+  },
+  linkTitleHover: {
+    color: COLORS.primaryDeep,
+  },
+  linkSub: {
+    color: COLORS.textMuted,
+    fontSize: fontSize.caption,
+    lineHeight: 21,
+  },
+  empty: {
+    paddingVertical: 42,
+    alignItems: 'center',
+  },
+  emptyText: {
+    fontSize: fontSize.body,
+    color: '#7A847A',
+  },
 });
