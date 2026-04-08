@@ -53,7 +53,7 @@ export default function LoginScreen({ navigation }) {
       const { id_token } = response.authentication;
       const credential = GoogleAuthProvider.credential(id_token);
       signInWithCredential(auth, credential)
-        .then(() => navigation.navigate('Home'))
+        .then(() => navigation.navigate('ReportScreen')) // <- changed
         .catch(() => setError('Google sign-in failed.'));
     }
   }, [response]);
@@ -65,7 +65,7 @@ export default function LoginScreen({ navigation }) {
     try {
       setLoading(true);
       await signInWithEmailAndPassword(auth, email, password);
-      navigation.navigate('Home');
+      navigation.navigate('ReportScreen'); // <- changed
     } catch (err) {
       switch (err.code) {
         case 'auth/invalid-email':     setError('Please enter a valid email address.');        break;
