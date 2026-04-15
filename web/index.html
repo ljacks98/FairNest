@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1.00001, viewport-fit=cover"
+    />
+    <title>FairNest – Housing Support AI</title>
+    <meta
+      name="description"
+      content="AI-powered app for Durham residents experiencing housing challenges"
+    />
+    <style>
+      /* Critical: give html + body 100% height so flex:1 in React Native
+         root View expands to fill the full viewport on desktop browsers. */
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+      }
+      body {
+        display: flex;
+        flex-direction: column;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+      #root {
+        display: flex;
+        flex: 1;
+        height: 100%;
+        overflow: hidden;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>
