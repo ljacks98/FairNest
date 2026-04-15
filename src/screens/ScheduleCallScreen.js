@@ -25,21 +25,21 @@ import {
 import { db } from '../firebaseConfig';
 import { AuthContext } from '../context/AuthContext';
 import Navbar from '../components/Navbar';
-import { fontSize } from '../theme/typography';
+import { fontSize, font } from '../theme/typography';
 import { COLORS } from '../utils/constants';
 
 const CALL_TYPES = [
   {
     key: 'advocate',
-    badge: 'AH',
-    title: 'Speak with an Advocate',
-    desc: 'Get guidance from a fair housing advocate about your situation or an existing report.',
+    badge: 'FN',
+    title: 'Speak with a FairNest Member',
+    desc: 'Get guidance from a FairNest team member about your situation or an existing report.',
   },
   {
     key: 'legal',
     badge: 'LC',
     title: 'Legal Consultation',
-    desc: 'Talk directly with a legal expert about your rights and potential next steps.',
+    desc: 'Talk directly with a legal professional partnered with the FairNest team about your rights and potential next steps.',
   },
 ];
 
@@ -180,7 +180,7 @@ export default function ScheduleCallScreen({ navigation, route }) {
             <Text
               style={{
                 fontSize: 24,
-                fontWeight: '800',
+                ...font.extra,
                 color: COLORS.primaryDeep,
               }}>
               OK
@@ -708,13 +708,13 @@ const styles = StyleSheet.create({
   heroLabel: {
     color: '#CBE8B8',
     fontSize: fontSize.small,
-    fontWeight: '800',
+    ...font.extra,
     letterSpacing: 2,
     marginBottom: 14,
   },
   heroTitle: {
     fontSize: fontSize.hero,
-    fontWeight: '800',
+    ...font.extra,
     color: '#FFFFFF',
     marginBottom: 12,
   },
@@ -741,7 +741,7 @@ const styles = StyleSheet.create({
   heroBadgeText: {
     color: '#F6FBF2',
     fontSize: fontSize.caption,
-    fontWeight: '700',
+    ...font.bold,
   },
   heroGuide: {
     width: '100%',
@@ -756,7 +756,7 @@ const styles = StyleSheet.create({
   heroGuideLabel: {
     color: '#E7F3DD',
     fontSize: fontSize.caption,
-    fontWeight: '800',
+    ...font.extra,
     textTransform: 'uppercase',
     letterSpacing: 1.4,
   },
@@ -777,7 +777,7 @@ const styles = StyleSheet.create({
   heroGuideIndexText: {
     color: COLORS.primaryDeep,
     fontSize: fontSize.small,
-    fontWeight: '800',
+    ...font.extra,
   },
   heroGuideText: {
     flex: 1,
@@ -826,7 +826,7 @@ const styles = StyleSheet.create({
   sidePanelEyebrow: {
     color: COLORS.primary,
     fontSize: fontSize.caption,
-    fontWeight: '800',
+    ...font.extra,
     textTransform: 'uppercase',
     letterSpacing: 1.4,
     marginBottom: 8,
@@ -834,7 +834,7 @@ const styles = StyleSheet.create({
   sidePanelTitle: {
     color: COLORS.textPrimary,
     fontSize: fontSize.h4,
-    fontWeight: '800',
+    ...font.extra,
     marginBottom: 10,
   },
   sidePanelText: {
@@ -859,7 +859,7 @@ const styles = StyleSheet.create({
   snapshotLabel: {
     color: COLORS.textMuted,
     fontSize: fontSize.tiny,
-    fontWeight: '700',
+    ...font.bold,
     textTransform: 'uppercase',
     letterSpacing: 1.1,
     marginBottom: 6,
@@ -867,12 +867,12 @@ const styles = StyleSheet.create({
   snapshotValue: {
     color: COLORS.textPrimary,
     fontSize: fontSize.small,
-    fontWeight: '600',
+    ...font.semi,
     lineHeight: 20,
   },
   snapshotValueMuted: {
     color: '#8A9484',
-    fontWeight: '500',
+    ...font.regular,
   },
   infoCallout: {
     borderRadius: 28,
@@ -884,7 +884,7 @@ const styles = StyleSheet.create({
   infoCalloutTitle: {
     color: COLORS.textPrimary,
     fontSize: fontSize.h4,
-    fontWeight: '800',
+    ...font.extra,
     marginBottom: 8,
   },
   infoCalloutText: {
@@ -919,7 +919,7 @@ const styles = StyleSheet.create({
   formEyebrow: {
     color: COLORS.primary,
     fontSize: fontSize.caption,
-    fontWeight: '800',
+    ...font.extra,
     textTransform: 'uppercase',
     letterSpacing: 1.4,
     marginBottom: 6,
@@ -927,7 +927,7 @@ const styles = StyleSheet.create({
   formTitle: {
     color: COLORS.textPrimary,
     fontSize: fontSize.h2,
-    fontWeight: '800',
+    ...font.extra,
   },
   formHelper: {
     color: COLORS.textMuted,
@@ -944,7 +944,7 @@ const styles = StyleSheet.create({
   sectionLabel: {
     color: COLORS.primary,
     fontSize: fontSize.caption,
-    fontWeight: '800',
+    ...font.extra,
     textTransform: 'uppercase',
     letterSpacing: 1.4,
     marginBottom: 8,
@@ -952,7 +952,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     color: COLORS.textPrimary,
     fontSize: fontSize.h3,
-    fontWeight: '800',
+    ...font.extra,
     marginBottom: 18,
   },
   typeGrid: {
@@ -997,13 +997,13 @@ const styles = StyleSheet.create({
   typeIconText: {
     color: COLORS.primaryDeep,
     fontSize: fontSize.caption,
-    fontWeight: '800',
+    ...font.extra,
     letterSpacing: 0.8,
   },
   typeTitle: {
     color: COLORS.textPrimary,
     fontSize: fontSize.h4,
-    fontWeight: '800',
+    ...font.extra,
     marginBottom: 8,
   },
   typeTitleActive: {
@@ -1026,14 +1026,14 @@ const styles = StyleSheet.create({
   typeCheckText: {
     color: '#FFFFFF',
     fontSize: fontSize.tiny,
-    fontWeight: '800',
+    ...font.extra,
   },
   field: {
     marginBottom: 22,
   },
   label: {
     fontSize: fontSize.label,
-    fontWeight: '700',
+    ...font.bold,
     color: COLORS.textPrimary,
     marginBottom: 10,
   },
@@ -1086,7 +1086,7 @@ const styles = StyleSheet.create({
   dateBtnIcon: {
     color: COLORS.primary,
     fontSize: fontSize.caption,
-    fontWeight: '800',
+    ...font.extra,
   },
   slotRow: {
     gap: 10,
@@ -1110,11 +1110,11 @@ const styles = StyleSheet.create({
   slotText: {
     fontSize: fontSize.small,
     color: COLORS.textMuted,
-    fontWeight: '600',
+    ...font.semi,
   },
   slotTextActive: {
     color: '#FFFFFF',
-    fontWeight: '800',
+    ...font.extra,
   },
   submitErrorBox: {
     backgroundColor: '#FFF0EE',
@@ -1159,7 +1159,7 @@ const styles = StyleSheet.create({
   },
   primaryBtnText: {
     color: '#FFFFFF',
-    fontWeight: '800',
+    ...font.extra,
     fontSize: fontSize.button,
   },
   secondaryBtn: {
@@ -1179,7 +1179,7 @@ const styles = StyleSheet.create({
   },
   secondaryBtnText: {
     color: COLORS.primary,
-    fontWeight: '800',
+    ...font.extra,
     fontSize: fontSize.button,
   },
   secondaryBtnTextHover: {
@@ -1210,7 +1210,7 @@ const styles = StyleSheet.create({
   },
   authTitle: {
     fontSize: fontSize.h2,
-    fontWeight: '800',
+    ...font.extra,
     color: COLORS.textPrimary,
   },
   authDesc: {
@@ -1241,7 +1241,7 @@ const styles = StyleSheet.create({
   },
   successTitle: {
     fontSize: fontSize.h2,
-    fontWeight: '800',
+    ...font.extra,
     color: COLORS.textPrimary,
     textAlign: 'center',
   },
@@ -1265,7 +1265,7 @@ const styles = StyleSheet.create({
   },
   successInfoLabel: {
     fontSize: fontSize.caption,
-    fontWeight: '800',
+    ...font.extra,
     color: COLORS.primary,
     letterSpacing: 1.4,
     marginBottom: 14,
@@ -1284,7 +1284,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 26,
     fontSize: fontSize.tiny,
-    fontWeight: '800',
+    ...font.extra,
     color: COLORS.primary,
     flexShrink: 0,
   },

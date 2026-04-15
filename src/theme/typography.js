@@ -26,9 +26,10 @@
 //   System     — Uses device default (no install needed)
 // ─────────────────────────────────────────────────────────────────────────────
 
-export const FONT_REGULAR = undefined;
-export const FONT_BOLD    = undefined;
-export const FONT_SEMI    = undefined;
+export const FONT_REGULAR = 'Poppins_400Regular';
+export const FONT_SEMI    = 'Poppins_600SemiBold';
+export const FONT_BOLD    = 'Poppins_700Bold';
+export const FONT_EXTRA   = 'Poppins_800ExtraBold';
 
 // Font sizes — increase/decrease the base to scale everything at once
 const BASE = 1; // multiply all sizes by this to scale up/down globally
@@ -58,9 +59,10 @@ export const fontSize = {
 };
 
 // Ready-to-use fontFamily values — spread these into any StyleSheet text style
-// Example: { ...font.regular, fontSize: fontSize.body, color: '#333' }
+// Example: { ...font.bold, fontSize: fontSize.h2, color: COLORS.textPrimary }
 export const font = {
-  regular: FONT_REGULAR ? { fontFamily: FONT_REGULAR } : {},
-  bold:    FONT_BOLD    ? { fontFamily: FONT_BOLD }    : {},
-  semi:    FONT_SEMI    ? { fontFamily: FONT_SEMI }    : {},
+  regular: { fontFamily: FONT_REGULAR },
+  semi:    { fontFamily: FONT_SEMI },
+  bold:    { fontFamily: FONT_BOLD },
+  extra:   { fontFamily: FONT_EXTRA },
 };

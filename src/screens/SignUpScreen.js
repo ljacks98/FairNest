@@ -19,7 +19,7 @@ import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, db } from '../firebaseConfig';
 
 import { COLORS } from '../utils/constants';
-import { fontSize } from '../theme/typography';
+import { fontSize, font } from '../theme/typography';
 
 export default function SignUpScreen({ navigation }) {
   const [firstName, setFirstName]           = useState('');
@@ -350,7 +350,7 @@ const styles = StyleSheet.create({
   },
   badgeText: {
     fontSize: 14,
-    fontWeight: '700',
+    ...font.bold,
     color: COLORS.primaryDeep,
     letterSpacing: 2,
   },
@@ -358,7 +358,7 @@ const styles = StyleSheet.create({
   // ── Heading ───────────────────────────────────────────────────────────────
   heading: {
     fontSize: 40,
-    fontWeight: '900',
+    ...font.extra,
     color: COLORS.textPrimary,
     letterSpacing: -1,
     marginBottom: 10,
@@ -366,6 +366,7 @@ const styles = StyleSheet.create({
   },
   subheading: {
     fontSize: fontSize.body,
+    ...font.regular,
     color: COLORS.textMuted,
     textAlign: 'center',
     lineHeight: fontSize.body * 1.6,
@@ -419,7 +420,7 @@ const styles = StyleSheet.create({
   // ── Inputs ────────────────────────────────────────────────────────────────
   label: {
     fontSize: fontSize.small,
-    fontWeight: '700',
+    ...font.bold,
     color: COLORS.textPrimary,
     marginBottom: 8,
   },
@@ -433,6 +434,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 14,
     fontSize: fontSize.body,
+    ...font.regular,
     color: COLORS.textPrimary,
     backgroundColor: COLORS.greenTint,
   },
@@ -449,6 +451,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 14,
     fontSize: fontSize.body,
+    ...font.regular,
     color: COLORS.textPrimary,
   },
 
@@ -471,7 +474,7 @@ const styles = StyleSheet.create({
   },
   signUpText: {
     color: COLORS.white,
-    fontWeight: '800',
+    ...font.extra,
     fontSize: fontSize.button,
     letterSpacing: 0.4,
   },
@@ -490,8 +493,8 @@ const styles = StyleSheet.create({
   },
   dividerLabel: {
     fontSize: fontSize.small,
+    ...font.regular,
     color: COLORS.textMuted,
-    fontWeight: '500',
   },
 
   // ── Google ────────────────────────────────────────────────────────────────
@@ -508,7 +511,7 @@ const styles = StyleSheet.create({
   },
   googleText: {
     fontSize: fontSize.body,
-    fontWeight: '600',
+    ...font.semi,
     color: COLORS.textPrimary,
   },
 
@@ -521,12 +524,13 @@ const styles = StyleSheet.create({
   },
   loginPrompt: {
     fontSize: fontSize.small,
+    ...font.regular,
     color: COLORS.textMuted,
   },
   loginLink: {
     fontSize: fontSize.small,
+    ...font.bold,
     color: COLORS.primary,
-    fontWeight: '700',
     textDecorationLine: 'underline',
   },
 

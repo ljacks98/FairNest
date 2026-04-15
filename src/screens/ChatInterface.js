@@ -21,7 +21,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 import { AuthContext } from '../context/AuthContext';
-import { fontSize } from '../theme/typography';
+import { fontSize, font } from '../theme/typography';
 
 const SUGGESTED_QUESTIONS = [
   'Can my landlord evict me without notice?',
@@ -282,7 +282,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  headerTitle: { fontSize: fontSize.body, fontWeight: 'bold', color: '#1a1a1a' },
+  headerTitle: { fontSize: fontSize.body, ...font.bold, color: '#1a1a1a' },
   headerSub:   { fontSize: fontSize.tiny, color: '#888', marginTop: 1 },
 
   // Empty state
@@ -293,7 +293,7 @@ const styles = StyleSheet.create({
     padding: 24,
   },
   emptyIcon:  { fontSize: fontSize.hero, marginBottom: 16 },
-  emptyTitle: { fontSize: fontSize.h2, fontWeight: 'bold', color: '#1a1a1a', marginBottom: 8, textAlign: 'center' },
+  emptyTitle: { fontSize: fontSize.h2, ...font.bold, color: '#1a1a1a', marginBottom: 8, textAlign: 'center' },
   emptyDesc:  { fontSize: fontSize.body, color: '#666', textAlign: 'center', lineHeight: 22, maxWidth: 400, marginBottom: 28 },
 
   suggestionsGrid:     { width: '100%', maxWidth: 600, gap: 10 },
@@ -328,7 +328,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flexShrink: 0,
   },
-  aiAvatarText: { color: '#fff', fontSize: fontSize.tiny, fontWeight: 'bold' },
+  aiAvatarText: { color: '#fff', fontSize: fontSize.tiny, ...font.bold },
 
   bubble: {
     maxWidth: '75%',
@@ -384,9 +384,9 @@ const styles = StyleSheet.create({
     flexShrink: 0,
   },
   sendBtnDisabled: { backgroundColor: '#a5d6a7' },
-  sendBtnText:     { color: '#fff', fontSize: fontSize.h3, fontWeight: 'bold', marginTop: -2 },
+  sendBtnText:     { color: '#fff', fontSize: fontSize.h3, ...font.bold, marginTop: -2 },
 
   footerNote: { fontSize: fontSize.tiny, color: '#bbb', textAlign: 'center', paddingVertical: 4, backgroundColor: '#fff' },
   backBtn: { marginRight: 8, paddingHorizontal: 4, paddingVertical: 4 },
-  backBtnText: { fontSize: fontSize.body, color: '#2E7D32', fontWeight: '600' },
+  backBtnText: { fontSize: fontSize.body, color: '#2E7D32', ...font.semi },
 });

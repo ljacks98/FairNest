@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 
 import Navbar from '../components/Navbar';
-import { fontSize } from '../theme/typography';
+import { fontSize, font } from '../theme/typography';
 import { COLORS } from '../utils/constants';
 
 const STORY_COLUMNS = [
@@ -320,7 +320,7 @@ const styles = StyleSheet.create({
   heroLabel: {
     color: COLORS.gold,
     fontSize: 12,
-    fontWeight: '800',
+    ...font.extra,
     letterSpacing: 4,
     marginBottom: 20,
     textAlign: 'center',
@@ -328,7 +328,7 @@ const styles = StyleSheet.create({
   heroTitle: {
     color: '#FFFFFF',
     fontSize: 60,
-    fontWeight: '800',
+    ...font.extra,
     lineHeight: 66,
     letterSpacing: -2,
     textAlign: 'center',
@@ -361,7 +361,7 @@ const styles = StyleSheet.create({
   sectionEyebrow: {
     color: COLORS.primary,
     fontSize: fontSize.caption,
-    fontWeight: '800',
+    ...font.extra,
     letterSpacing: 1.8,
     textTransform: 'uppercase',
     marginBottom: 10,
@@ -370,7 +370,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     color: COLORS.textPrimary,
     fontSize: fontSize.h1,
-    fontWeight: '800',
+    ...font.extra,
     textAlign: 'center',
     marginBottom: 14,
   },
@@ -405,7 +405,7 @@ const styles = StyleSheet.create({
   storyColumnLabel: {
     color: COLORS.primary,
     fontSize: fontSize.tiny,
-    fontWeight: '800',
+    ...font.extra,
     letterSpacing: 1.6,
     textTransform: 'uppercase',
     marginBottom: 10,
@@ -413,7 +413,7 @@ const styles = StyleSheet.create({
   storyColumnTitle: {
     color: COLORS.textPrimary,
     fontSize: fontSize.h4,
-    fontWeight: '800',
+    ...font.extra,
     lineHeight: 28,
     marginBottom: 12,
   },
@@ -466,7 +466,7 @@ const styles = StyleSheet.create({
   pillarTitle: {
     color: COLORS.textPrimary,
     fontSize: fontSize.body,
-    fontWeight: '800',
+    ...font.extra,
     marginBottom: 6,
   },
   pillarText: {
@@ -531,13 +531,13 @@ const styles = StyleSheet.create({
   teamName: {
     color: COLORS.textPrimary,
     fontSize: fontSize.body,
-    fontWeight: '800',
+    ...font.extra,
     marginBottom: 4,
   },
   teamRole: {
     color: COLORS.primary,
     fontSize: fontSize.caption,
-    fontWeight: '700',
+    ...font.bold,
     marginBottom: 12,
   },
   teamBio: {
@@ -568,7 +568,7 @@ const styles = StyleSheet.create({
   ctaLabel: {
     color: '#CBE8B8',
     fontSize: fontSize.caption,
-    fontWeight: '800',
+    ...font.extra,
     letterSpacing: 1.8,
     textTransform: 'uppercase',
     marginBottom: 10,
@@ -576,7 +576,7 @@ const styles = StyleSheet.create({
   ctaTitle: {
     color: '#FFFFFF',
     fontSize: fontSize.h1,
-    fontWeight: '800',
+    ...font.extra,
     marginBottom: 14,
   },
   ctaText: {
@@ -603,7 +603,7 @@ const styles = StyleSheet.create({
   primaryBtnText: {
     color: COLORS.primaryDeep,
     fontSize: fontSize.button,
-    fontWeight: '800',
+    ...font.extra,
   },
   secondaryBtn: {
     minWidth: 220,
@@ -624,7 +624,7 @@ const styles = StyleSheet.create({
   secondaryBtnText: {
     color: '#FFFFFF',
     fontSize: fontSize.button,
-    fontWeight: '800',
+    ...font.extra,
   },
   secondaryBtnTextHover: {
     color: '#FFFFFF',
@@ -637,7 +637,7 @@ const styles = StyleSheet.create({
   disclaimerLabel: {
     color: '#72806E',
     fontSize: fontSize.caption,
-    fontWeight: '800',
+    ...font.extra,
     letterSpacing: 1.5,
     textTransform: 'uppercase',
     marginBottom: 10,

@@ -28,7 +28,9 @@ service cloud.firestore {
         request.resource.data.userId == request.auth.uid;
       allow read: if isAdmin() ||
         (signedIn() && resource.data.userId == request.auth.uid);
-      allow update: if isAdmin();
+      allow update: if isAdmin() ||
+        (isOwner(resource.data.userId) &&
+         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['evidenceUrls']));
       allow delete: if false;
     }
 

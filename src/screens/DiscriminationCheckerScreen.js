@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import Navbar from '../components/Navbar';
 import { COLORS } from '../utils/constants';
+import { font } from '../theme/typography';
 
 // ── Data ──────────────────────────────────────────────────────────────────────
 
@@ -202,7 +203,7 @@ export default function DiscriminationCheckerScreen({ navigation }) {
 
       {/* Breadcrumb */}
       <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingVertical: 10, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#eee' }}>
-        <Text onPress={() => navigation.navigate('Home')} style={{ fontSize: 13, color: '#2E7D32', fontWeight: '600' }}>Home</Text>
+        <Text onPress={() => navigation.navigate('Home')} style={{ fontSize: 13, color: '#2E7D32', ...font.semi }}>Home</Text>
         <Text style={{ fontSize: 13, color: '#bbb', marginHorizontal: 4 }}> / </Text>
         <Text style={{ fontSize: 13, color: '#666' }}>Check Your Rights</Text>
       </View>
@@ -422,12 +423,12 @@ const styles = StyleSheet.create({
   },
   heroLabel: {
     fontSize: 11,
-    fontWeight: 'bold',
+    ...font.bold,
     color: 'rgba(255,255,255,0.6)',
     letterSpacing: 2.5,
     marginBottom: 12,
   },
-  heroTitle:  { fontSize: 30, fontWeight: 'bold', color: '#fff', textAlign: 'center', marginBottom: 12 },
+  heroTitle:  { fontSize: 30, ...font.bold, color: '#fff', textAlign: 'center', marginBottom: 12 },
   heroSub:    { fontSize: 16, color: 'rgba(255,255,255,0.85)', textAlign: 'center', lineHeight: 24, maxWidth: 580 },
 
   // Progress
@@ -447,7 +448,7 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   cardWide:     { maxWidth: 700, alignSelf: 'center', width: '100%' },
-  cardTitle:    { fontSize: 20, fontWeight: 'bold', color: '#1a1a1a', marginBottom: 10 },
+  cardTitle:    { fontSize: 20, ...font.bold, color: '#1a1a1a', marginBottom: 10 },
   cardSubtitle: { fontSize: 15, color: '#555', lineHeight: 22, marginBottom: 20 },
 
   // Intro criteria
@@ -466,9 +467,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flexShrink: 0,
   },
-  criteriaNumberText: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
+  criteriaNumberText: { color: '#fff', ...font.bold, fontSize: 16 },
   criteriaContent:    { flex: 1 },
-  criteriaTitle:      { fontSize: 15, fontWeight: 'bold', color: '#1a1a1a', marginBottom: 3 },
+  criteriaTitle:      { fontSize: 15, ...font.bold, color: '#1a1a1a', marginBottom: 3 },
   criteriaDesc:       { fontSize: 13, color: '#666', lineHeight: 19 },
 
   disclaimer: {
@@ -483,8 +484,8 @@ const styles = StyleSheet.create({
 
   // Step
   stepHeader:   { marginBottom: 20 },
-  stepLabel:    { fontSize: 11, fontWeight: 'bold', color: '#2E7D32', letterSpacing: 2, marginBottom: 8 },
-  stepTitle:    { fontSize: 22, fontWeight: 'bold', color: '#1a1a1a', marginBottom: 6 },
+  stepLabel:    { fontSize: 11, ...font.bold, color: '#2E7D32', letterSpacing: 2, marginBottom: 8 },
+  stepTitle:    { fontSize: 22, ...font.bold, color: '#1a1a1a', marginBottom: 6 },
   stepSubtitle: { fontSize: 14, color: '#666', lineHeight: 20 },
 
   legalBox: {
@@ -495,10 +496,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#A5D6A7',
   },
-  legalBoxLabel: { fontSize: 13, fontWeight: 'bold', color: '#2E7D32', marginBottom: 6 },
+  legalBoxLabel: { fontSize: 13, ...font.bold, color: '#2E7D32', marginBottom: 6 },
   legalBoxText:  { fontSize: 13, color: '#2E7D32', lineHeight: 20 },
 
-  question: { fontSize: 17, fontWeight: 'bold', color: '#1a1a1a', marginBottom: 4 },
+  question: { fontSize: 17, ...font.bold, color: '#1a1a1a', marginBottom: 4 },
   hint:     { fontSize: 12, color: '#999', marginBottom: 16 },
 
   optionRow: {
@@ -528,9 +529,9 @@ const styles = StyleSheet.create({
     flexShrink: 0,
   },
   checkboxSelected: { backgroundColor: '#2E7D32', borderColor: '#2E7D32' },
-  checkmark:        { color: '#fff', fontSize: 13, fontWeight: 'bold' },
+  checkmark:        { color: '#fff', fontSize: 13, ...font.bold },
   optionLabel:      { fontSize: 14, color: '#444', flex: 1, lineHeight: 20 },
-  optionLabelSelected: { color: '#1B5E20', fontWeight: '600' },
+  optionLabelSelected: { color: '#1B5E20', ...font.semi },
 
   warningBox: {
     backgroundColor: '#FFF8E1',
@@ -552,7 +553,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     justifyContent: 'center',
   },
-  backBtnText: { fontSize: 15, color: '#555', fontWeight: '600' },
+  backBtnText: { fontSize: 15, color: '#555', ...font.semi },
 
   // Result
   resultHero: {
@@ -562,21 +563,21 @@ const styles = StyleSheet.create({
     borderBottomWidth: 2,
   },
   resultIcon:    { fontSize: 52, marginBottom: 12 },
-  resultTitle:   { fontSize: 24, fontWeight: 'bold', textAlign: 'center', marginBottom: 12 },
+  resultTitle:   { fontSize: 24, ...font.bold, textAlign: 'center', marginBottom: 12 },
   resultSummary: { fontSize: 15, color: '#444', textAlign: 'center', lineHeight: 23, maxWidth: 560 },
 
   answerRow: { marginBottom: 18 },
   answerHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 6 },
   answerStepLabel: {
     fontSize: 10,
-    fontWeight: 'bold',
+    ...font.bold,
     color: '#fff',
     backgroundColor: '#2E7D32',
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 10,
   },
-  answerStepTitle: { fontSize: 14, fontWeight: 'bold', color: '#333' },
+  answerStepTitle: { fontSize: 14, ...font.bold, color: '#333' },
   answerItem:      { fontSize: 13, color: '#2E7D32', marginLeft: 8, marginBottom: 3 },
   answerNone:      { fontSize: 13, color: '#bbb', marginLeft: 8, fontStyle: 'italic' },
 
@@ -592,7 +593,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     backgroundColor: '#E8F5E9',
     color: '#2E7D32',
-    fontWeight: 'bold',
+    ...font.bold,
     fontSize: 13,
     textAlign: 'center',
     lineHeight: 24,
@@ -606,9 +607,9 @@ const styles = StyleSheet.create({
   primaryBtn:         { backgroundColor: '#2E7D32', padding: 16, borderRadius: 8, alignItems: 'center', marginBottom: 10 },
   primaryBtnDisabled: { backgroundColor: '#a5d6a7' },
   primaryBtnHover:    { backgroundColor: '#163d18' },
-  primaryBtnText:     { color: '#fff', fontWeight: 'bold', fontSize: 16 },
+  primaryBtnText:     { color: '#fff', ...font.bold, fontSize: 16 },
   secondaryBtn:       { borderWidth: 1.5, borderColor: '#2E7D32', padding: 14, borderRadius: 8, alignItems: 'center', marginBottom: 10 },
-  secondaryBtnText:   { color: '#2E7D32', fontWeight: 'bold', fontSize: 15 },
+  secondaryBtnText:   { color: '#2E7D32', ...font.bold, fontSize: 15 },
   ghostBtn:           { padding: 12, alignItems: 'center' },
   ghostBtnText:       { color: '#aaa', fontSize: 14 },
   backBtnHover:       { backgroundColor: 'rgba(27,94,32,0.08)' },

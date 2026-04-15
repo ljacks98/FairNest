@@ -17,9 +17,11 @@ import {
   updateDoc,
   orderBy,
   query,
+  onSnapshot,
 } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 import { AuthContext } from '../context/AuthContext';
+import { font } from '../theme/typography';
 import Navbar from '../components/Navbar';
 
 // Group flat chatLog messages into per-user conversations
@@ -74,6 +76,15 @@ function sanitizePhoneNumber(value) {
   return (value || '').replace(/\D/g, '');
 }
 
+function getFileNameFromUrl(url) {
+  try {
+    const path = decodeURIComponent(url.split('/o/')[1].split('?')[0]);
+    return path.split('/').pop();
+  } catch {
+    return 'Evidence File';
+  }
+}
+
 export default function AdminDashboardScreen({ navigation }) {
   const { user, isAdmin } = useContext(AuthContext);
   const { width } = useWindowDimensions();
@@ -107,32 +118,32 @@ export default function AdminDashboardScreen({ navigation }) {
       return;
     }
 
-    fetchReports();
+    setLoading(true);
+    const q = query(collection(db, 'reports'), orderBy('createdAt', 'desc'));
+    const unsubReports = onSnapshot(
+      q,
+      (snap) => {
+        setReports(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+        setLoading(false);
+      },
+      (err) => {
+        console.log(err);
+        setLoading(false);
+      }
+    );
+
+    return () => unsubReports();
   }, [user, isAdmin]);
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
       if (!user || !isAdmin) return;
-
-      fetchReports();
       if (activeTab === 'conversations') fetchConversations();
       if (activeTab === 'calls') fetchCallRequests();
     });
 
     return unsubscribe;
   }, [activeTab, isAdmin, navigation, user]);
-
-  const fetchReports = async () => {
-    setLoading(true);
-    try {
-      const q = query(collection(db, 'reports'), orderBy('createdAt', 'desc'));
-      const snap = await getDocs(q);
-      setReports(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
-    } catch (err) {
-      console.log(err);
-    }
-    setLoading(false);
-  };
 
   const updateStatus = async (reportId, newStatus) => {
     setUpdating(reportId);
@@ -190,8 +201,7 @@ export default function AdminDashboardScreen({ navigation }) {
 
   const handleTabChange = (tab) => {
     setActiveTab(tab);
-    if (tab === 'reports') fetchReports();
-    if (tab === 'conversations') fetchConversations();
+if (tab === 'conversations') fetchConversations();
     if (tab === 'calls') fetchCallRequests();
   };
 
@@ -661,7 +671,7 @@ export default function AdminDashboardScreen({ navigation }) {
                                   styles.statusBtnText,
                                   status === s && {
                                     color: STATUS_COLORS[s].text,
-                                    fontWeight: 'bold',
+                                    ...font.bold,
                                   },
                                 ]}>
                                 {STATUS_LABELS[s]}
@@ -806,10 +816,30 @@ export default function AdminDashboardScreen({ navigation }) {
                           <>
                             <Text style={styles.detailLabel}>Witnesses</Text>
                             <Text style={styles.detailText}>
-                              {report.witnessNames || report.witnesses}
+                              {report.witnessNames && report.witnessNames.trim()
+                                ? report.witnessNames
+                                : 'Witness indicated — no names provided'}
                             </Text>
                           </>
                         ) : null}
+
+                        <Text style={styles.detailLabel}>Evidence Files</Text>
+                        {report.evidenceUrls && report.evidenceUrls.length > 0 ? (
+                          <View style={styles.evidenceRow}>
+                            {report.evidenceUrls.map((url, i) => (
+                              <TouchableOpacity
+                                key={i}
+                                style={styles.evidenceBtn}
+                                onPress={() => Linking.openURL(url)}>
+                                <Text style={styles.evidenceBtnText}>
+                                  📎 {getFileNameFromUrl(url)}
+                                </Text>
+                              </TouchableOpacity>
+                            ))}
+                          </View>
+                        ) : (
+                          <Text style={styles.detailText}>No files attached</Text>
+                        )}
 
                         {report.contactInfo ? (
                           <>
@@ -911,7 +941,7 @@ export default function AdminDashboardScreen({ navigation }) {
                                     styles.statusBtnText,
                                     status === s && {
                                       color: STATUS_COLORS[s].text,
-                                      fontWeight: 'bold',
+                                      ...font.bold,
                                     },
                                   ]}>
                                   {STATUS_LABELS[s]}
@@ -944,14 +974,14 @@ const styles = StyleSheet.create({
   },
   heroLabel: {
     fontSize: 11,
-    fontWeight: 'bold',
+    ...font.bold,
     color: 'rgba(255,255,255,0.6)',
     letterSpacing: 2.5,
     marginBottom: 8,
   },
   heroTitle: {
     fontSize: 30,
-    fontWeight: 'bold',
+    ...font.bold,
     color: '#fff',
     marginBottom: 8,
   },
@@ -984,7 +1014,7 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 1,
   },
-  statNumber: { fontSize: 28, fontWeight: 'bold' },
+  statNumber: { fontSize: 28, ...font.bold },
   statLabel: { fontSize: 12, color: '#888', marginTop: 4 },
 
   // Filters
@@ -1004,7 +1034,7 @@ const styles = StyleSheet.create({
   },
   filterBtnActive: { backgroundColor: '#2E7D32', borderColor: '#2E7D32' },
   filterText: { fontSize: 14, color: '#555' },
-  filterTextActive: { color: '#fff', fontWeight: 'bold' },
+  filterTextActive: { color: '#fff', ...font.bold },
 
   // Report cards
   reportCard: {
@@ -1023,7 +1053,7 @@ const styles = StyleSheet.create({
   },
   reportHeaderLeft: { flex: 1 },
   reportHeaderRight: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  reportType: { fontSize: 15, fontWeight: 'bold', color: '#1a1a1a' },
+  reportType: { fontSize: 15, ...font.bold, color: '#1a1a1a' },
   reportMeta: { fontSize: 12, color: '#888', marginTop: 3 },
   badge: {
     borderWidth: 1,
@@ -1031,7 +1061,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 4,
   },
-  badgeText: { fontSize: 12, fontWeight: 'bold' },
+  badgeText: { fontSize: 12, ...font.bold },
   chevron: { fontSize: 12, color: '#999' },
 
   // Detail
@@ -1039,7 +1069,7 @@ const styles = StyleSheet.create({
   detailDivider: { height: 1, backgroundColor: '#eee', marginBottom: 14 },
   detailLabel: {
     fontSize: 12,
-    fontWeight: 'bold',
+    ...font.bold,
     color: '#888',
     marginBottom: 4,
     marginTop: 10,
@@ -1066,6 +1096,17 @@ const styles = StyleSheet.create({
   statusBtnText: { fontSize: 13, color: '#555' },
 
   // Contact buttons
+  evidenceRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 8 },
+  evidenceBtn: {
+    backgroundColor: '#F3E5F5',
+    borderRadius: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderWidth: 1,
+    borderColor: '#CE93D8',
+  },
+  evidenceBtnText: { fontSize: 14, color: '#7B1FA2', ...font.semi },
+
   contactRow: { flexDirection: 'row', gap: 10, flexWrap: 'wrap', marginTop: 8 },
   contactBtn: {
     flexDirection: 'row',
@@ -1077,7 +1118,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#90CAF9',
   },
-  contactBtnText: { fontSize: 14, color: '#1565C0', fontWeight: '600' },
+  contactBtnText: { fontSize: 14, color: '#1565C0', ...font.semi },
   contactBtnCall: { backgroundColor: '#FFF3E0', borderColor: '#FFCC80' },
   contactBtnCallText: { color: '#EF6C00' },
   contactBtnCopy: { backgroundColor: '#F3E5F5', borderColor: '#CE93D8' },
@@ -1123,8 +1164,8 @@ const styles = StyleSheet.create({
     marginRight: 4,
   },
   tabBtnActive: { borderBottomColor: '#2E7D32' },
-  tabText: { fontSize: 14, color: '#888', fontWeight: '500' },
-  tabTextActive: { color: '#2E7D32', fontWeight: 'bold' },
+  tabText: { fontSize: 14, color: '#888', ...font.regular },
+  tabTextActive: { color: '#2E7D32', ...font.bold },
 
   // Conversation cards
   convoCard: {
@@ -1150,9 +1191,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flexShrink: 0,
   },
-  convoAvatarText: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
+  convoAvatarText: { color: '#fff', ...font.bold, fontSize: 16 },
   convoHeaderInfo: { flex: 1 },
-  convoEmail: { fontSize: 14, fontWeight: 'bold', color: '#1a1a1a' },
+  convoEmail: { fontSize: 14, ...font.bold, color: '#1a1a1a' },
   convoMeta: { fontSize: 12, color: '#888', marginTop: 2 },
   convoPreview: { fontSize: 12, color: '#aaa', marginTop: 3 },
 

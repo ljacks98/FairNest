@@ -12,6 +12,7 @@ import {
 import {
   collection,
   addDoc,
+  doc,
   serverTimestamp,
   updateDoc,
 } from 'firebase/firestore';
@@ -20,7 +21,7 @@ import { db } from '../firebaseConfig';
 import { AuthContext } from '../context/AuthContext';
 import * as DocumentPicker from 'expo-document-picker';
 import Navbar from '../components/Navbar';
-import { fontSize } from '../theme/typography';
+import { fontSize, font } from '../theme/typography';
 import { COLORS } from '../utils/constants';
 
 const ISSUE_TYPES = [
@@ -136,6 +137,7 @@ export default function ReportScreen({ navigation }) {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [submittedReportId, setSubmittedReportId] = useState('');
+  const [uploadFailed, setUploadFailed] = useState(false);
   const [hoveredOption, setHoveredOption] = useState(null);
   const [hoveredWitness, setHoveredWitness] = useState(null);
   const [hoveredPrimary, setHoveredPrimary] = useState(false);
@@ -211,7 +213,7 @@ export default function ReportScreen({ navigation }) {
             <Text
               style={{
                 fontSize: 28,
-                fontWeight: '800',
+                ...font.extra,
                 color: COLORS.primaryDeep,
               }}>
               OK
@@ -222,6 +224,36 @@ export default function ReportScreen({ navigation }) {
             Your report has been received. You can track its status in your
             profile under "My Reports".
           </Text>
+          {uploadFailed && (
+            <View style={styles.uploadWarning}>
+              <Text style={styles.uploadWarningText}>
+                Your report was saved, but the evidence files could not be
+                uploaded. Please contact the FairNest team to share your files
+                directly.
+              </Text>
+            </View>
+          )}
+          <View style={styles.successInfoBox}>
+            <Text style={styles.successInfoLabel}>WHAT HAPPENS NEXT</Text>
+            <View style={styles.successStep}>
+              <Text style={styles.successStepNum}>1</Text>
+              <Text style={styles.successStepText}>
+                The FairNest team reviews your report within 1–2 business days.
+              </Text>
+            </View>
+            <View style={styles.successStep}>
+              <Text style={styles.successStepNum}>2</Text>
+              <Text style={styles.successStepText}>
+                An advocate may reach out if additional details are needed.
+              </Text>
+            </View>
+            <View style={styles.successStep}>
+              <Text style={styles.successStepNum}>3</Text>
+              <Text style={styles.successStepText}>
+                You can check your report status any time under My Reports.
+              </Text>
+            </View>
+          </View>
           <TouchableOpacity
             style={styles.primaryBtn}
             onPress={() =>
@@ -257,6 +289,7 @@ export default function ReportScreen({ navigation }) {
             ]}
             onPress={() => {
               setSubmitted(false);
+              setUploadFailed(false);
               setIncidentDate('');
               setHousingIssueType('');
               setDiscriminationBasis('');
@@ -320,11 +353,11 @@ export default function ReportScreen({ navigation }) {
       return;
     }
     setErrors({});
+    setUploadFailed(false);
     setSubmitting(true);
 
     try {
-      const storage = getStorage();
-
+      // 1. Save the report to Firestore immediately
       const reportRef = await addDoc(collection(db, 'reports'), {
         userId: user.uid,
         userEmail: user.email || '',
@@ -341,31 +374,39 @@ export default function ReportScreen({ navigation }) {
         evidenceUrls: [],
       });
 
-      // Upload evidence files
-      if (evidenceFiles.length) {
-        const urls = [];
-        for (const file of evidenceFiles) {
-          const response = await fetch(file.uri);
-          const blob = await response.blob();
-          const fileRef = ref(
-            storage,
-            `reportEvidence/${user.uid}/${reportRef.id}/${file.name}`
-          );
-          await uploadBytes(fileRef, blob);
-          urls.push(await getDownloadURL(fileRef));
-        }
-        await updateDoc(reportRef, { evidenceUrls: urls });
-      }
-
+      // 2. Show success — don't wait for file upload
       setSubmittedReportId(reportRef.id);
       setSubmitted(true);
+      setSubmitting(false);
+
+      // 3. Upload files in background; update doc when done
+      if (evidenceFiles.length) {
+        const storage = getStorage();
+        const urls = [];
+        try {
+          for (const file of evidenceFiles) {
+            const blob =
+              Platform.OS === 'web' && file.file instanceof Blob
+                ? file.file
+                : await fetch(file.uri).then((r) => r.blob());
+            const fileRef = ref(
+              storage,
+              `reportEvidence/${user.uid}/${reportRef.id}/${file.name}`
+            );
+            await uploadBytes(fileRef, blob);
+            urls.push(await getDownloadURL(fileRef));
+          }
+          await updateDoc(doc(db, 'reports', reportRef.id), { evidenceUrls: urls });
+        } catch (uploadErr) {
+          console.error('Upload failed:', uploadErr?.code, uploadErr?.message);
+          setUploadFailed(true);
+        }
+      }
     } catch (err) {
-      console.log(err);
+      console.error('Submit failed:', err);
       setErrors({
-        submit:
-          'Submission failed. Please check your connection and try again.',
+        submit: 'Submission failed. Please check your connection and try again.',
       });
-    } finally {
       setSubmitting(false);
     }
   };
@@ -769,13 +810,13 @@ const styles = StyleSheet.create({
   heroEyebrow: {
     color: '#CBE8B8',
     fontSize: fontSize.small,
-    fontWeight: '800',
+    ...font.extra,
     letterSpacing: 2,
     marginBottom: 14,
   },
   heroTitle: {
     fontSize: fontSize.hero,
-    fontWeight: '800',
+    ...font.extra,
     color: '#FFFFFF',
     marginBottom: 12,
   },
@@ -802,7 +843,7 @@ const styles = StyleSheet.create({
   heroBadgeText: {
     color: '#F6FBF2',
     fontSize: fontSize.caption,
-    fontWeight: '700',
+    ...font.bold,
   },
   heroGuide: {
     width: '100%',
@@ -817,7 +858,7 @@ const styles = StyleSheet.create({
   heroGuideLabel: {
     color: '#E7F3DD',
     fontSize: fontSize.caption,
-    fontWeight: '800',
+    ...font.extra,
     textTransform: 'uppercase',
     letterSpacing: 1.4,
   },
@@ -838,7 +879,7 @@ const styles = StyleSheet.create({
   heroGuideIndexText: {
     color: COLORS.primaryDeep,
     fontSize: fontSize.small,
-    fontWeight: '800',
+    ...font.extra,
   },
   heroGuideText: {
     flex: 1,
@@ -887,7 +928,7 @@ const styles = StyleSheet.create({
   sidePanelEyebrow: {
     color: COLORS.primary,
     fontSize: fontSize.caption,
-    fontWeight: '800',
+    ...font.extra,
     textTransform: 'uppercase',
     letterSpacing: 1.4,
     marginBottom: 8,
@@ -895,7 +936,7 @@ const styles = StyleSheet.create({
   sidePanelTitle: {
     color: COLORS.textPrimary,
     fontSize: fontSize.h4,
-    fontWeight: '800',
+    ...font.extra,
     marginBottom: 10,
   },
   sidePanelText: {
@@ -920,7 +961,7 @@ const styles = StyleSheet.create({
   snapshotLabel: {
     color: COLORS.textMuted,
     fontSize: fontSize.tiny,
-    fontWeight: '700',
+    ...font.bold,
     textTransform: 'uppercase',
     letterSpacing: 1.1,
     marginBottom: 6,
@@ -928,12 +969,12 @@ const styles = StyleSheet.create({
   snapshotValue: {
     color: COLORS.textPrimary,
     fontSize: fontSize.small,
-    fontWeight: '600',
+    ...font.semi,
     lineHeight: 20,
   },
   snapshotValueMuted: {
     color: '#8A9484',
-    fontWeight: '500',
+    ...font.regular,
   },
   infoCallout: {
     borderRadius: 22,
@@ -945,7 +986,7 @@ const styles = StyleSheet.create({
   infoCalloutTitle: {
     color: COLORS.textPrimary,
     fontSize: fontSize.small,
-    fontWeight: '800',
+    ...font.extra,
     marginBottom: 6,
   },
   infoCalloutText: {
@@ -980,7 +1021,7 @@ const styles = StyleSheet.create({
   formEyebrow: {
     color: COLORS.primary,
     fontSize: fontSize.caption,
-    fontWeight: '800',
+    ...font.extra,
     textTransform: 'uppercase',
     letterSpacing: 1.4,
     marginBottom: 6,
@@ -988,7 +1029,7 @@ const styles = StyleSheet.create({
   formTitle: {
     color: COLORS.textPrimary,
     fontSize: fontSize.h2,
-    fontWeight: '800',
+    ...font.extra,
   },
   formHelper: {
     color: COLORS.textMuted,
@@ -1000,7 +1041,7 @@ const styles = StyleSheet.create({
   sectionTag: {
     color: COLORS.primary,
     fontSize: fontSize.caption,
-    fontWeight: '800',
+    ...font.extra,
     textTransform: 'uppercase',
     letterSpacing: 1.2,
     marginBottom: 8,
@@ -1008,7 +1049,7 @@ const styles = StyleSheet.create({
   sectionHeading: {
     color: COLORS.textPrimary,
     fontSize: fontSize.h4,
-    fontWeight: '800',
+    ...font.extra,
     marginBottom: 20,
   },
   sectionDivider: {
@@ -1021,13 +1062,13 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: fontSize.label,
-    fontWeight: '700',
+    ...font.bold,
     color: COLORS.textPrimary,
     marginBottom: 10,
   },
   optional: {
     color: '#8C9587',
-    fontWeight: '500',
+    ...font.regular,
   },
   input: {
     borderWidth: 1,
@@ -1089,14 +1130,14 @@ const styles = StyleSheet.create({
   optionText: {
     fontSize: fontSize.caption,
     color: COLORS.textMuted,
-    fontWeight: '600',
+    ...font.semi,
   },
   optionTextHover: {
     color: COLORS.primaryDeep,
   },
   optionTextActive: {
     color: '#FFFFFF',
-    fontWeight: '800',
+    ...font.extra,
   },
   toggleRow: {
     gap: 12,
@@ -1125,7 +1166,7 @@ const styles = StyleSheet.create({
   },
   toggleText: {
     fontSize: fontSize.body,
-    fontWeight: '700',
+    ...font.bold,
     color: COLORS.textMuted,
   },
   toggleTextHover: {
@@ -1152,7 +1193,7 @@ const styles = StyleSheet.create({
   uploadBtnTitle: {
     color: COLORS.primaryDeep,
     fontSize: fontSize.body,
-    fontWeight: '800',
+    ...font.extra,
     marginBottom: 4,
   },
   uploadBtnText: {
@@ -1181,7 +1222,7 @@ const styles = StyleSheet.create({
   fileRemove: {
     fontSize: fontSize.small,
     color: COLORS.primary,
-    fontWeight: '800',
+    ...font.extra,
   },
   fieldError: {
     fontSize: fontSize.tiny,
@@ -1230,7 +1271,7 @@ const styles = StyleSheet.create({
   },
   primaryBtnText: {
     color: '#FFFFFF',
-    fontWeight: '800',
+    ...font.extra,
     fontSize: fontSize.button,
   },
   secondaryBtn: {
@@ -1250,7 +1291,7 @@ const styles = StyleSheet.create({
   },
   secondaryBtnText: {
     color: COLORS.primary,
-    fontWeight: '800',
+    ...font.extra,
     fontSize: fontSize.button,
   },
   secondaryBtnTextHover: {
@@ -1281,7 +1322,7 @@ const styles = StyleSheet.create({
   },
   authTitle: {
     fontSize: fontSize.h2,
-    fontWeight: '800',
+    ...font.extra,
     color: COLORS.textPrimary,
   },
   authText: {
@@ -1310,7 +1351,7 @@ const styles = StyleSheet.create({
   },
   successTitle: {
     fontSize: fontSize.h2,
-    fontWeight: '800',
+    ...font.extra,
     color: COLORS.textPrimary,
   },
   successText: {
@@ -1321,4 +1362,61 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     lineHeight: 24,
   },
+  uploadWarning: {
+    width: '100%',
+    maxWidth: 520,
+    backgroundColor: '#FFF8E1',
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#FFE082',
+    marginBottom: 4,
+  },
+  uploadWarningText: {
+    fontSize: fontSize.small,
+    color: '#F57F17',
+    lineHeight: 20,
+    textAlign: 'center',
+  },
+  successInfoBox: {
+    width: '100%',
+    maxWidth: 520,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    padding: 24,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(27, 94, 32, 0.08)',
+  },
+  successInfoLabel: {
+    fontSize: fontSize.caption,
+    ...font.extra,
+    color: COLORS.primary,
+    letterSpacing: 1.4,
+    marginBottom: 14,
+  },
+  successStep: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 12,
+    marginBottom: 12,
+  },
+  successStepNum: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: '#E8F3E2',
+    textAlign: 'center',
+    lineHeight: 26,
+    ...font.extra,
+    color: COLORS.primary,
+    flexShrink: 0,
+  },
+  successStepText: {
+    fontSize: fontSize.small,
+    color: COLORS.textMuted,
+    lineHeight: 22,
+    flex: 1,
+  },
 });
+

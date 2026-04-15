@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import Navbar from '../components/Navbar';
 import { COLORS } from '../utils/constants';
-import { fontSize } from '../theme/typography';
+import { fontSize, font } from '../theme/typography';
 
 const LANDLORD_CANNOT = [
   'Refuse to rent, sell, or negotiate because of a protected characteristic.',
@@ -513,7 +513,7 @@ const styles = StyleSheet.create({
   breadcrumbLink: {
     fontSize: fontSize.caption,
     color: COLORS.primary,
-    fontWeight: '700',
+    ...font.bold,
   },
   breadcrumbSep: {
     fontSize: fontSize.caption,
@@ -568,14 +568,14 @@ const styles = StyleSheet.create({
   heroLabel: {
     color: COLORS.gold,
     fontSize: fontSize.caption,
-    fontWeight: '800',
+    ...font.extra,
     letterSpacing: 2.2,
     marginBottom: 14,
   },
   heroTitle: {
     color: COLORS.white,
     fontSize: fontSize.hero,
-    fontWeight: '800',
+    ...font.extra,
     lineHeight: fontSize.hero * 1.08,
     marginBottom: 14,
   },
@@ -602,7 +602,7 @@ const styles = StyleSheet.create({
   heroBadgeText: {
     color: '#F5FAF0',
     fontSize: fontSize.caption,
-    fontWeight: '700',
+    ...font.bold,
   },
   heroGuide: {
     width: '100%',
@@ -617,7 +617,7 @@ const styles = StyleSheet.create({
   heroGuideLabel: {
     color: '#E7F3DD',
     fontSize: fontSize.caption,
-    fontWeight: '800',
+    ...font.extra,
     textTransform: 'uppercase',
     letterSpacing: 1.4,
   },
@@ -639,7 +639,7 @@ const styles = StyleSheet.create({
   heroGuideTitle: {
     color: '#FFFFFF',
     fontSize: fontSize.small,
-    fontWeight: '800',
+    ...font.extra,
     marginBottom: 5,
     textTransform: 'capitalize',
   },
@@ -689,7 +689,7 @@ const styles = StyleSheet.create({
   sidePanelEyebrow: {
     color: COLORS.primary,
     fontSize: fontSize.caption,
-    fontWeight: '800',
+    ...font.extra,
     letterSpacing: 1.4,
     textTransform: 'uppercase',
     marginBottom: 8,
@@ -697,7 +697,7 @@ const styles = StyleSheet.create({
   sidePanelTitle: {
     color: COLORS.textPrimary,
     fontSize: fontSize.h4,
-    fontWeight: '800',
+    ...font.extra,
     marginBottom: 12,
   },
   sidePanelText: {
@@ -722,7 +722,7 @@ const styles = StyleSheet.create({
   snapshotLabel: {
     color: COLORS.textMuted,
     fontSize: fontSize.tiny,
-    fontWeight: '800',
+    ...font.extra,
     textTransform: 'uppercase',
     letterSpacing: 1.1,
     marginBottom: 6,
@@ -763,7 +763,7 @@ const styles = StyleSheet.create({
   sectionLabel: {
     color: COLORS.primary,
     fontSize: fontSize.caption,
-    fontWeight: '800',
+    ...font.extra,
     letterSpacing: 1.5,
     textTransform: 'uppercase',
     marginBottom: 10,
@@ -771,7 +771,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     color: COLORS.textPrimary,
     fontSize: fontSize.h2,
-    fontWeight: '800',
+    ...font.extra,
     marginBottom: 12,
   },
   sectionDesc: {
@@ -815,7 +815,7 @@ const styles = StyleSheet.create({
   tagText: {
     color: COLORS.textMuted,
     fontSize: fontSize.caption,
-    fontWeight: '700',
+    ...font.bold,
   },
   tagTextActive: {
     color: COLORS.primaryDeep,
@@ -831,7 +831,7 @@ const styles = StyleSheet.create({
   classDetailScope: {
     color: COLORS.primary,
     fontSize: fontSize.tiny,
-    fontWeight: '800',
+    ...font.extra,
     letterSpacing: 1.2,
     textTransform: 'uppercase',
     marginBottom: 8,
@@ -839,7 +839,7 @@ const styles = StyleSheet.create({
   classDetailTitle: {
     color: COLORS.textPrimary,
     fontSize: fontSize.h4,
-    fontWeight: '800',
+    ...font.extra,
     marginBottom: 8,
   },
   classDetailText: {
@@ -872,7 +872,7 @@ const styles = StyleSheet.create({
   cardLabel: {
     color: COLORS.primary,
     fontSize: fontSize.caption,
-    fontWeight: '800',
+    ...font.extra,
     letterSpacing: 1.5,
     textTransform: 'uppercase',
     marginBottom: 10,
@@ -880,7 +880,7 @@ const styles = StyleSheet.create({
   cardTitle: {
     color: COLORS.textPrimary,
     fontSize: fontSize.h3,
-    fontWeight: '800',
+    ...font.extra,
     marginBottom: 16,
   },
   listRow: {
@@ -946,7 +946,7 @@ const styles = StyleSheet.create({
   actionStepText: {
     color: COLORS.primaryDeep,
     fontSize: fontSize.caption,
-    fontWeight: '800',
+    ...font.extra,
     letterSpacing: 0.8,
   },
   actionText: {
@@ -955,7 +955,7 @@ const styles = StyleSheet.create({
   actionTitle: {
     color: COLORS.textPrimary,
     fontSize: fontSize.body,
-    fontWeight: '800',
+    ...font.extra,
     marginBottom: 6,
   },
   actionDesc: {
@@ -1011,7 +1011,7 @@ const styles = StyleSheet.create({
   linkIconText: {
     color: COLORS.primaryDeep,
     fontSize: fontSize.caption,
-    fontWeight: '800',
+    ...font.extra,
   },
   linkContent: {
     flex: 1,
@@ -1019,7 +1019,7 @@ const styles = StyleSheet.create({
   linkEyebrow: {
     color: COLORS.primary,
     fontSize: fontSize.tiny,
-    fontWeight: '800',
+    ...font.extra,
     letterSpacing: 1.1,
     textTransform: 'uppercase',
     marginBottom: 4,
@@ -1027,7 +1027,7 @@ const styles = StyleSheet.create({
   linkTitle: {
     color: COLORS.textPrimary,
     fontSize: fontSize.small,
-    fontWeight: '800',
+    ...font.extra,
     marginBottom: 4,
   },
   linkTitleHover: {
@@ -1055,7 +1055,7 @@ const styles = StyleSheet.create({
   },
   primaryBtnText: {
     color: COLORS.white,
-    fontWeight: '800',
+    ...font.extra,
     fontSize: fontSize.button,
   },
   secondaryBtn: {
@@ -1069,7 +1069,7 @@ const styles = StyleSheet.create({
   },
   secondaryBtnText: {
     color: COLORS.primary,
-    fontWeight: '800',
+    ...font.extra,
     fontSize: fontSize.button,
   },
   secondaryBtnHover: {

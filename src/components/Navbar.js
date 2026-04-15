@@ -11,7 +11,7 @@ import { AuthContext } from '../context/AuthContext';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 import { COLORS } from '../utils/constants';
-import { fontSize } from '../theme/typography';
+import { fontSize, font } from '../theme/typography';
 
 export default function Navbar({
   navigation,
@@ -219,12 +219,12 @@ export default function Navbar({
                   { color: linkColor },
                   currentRoute === link.route && {
                     color: linkActiveColor,
-                    fontWeight: '700',
+                    ...font.bold,
                   },
                   hoveredLink === link.route &&
                     currentRoute !== link.route && {
                       color: linkActiveColor,
-                      fontWeight: '600',
+                      ...font.semi,
                     },
                 ]}>
                 {link.label}
@@ -262,12 +262,12 @@ export default function Navbar({
                 { color: linkColor },
                 currentRoute === link.route && {
                   color: linkActiveColor,
-                  fontWeight: '700',
+                  ...font.bold,
                 },
                 hoveredLink === link.route &&
                   currentRoute !== link.route && {
                     color: linkActiveColor,
-                    fontWeight: '600',
+                    ...font.semi,
                   },
               ]}>
               {link.label}
@@ -322,19 +322,20 @@ const styles = StyleSheet.create({
   },
   logoLetter: {
     color: COLORS.white,
-    fontWeight: '900',
-    fontSize: 24,
+    ...font.extra,
+    fontSize: 22,
   },
   brandName: {
     fontSize: fontSize.h3,
-    fontWeight: '800',
+    ...font.extra,
     color: COLORS.textPrimary,
-    letterSpacing: -0.3,
+    letterSpacing: -0.5,
   },
   brandSub: {
     fontSize: 11,
+    ...font.regular,
     color: COLORS.textMuted,
-    letterSpacing: 0.5,
+    letterSpacing: 0.8,
     marginTop: 1,
   },
 
@@ -356,17 +357,16 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(27,94,32,0.08)',
   },
   navLinkText: {
-    fontSize: fontSize.body,
+    fontSize: fontSize.small,
+    ...font.semi,
     color: '#444',
-    fontWeight: '500',
   },
   navLinkTextActive: {
     color: COLORS.primaryDeep,
-    fontWeight: '700',
+    ...font.bold,
   },
   navLinkTextHover: {
     color: COLORS.primaryDeep,
-    fontWeight: '600',
   },
 
   // Right actions column
@@ -400,26 +400,26 @@ const styles = StyleSheet.create({
   },
   profileAvatarText: {
     color: COLORS.white,
-    fontWeight: '700',
-    fontSize: 14,
+    ...font.bold,
+    fontSize: 13,
   },
   userName: {
     fontSize: fontSize.small,
+    ...font.semi,
     color: COLORS.textPrimary,
-    fontWeight: '600',
   },
   loginBtn: {
     backgroundColor: COLORS.primaryDeep,
-    borderRadius: 6,
-    paddingHorizontal: 14,
-    paddingVertical: 7,
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
   },
   loginBtnHover: {
     backgroundColor: '#163d18',
   },
   loginText: {
     color: COLORS.white,
-    fontWeight: '700',
+    ...font.bold,
     fontSize: fontSize.small,
   },
   loginTextHover: {
@@ -427,48 +427,47 @@ const styles = StyleSheet.create({
   },
   signUpBtn: {
     backgroundColor: COLORS.primaryDeep,
-    borderRadius: 6,
-    paddingHorizontal: 14,
-    paddingVertical: 7,
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
   },
   signUpBtnHover: {
     backgroundColor: '#163d18',
   },
   signUpText: {
     color: COLORS.white,
-    fontWeight: '700',
+    ...font.bold,
     fontSize: fontSize.small,
   },
   dashBtn: {
-    borderWidth: 1.5,
-    borderColor: COLORS.primary,
-    borderRadius: 6,
-    paddingHorizontal: 14,
-    paddingVertical: 7,
+    backgroundColor: COLORS.primaryDeep,
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
   },
   dashBtnHover: {
-    backgroundColor: 'rgba(27,94,32,0.08)',
+    backgroundColor: '#163d18',
   },
   dashBtnText: {
-    color: COLORS.primary,
-    fontWeight: '700',
+    color: COLORS.white,
+    ...font.bold,
     fontSize: fontSize.small,
   },
   dashBtnTextHover: {
-    color: COLORS.primaryDeep,
+    color: COLORS.white,
   },
   signOutBtn: {
     backgroundColor: COLORS.primaryDeep,
-    borderRadius: 6,
-    paddingHorizontal: 14,
-    paddingVertical: 7,
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
   },
   signOutBtnHover: {
     backgroundColor: '#163d18',
   },
   signOutText: {
     color: COLORS.white,
-    fontWeight: '700',
+    ...font.bold,
     fontSize: fontSize.small,
   },
 

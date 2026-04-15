@@ -10,6 +10,7 @@ import {
   useWindowDimensions,
   Alert,
   Platform,
+  Linking,
 } from 'react-native';
 import { AuthContext } from '../context/AuthContext';
 import {
@@ -26,6 +27,7 @@ import {
 import { updatePassword, deleteUser } from 'firebase/auth';
 import { db } from '../firebaseConfig';
 import { COLORS } from '../utils/constants';
+import { font } from '../theme/typography';
 import Navbar from '../components/Navbar';
 
 const STATUS_COLORS = {
@@ -72,6 +74,8 @@ export default function ProfileScreen({ navigation, route }) {
   const [hoveredDelete, setHoveredDelete] = useState(false);
   const [hoveredSchedule, setHoveredSchedule] = useState(null);
   const [hoveredEmptyBtn, setHoveredEmptyBtn] = useState(null);
+  const [expandedReport, setExpandedReport] = useState(null);
+  const [expandedCall, setExpandedCall] = useState(null);
 
   const fetchUserData = async () => {
     if (!user) {
@@ -279,6 +283,15 @@ export default function ProfileScreen({ navigation, route }) {
       </View>
     );
   }
+
+  const getFileNameFromUrl = (url) => {
+    try {
+      const path = decodeURIComponent(url.split('/o/')[1].split('?')[0]);
+      return path.split('/').pop();
+    } catch {
+      return 'Evidence File';
+    }
+  };
 
   const displayName =
     [firstName, lastName].filter(Boolean).join(' ') || 'My Profile';
@@ -588,6 +601,7 @@ export default function ProfileScreen({ navigation, route }) {
               reports.map((report) => {
                 const status = report.status || 'pending';
                 const colors = STATUS_COLORS[status] || STATUS_COLORS.pending;
+                const expanded = expandedReport === report.id;
                 const date = report.createdAt?.toDate
                   ? report.createdAt.toDate().toLocaleDateString('en-US', {
                       month: 'short',
@@ -597,78 +611,111 @@ export default function ProfileScreen({ navigation, route }) {
                   : '—';
                 return (
                   <View key={report.id} style={styles.reportCard}>
-                    <View
-                      style={[
-                        styles.reportAccent,
-                        { backgroundColor: colors.text },
-                      ]}
-                    />
+                    <View style={[styles.reportAccent, { backgroundColor: colors.text }]} />
                     <View style={styles.reportBody}>
-                      <View style={styles.reportCardTop}>
-                        <View
-                          style={[
-                            styles.statusBadge,
-                            {
-                              backgroundColor: colors.bg,
-                              borderColor: colors.border,
-                            },
-                          ]}>
-                          <Text
-                            style={[styles.statusText, { color: colors.text }]}>
-                            {STATUS_LABELS[status] || status}
+                      {/* Header row — tap to expand */}
+                      <TouchableOpacity
+                        style={styles.reportHeader}
+                        onPress={() => setExpandedReport(expanded ? null : report.id)}
+                        activeOpacity={0.7}>
+                        <View style={styles.reportHeaderLeft}>
+                          <Text style={styles.reportType}>
+                            {report.housingIssueType || 'Housing Issue'}
+                          </Text>
+                          <Text style={styles.reportMeta}>
+                            {date}
+                            {report.discriminationBasis ? `  ·  ${report.discriminationBasis}` : ''}
                           </Text>
                         </View>
-                        <Text style={styles.reportDate}>{date}</Text>
-                      </View>
-                      <Text style={styles.reportType}>
-                        {report.housingIssueType || 'Housing Issue'}
-                      </Text>
-                      {report.discriminationBasis ? (
-                        <View style={styles.reportTagRow}>
-                          <View style={styles.reportTag}>
-                            <Text style={styles.reportTagText}>
-                              Basis: {report.discriminationBasis}
+                        <View style={styles.reportHeaderRight}>
+                          <View style={[styles.statusBadge, { backgroundColor: colors.bg, borderColor: colors.border }]}>
+                            <Text style={[styles.statusText, { color: colors.text }]}>
+                              {STATUS_LABELS[status] || status}
                             </Text>
                           </View>
+                          <Text style={styles.chevron}>{expanded ? '▲' : '▼'}</Text>
                         </View>
-                      ) : null}
-                      <Text style={styles.reportDescription} numberOfLines={3}>
-                        {report.description}
-                      </Text>
-                      {report.desiredResolution ? (
-                        <View style={styles.resolutionBox}>
-                          <Text style={styles.resolutionLabel}>
-                            DESIRED RESOLUTION
-                          </Text>
-                          <Text style={styles.resolutionText}>
-                            {report.desiredResolution}
-                          </Text>
-                        </View>
-                      ) : null}
-                      <TouchableOpacity
-                        style={[
-                          styles.scheduleCallBtn,
-                          hoveredSchedule === report.id &&
-                            styles.scheduleCallBtnHover,
-                        ]}
-                        onPress={() =>
-                          navigation.navigate('ScheduleCall', {
-                            reportId: report.id,
-                            reportType: report.housingIssueType,
-                          })
-                        }
-                        onMouseEnter={() => setHoveredSchedule(report.id)}
-                        onMouseLeave={() => setHoveredSchedule(null)}
-                        activeOpacity={0.7}>
-                        <Text
-                          style={[
-                            styles.scheduleCallText,
-                            hoveredSchedule === report.id &&
-                              styles.scheduleCallTextHover,
-                          ]}>
-                          📞 Schedule a Call About This Report
-                        </Text>
                       </TouchableOpacity>
+
+                      {/* Expanded detail */}
+                      {expanded && (
+                        <View style={styles.reportDetail}>
+                          <View style={styles.detailDivider} />
+
+                          <Text style={styles.detailLabel}>Description</Text>
+                          <Text style={styles.detailText}>{report.description || '—'}</Text>
+
+                          {report.incidentDate ? (
+                            <>
+                              <Text style={styles.detailLabel}>Incident Date</Text>
+                              <Text style={styles.detailText}>{report.incidentDate}</Text>
+                            </>
+                          ) : null}
+
+                          {report.witnesses && report.witnesses !== 'No' ? (
+                            <>
+                              <Text style={styles.detailLabel}>Witnesses</Text>
+                              <Text style={styles.detailText}>
+                                {report.witnessNames && report.witnessNames.trim()
+                                  ? report.witnessNames
+                                  : 'Witness indicated — no names provided'}
+                              </Text>
+                            </>
+                          ) : null}
+
+                          <Text style={styles.detailLabel}>Evidence Files</Text>
+                          {report.evidenceUrls && report.evidenceUrls.length > 0 ? (
+                            <View style={styles.evidenceRow}>
+                              {report.evidenceUrls.map((url, i) => (
+                                <TouchableOpacity
+                                  key={i}
+                                  style={styles.evidenceBtn}
+                                  onPress={() => Linking.openURL(url)}>
+                                  <Text style={styles.evidenceBtnText}>
+                                    📎 {getFileNameFromUrl(url)}
+                                  </Text>
+                                </TouchableOpacity>
+                              ))}
+                            </View>
+                          ) : (
+                            <Text style={styles.detailText}>No files attached</Text>
+                          )}
+
+                          {report.desiredResolution ? (
+                            <>
+                              <Text style={styles.detailLabel}>Desired Resolution</Text>
+                              <Text style={styles.detailText}>{report.desiredResolution}</Text>
+                            </>
+                          ) : null}
+
+                          {report.contactInfo ? (
+                            <>
+                              <Text style={styles.detailLabel}>Contact Info</Text>
+                              <Text style={styles.detailText}>{report.contactInfo}</Text>
+                            </>
+                          ) : null}
+
+                          <TouchableOpacity
+                            style={[
+                              styles.scheduleCallBtn,
+                              hoveredSchedule === report.id && styles.scheduleCallBtnHover,
+                            ]}
+                            onPress={() => navigation.navigate('ScheduleCall', {
+                              reportId: report.id,
+                              reportType: report.housingIssueType,
+                            })}
+                            onMouseEnter={() => setHoveredSchedule(report.id)}
+                            onMouseLeave={() => setHoveredSchedule(null)}
+                            activeOpacity={0.7}>
+                            <Text style={[
+                              styles.scheduleCallText,
+                              hoveredSchedule === report.id && styles.scheduleCallTextHover,
+                            ]}>
+                              📞 Schedule a Call About This Report
+                            </Text>
+                          </TouchableOpacity>
+                        </View>
+                      )}
                     </View>
                   </View>
                 );
@@ -710,6 +757,7 @@ export default function ProfileScreen({ navigation, route }) {
               calls.map((call) => {
                 const status = call.status || 'pending';
                 const colors = STATUS_COLORS[status] || STATUS_COLORS.pending;
+                const expanded = expandedCall === call.id;
                 const date = call.createdAt?.toDate
                   ? call.createdAt.toDate().toLocaleDateString('en-US', {
                       month: 'short',
@@ -719,73 +767,64 @@ export default function ProfileScreen({ navigation, route }) {
                   : '—';
                 return (
                   <View key={call.id} style={styles.callCard}>
-                    <View style={styles.callCardTop}>
-                      <View style={styles.callTypeRow}>
+                    {/* Header row — tap to expand */}
+                    <TouchableOpacity
+                      style={styles.reportHeader}
+                      onPress={() => setExpandedCall(expanded ? null : call.id)}
+                      activeOpacity={0.7}>
+                      <View style={styles.reportHeaderLeft}>
                         <Text style={styles.callTypeLabel}>
                           {CALL_TYPE_LABELS[call.callType] || '📞 Call Request'}
                         </Text>
-                        <View
-                          style={[
-                            styles.statusBadge,
-                            {
-                              backgroundColor: colors.bg,
-                              borderColor: colors.border,
-                            },
-                          ]}>
-                          <Text
-                            style={[styles.statusText, { color: colors.text }]}>
+                        <Text style={styles.reportMeta}>{date}</Text>
+                      </View>
+                      <View style={styles.reportHeaderRight}>
+                        <View style={[styles.statusBadge, { backgroundColor: colors.bg, borderColor: colors.border }]}>
+                          <Text style={[styles.statusText, { color: colors.text }]}>
                             {STATUS_LABELS[status] || status}
                           </Text>
                         </View>
+                        <Text style={styles.chevron}>{expanded ? '▲' : '▼'}</Text>
                       </View>
-                      <Text style={styles.callDate}>{date}</Text>
-                    </View>
+                    </TouchableOpacity>
 
-                    <View style={styles.callDetailGrid}>
-                      {call.preferredDate ? (
-                        <View style={styles.callDetailItem}>
-                          <Text style={styles.callDetailLabel}>
-                            📅 Preferred Date
-                          </Text>
-                          <Text style={styles.callDetailValue}>
-                            {call.preferredDate}
-                          </Text>
+                    {/* Expanded detail */}
+                    {expanded && (
+                      <View style={styles.reportDetail}>
+                        <View style={styles.detailDivider} />
+                        <View style={styles.callDetailGrid}>
+                          {call.preferredDate ? (
+                            <View style={styles.callDetailItem}>
+                              <Text style={styles.callDetailLabel}>📅 Preferred Date</Text>
+                              <Text style={styles.callDetailValue}>{call.preferredDate}</Text>
+                            </View>
+                          ) : null}
+                          {call.timeSlot ? (
+                            <View style={styles.callDetailItem}>
+                              <Text style={styles.callDetailLabel}>🕐 Time Slot</Text>
+                              <Text style={styles.callDetailValue}>{call.timeSlot}</Text>
+                            </View>
+                          ) : null}
+                          {call.phone ? (
+                            <View style={styles.callDetailItem}>
+                              <Text style={styles.callDetailLabel}>📱 Contact</Text>
+                              <Text style={styles.callDetailValue}>{call.phone}</Text>
+                            </View>
+                          ) : null}
                         </View>
-                      ) : null}
-                      {call.timeSlot ? (
-                        <View style={styles.callDetailItem}>
-                          <Text style={styles.callDetailLabel}>
-                            🕐 Time Slot
-                          </Text>
-                          <Text style={styles.callDetailValue}>
-                            {call.timeSlot}
-                          </Text>
-                        </View>
-                      ) : null}
-                      {call.phone ? (
-                        <View style={styles.callDetailItem}>
-                          <Text style={styles.callDetailLabel}>📱 Contact</Text>
-                          <Text style={styles.callDetailValue}>
-                            {call.phone}
-                          </Text>
-                        </View>
-                      ) : null}
-                    </View>
-
-                    {call.notes ? (
-                      <View style={styles.callNotesBox}>
-                        <Text style={styles.callNotesLabel}>NOTES</Text>
-                        <Text style={styles.callNotesText}>{call.notes}</Text>
+                        {call.notes ? (
+                          <View style={styles.callNotesBox}>
+                            <Text style={styles.callNotesLabel}>NOTES</Text>
+                            <Text style={styles.callNotesText}>{call.notes}</Text>
+                          </View>
+                        ) : null}
+                        {call.reportId ? (
+                          <View style={styles.callLinkedBadge}>
+                            <Text style={styles.callLinkedText}>📋 Linked to a submitted report</Text>
+                          </View>
+                        ) : null}
                       </View>
-                    ) : null}
-
-                    {call.reportId ? (
-                      <View style={styles.callLinkedBadge}>
-                        <Text style={styles.callLinkedText}>
-                          📋 Linked to report
-                        </Text>
-                      </View>
-                    ) : null}
+                    )}
                   </View>
                 );
               })
@@ -857,10 +896,10 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 8,
   },
-  heroAvatarText: { fontSize: 36, fontWeight: '800', color: '#fff' },
+  heroAvatarText: { fontSize: 36, ...font.extra, color: '#fff' },
   heroName: {
     fontSize: 22,
-    fontWeight: '800',
+    ...font.extra,
     color: '#fff',
     marginBottom: 4,
     letterSpacing: -0.3,
@@ -886,7 +925,7 @@ const styles = StyleSheet.create({
   heroBadgeText: {
     fontSize: 11,
     color: 'rgba(255,255,255,0.9)',
-    fontWeight: '700',
+    ...font.bold,
     letterSpacing: 1.5,
   },
 
@@ -911,8 +950,8 @@ const styles = StyleSheet.create({
   tabBtnActive: {},
   tabBtnHover: { backgroundColor: COLORS.greenTint },
   tabEmoji: { fontSize: 15 },
-  tabText: { fontSize: 13, color: '#999', fontWeight: '500' },
-  tabTextActive: { color: COLORS.primaryDeep, fontWeight: '700' },
+  tabText: { fontSize: 13, color: '#999', ...font.regular },
+  tabTextActive: { color: COLORS.primaryDeep, ...font.bold },
   tabUnderline: {
     position: 'absolute',
     bottom: 0,
@@ -931,7 +970,7 @@ const styles = StyleSheet.create({
   feedback: { padding: 14, borderRadius: 10, marginBottom: 16, borderWidth: 1 },
   feedbackSuccess: { backgroundColor: '#E8F5E9', borderColor: '#A5D6A7' },
   feedbackError: { backgroundColor: '#FFEBEE', borderColor: '#EF9A9A' },
-  feedbackText: { fontSize: 14, textAlign: 'center', fontWeight: '500' },
+  feedbackText: { fontSize: 14, textAlign: 'center', ...font.regular },
   feedbackTextSuccess: { color: '#2E7D32' },
   feedbackTextError: { color: '#C62828' },
 
@@ -968,15 +1007,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   cardIconEmoji: { fontSize: 22 },
-  cardTitle: { fontSize: 16, fontWeight: '700', color: '#1a1a1a' },
+  cardTitle: { fontSize: 16, ...font.bold, color: '#1a1a1a' },
   cardSubtitle: { fontSize: 12, color: '#999', marginTop: 2 },
 
   // ── Form ──────────────────────────────────────────────────────────────────
   row: { gap: 12 },
   rowWide: { flexDirection: 'row', gap: 16 },
   field: { marginBottom: 16 },
-  label: { fontSize: 13, fontWeight: '600', color: '#555', marginBottom: 7 },
-  optional: { fontWeight: '400', color: '#bbb' },
+  label: { fontSize: 13, ...font.semi, color: '#555', marginBottom: 7 },
+  optional: { ...font.regular, color: '#bbb' },
   input: {
     borderWidth: 1.5,
     borderColor: '#e8e8e8',
@@ -997,7 +1036,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   primaryBtnHover: { backgroundColor: '#163d18' },
-  primaryBtnText: { color: '#fff', fontWeight: '800', fontSize: 14 },
+  primaryBtnText: { color: '#fff', ...font.extra, fontSize: 14 },
   secondaryBtn: {
     backgroundColor: '#37474F',
     padding: 14,
@@ -1005,7 +1044,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   secondaryBtnHover: { backgroundColor: '#263238' },
-  secondaryBtnText: { color: '#fff', fontWeight: '700', fontSize: 14 },
+  secondaryBtnText: { color: '#fff', ...font.bold, fontSize: 14 },
   deleteBtn: {
     backgroundColor: '#D32F2F',
     padding: 14,
@@ -1014,12 +1053,12 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   deleteBtnHover: { backgroundColor: '#b71c1c' },
-  deleteBtnText: { color: '#fff', fontWeight: '700', fontSize: 14 },
+  deleteBtnText: { color: '#fff', ...font.bold, fontSize: 14 },
 
   // ── Empty state ────────────────────────────────────────────────────────────
   emptyState: { alignItems: 'center', paddingVertical: 60, gap: 12 },
   emptyIcon: { fontSize: 52 },
-  emptyTitle: { fontSize: 20, fontWeight: '700', color: '#333' },
+  emptyTitle: { fontSize: 20, ...font.bold, color: '#333' },
   emptyText: {
     fontSize: 14,
     color: '#777',
@@ -1053,7 +1092,7 @@ const styles = StyleSheet.create({
   },
   reportType: {
     fontSize: 16,
-    fontWeight: '700',
+    ...font.bold,
     color: '#1a1a1a',
     marginBottom: 8,
   },
@@ -1064,7 +1103,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 4,
   },
-  statusText: { fontSize: 11, fontWeight: '700' },
+  statusText: { fontSize: 11, ...font.bold },
   reportTagRow: { flexDirection: 'row', marginBottom: 10 },
   reportTag: {
     backgroundColor: '#E8F5E9',
@@ -1072,7 +1111,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 4,
   },
-  reportTagText: { fontSize: 12, color: '#2E7D32', fontWeight: '600' },
+  reportTagText: { fontSize: 12, color: '#2E7D32', ...font.semi },
   reportDescription: {
     fontSize: 14,
     color: '#555',
@@ -1089,7 +1128,7 @@ const styles = StyleSheet.create({
   },
   resolutionLabel: {
     fontSize: 10,
-    fontWeight: '700',
+    ...font.bold,
     color: COLORS.primary,
     letterSpacing: 1,
     marginBottom: 4,
@@ -1104,7 +1143,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   scheduleCallBtnHover: { backgroundColor: COLORS.primary },
-  scheduleCallText: { fontSize: 13, color: COLORS.primary, fontWeight: '600' },
+  scheduleCallText: { fontSize: 13, color: COLORS.primary, ...font.semi },
   scheduleCallTextHover: { color: '#fff' },
 
   // ── Call cards ────────────────────────────────────────────────────────────
@@ -1128,7 +1167,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 4,
   },
-  callTypeLabel: { fontSize: 16, fontWeight: '700', color: '#1a1a1a' },
+  callTypeLabel: { fontSize: 16, ...font.bold, color: '#1a1a1a' },
   callDate: { fontSize: 12, color: '#999' },
   callDetailGrid: {
     flexDirection: 'row',
@@ -1144,7 +1183,7 @@ const styles = StyleSheet.create({
     minWidth: 130,
   },
   callDetailLabel: { fontSize: 11, color: '#888', marginBottom: 2 },
-  callDetailValue: { fontSize: 13, fontWeight: '600', color: '#1a1a1a' },
+  callDetailValue: { fontSize: 13, ...font.semi, color: '#1a1a1a' },
   callNotesBox: {
     backgroundColor: '#f9f9f9',
     borderRadius: 8,
@@ -1155,7 +1194,7 @@ const styles = StyleSheet.create({
   },
   callNotesLabel: {
     fontSize: 10,
-    fontWeight: '700',
+    ...font.bold,
     color: COLORS.primary,
     letterSpacing: 1,
     marginBottom: 4,
@@ -1168,5 +1207,48 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
     alignSelf: 'flex-start',
   },
-  callLinkedText: { fontSize: 12, color: '#2E7D32', fontWeight: '600' },
+  callLinkedText: { fontSize: 12, color: '#2E7D32', ...font.semi },
+
+  // ── Expandable report / call header ───────────────────────────────────────
+  reportHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    paddingVertical: 4,
+  },
+  reportHeaderLeft: { flex: 1, paddingRight: 12 },
+  reportHeaderRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    flexShrink: 0,
+  },
+  reportMeta: { fontSize: 12, color: '#999', marginTop: 3 },
+  chevron: { fontSize: 11, color: '#999' },
+
+  // ── Expanded detail area ──────────────────────────────────────────────────
+  reportDetail: { paddingTop: 4 },
+  detailDivider: { height: 1, backgroundColor: '#eee', marginVertical: 14 },
+  detailLabel: {
+    fontSize: 11,
+    ...font.bold,
+    color: '#888',
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
+    marginBottom: 4,
+    marginTop: 12,
+  },
+  detailText: { fontSize: 14, color: '#444', lineHeight: 21 },
+
+  // ── Evidence file buttons ─────────────────────────────────────────────────
+  evidenceRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 4 },
+  evidenceBtn: {
+    backgroundColor: '#F3E5F5',
+    borderRadius: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 9,
+    borderWidth: 1,
+    borderColor: '#CE93D8',
+  },
+  evidenceBtnText: { fontSize: 13, color: '#7B1FA2', ...font.semi },
 });
