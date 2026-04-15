@@ -76,6 +76,9 @@ export default function ProfileScreen({ navigation, route }) {
   const [hoveredEmptyBtn, setHoveredEmptyBtn] = useState(null);
   const [expandedReport, setExpandedReport] = useState(null);
   const [expandedCall, setExpandedCall] = useState(null);
+  const [hoveredWithdraw, setHoveredWithdraw] = useState(null);
+  const [hoveredCancelCall, setHoveredCancelCall] = useState(null);
+  const [deletingId, setDeletingId] = useState(null);
 
   const fetchUserData = async () => {
     if (!user) {
@@ -185,6 +188,52 @@ export default function ProfileScreen({ navigation, route }) {
     setMessage(text);
     setMessageType(type);
     setTimeout(() => setMessage(''), 4000);
+  };
+
+  const confirmWithdrawReport = (reportId) => {
+    const doDelete = async () => {
+      setDeletingId(reportId);
+      try {
+        await deleteDoc(doc(db, 'reports', reportId));
+        setReports((prev) => prev.filter((r) => r.id !== reportId));
+        setExpandedReport(null);
+        showMessage('Report withdrawn successfully.');
+      } catch {
+        showMessage('Could not withdraw report. Please try again.', 'error');
+      }
+      setDeletingId(null);
+    };
+    if (Platform.OS === 'web') {
+      if (window.confirm('Withdraw this report?\n\nThis will permanently remove it and cannot be undone.')) doDelete();
+    } else {
+      Alert.alert('Withdraw Report', 'This will permanently remove your report. Continue?', [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Withdraw', style: 'destructive', onPress: doDelete },
+      ]);
+    }
+  };
+
+  const confirmCancelCall = (callId) => {
+    const doDelete = async () => {
+      setDeletingId(callId);
+      try {
+        await deleteDoc(doc(db, 'callRequests', callId));
+        setCalls((prev) => prev.filter((c) => c.id !== callId));
+        setExpandedCall(null);
+        showMessage('Call request cancelled.');
+      } catch {
+        showMessage('Could not cancel call. Please try again.', 'error');
+      }
+      setDeletingId(null);
+    };
+    if (Platform.OS === 'web') {
+      if (window.confirm('Cancel this call request?\n\nThis will permanently remove it and cannot be undone.')) doDelete();
+    } else {
+      Alert.alert('Cancel Call', 'This will permanently remove your call request. Continue?', [
+        { text: 'Keep It', style: 'cancel' },
+        { text: 'Cancel Request', style: 'destructive', onPress: doDelete },
+      ]);
+    }
   };
 
   const handleUpdate = async () => {
@@ -714,6 +763,26 @@ export default function ProfileScreen({ navigation, route }) {
                               📞 Schedule a Call About This Report
                             </Text>
                           </TouchableOpacity>
+
+                          <TouchableOpacity
+                            style={[
+                              styles.withdrawBtn,
+                              hoveredWithdraw === report.id && styles.withdrawBtnHover,
+                              deletingId === report.id && styles.withdrawBtnDisabled,
+                            ]}
+                            onPress={() => confirmWithdrawReport(report.id)}
+                            onMouseEnter={() => setHoveredWithdraw(report.id)}
+                            onMouseLeave={() => setHoveredWithdraw(null)}
+                            disabled={deletingId === report.id}
+                            activeOpacity={0.7}
+                            accessibilityLabel="Withdraw this report">
+                            <Text style={[
+                              styles.withdrawBtnText,
+                              hoveredWithdraw === report.id && styles.withdrawBtnTextHover,
+                            ]}>
+                              {deletingId === report.id ? 'Withdrawing…' : '✕  Withdraw Report'}
+                            </Text>
+                          </TouchableOpacity>
                         </View>
                       )}
                     </View>
@@ -823,6 +892,26 @@ export default function ProfileScreen({ navigation, route }) {
                             <Text style={styles.callLinkedText}>📋 Linked to a submitted report</Text>
                           </View>
                         ) : null}
+
+                        <TouchableOpacity
+                          style={[
+                            styles.withdrawBtn,
+                            hoveredCancelCall === call.id && styles.withdrawBtnHover,
+                            deletingId === call.id && styles.withdrawBtnDisabled,
+                          ]}
+                          onPress={() => confirmCancelCall(call.id)}
+                          onMouseEnter={() => setHoveredCancelCall(call.id)}
+                          onMouseLeave={() => setHoveredCancelCall(null)}
+                          disabled={deletingId === call.id}
+                          activeOpacity={0.7}
+                          accessibilityLabel="Cancel this call request">
+                          <Text style={[
+                            styles.withdrawBtnText,
+                            hoveredCancelCall === call.id && styles.withdrawBtnTextHover,
+                          ]}>
+                            {deletingId === call.id ? 'Cancelling…' : '✕  Cancel Request'}
+                          </Text>
+                        </TouchableOpacity>
                       </View>
                     )}
                   </View>
@@ -1251,4 +1340,34 @@ const styles = StyleSheet.create({
     borderColor: '#CE93D8',
   },
   evidenceBtnText: { fontSize: 13, color: '#7B1FA2', ...font.semi },
+
+  // ── Withdraw / Cancel buttons ─────────────────────────────────────────────
+  withdrawBtn: {
+    marginTop: 14,
+    alignSelf: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#FFCDD2',
+    borderRadius: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 9,
+    backgroundColor: '#FFF5F5',
+  },
+  withdrawBtnHover: {
+    backgroundColor: '#FFEBEE',
+    borderColor: '#EF9A9A',
+  },
+  withdrawBtnDisabled: {
+    opacity: 0.5,
+  },
+  withdrawBtnText: {
+    fontSize: 12,
+    ...font.bold,
+    color: '#C62828',
+    letterSpacing: 0.2,
+  },
+  withdrawBtnTextHover: {
+    color: '#B71C1C',
+  },
 });
