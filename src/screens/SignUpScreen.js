@@ -12,8 +12,7 @@ import {
 import {
   createUserWithEmailAndPassword,
   GoogleAuthProvider,
-  signInWithRedirect,
-  getRedirectResult,
+  signInWithPopup,
 } from 'firebase/auth';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, db } from '../firebaseConfig';
@@ -44,28 +43,6 @@ export default function SignUpScreen({ navigation }) {
     });
   }, [navigation]);
 
-  useEffect(() => {
-    const handleRedirect = async () => {
-      try {
-        const result = await getRedirectResult(auth);
-        if (result) {
-          const user = result.user;
-          const nameParts = user.displayName?.split(' ') || [];
-          const first = nameParts[0] || '';
-          const last  = nameParts.slice(1).join(' ') || '';
-          await setDoc(
-            doc(db, 'users', user.uid),
-            { email: user.email, firstName: first, lastName: last, role: 'user', status: 'active', createdAt: serverTimestamp() },
-            { merge: true }
-          );
-          navigation.navigate('Home');
-        }
-      } catch (err) {
-        console.log(err);
-      }
-    };
-    handleRedirect();
-  }, []);
 
   const validatePassword = (pwd) =>
     pwd.length >= 8 &&
@@ -100,9 +77,28 @@ export default function SignUpScreen({ navigation }) {
   };
 
   const handleGoogleSignUp = async () => {
-    const provider = new GoogleAuthProvider();
-    provider.setCustomParameters({ prompt: 'select_account' });
-    await signInWithRedirect(auth, provider);
+    try {
+      const provider = new GoogleAuthProvider();
+      provider.setCustomParameters({ prompt: 'select_account' });
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+      const nameParts = user.displayName?.split(' ') || [];
+      await setDoc(
+        doc(db, 'users', user.uid),
+        {
+          email: user.email,
+          firstName: nameParts[0] || '',
+          lastName: nameParts.slice(1).join(' ') || '',
+          role: 'user',
+          status: 'active',
+          createdAt: serverTimestamp(),
+        },
+        { merge: true }
+      );
+      navigation.navigate('Home');
+    } catch (err) {
+      setError('Google sign-up failed. Please try again.');
+    }
   };
 
   const cardWidth = Math.min(width - 32, 480);
