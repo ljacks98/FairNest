@@ -62,10 +62,10 @@ const TEAM_PLACEHOLDERS = [
     bio: 'Jaiden brings FairNest to life by translating designs into polished, accessible interfaces. His technical skill in React Native and eye for user experience ensure every screen feels intuitive, while his work integrating AI components keeps the platform smart and responsive.',
   },
   {
-    emoji: '🛠️',
+    image: require('../../assets/Terence.png'),
     name: 'Terence Agaromba',
     role: 'Platform & Integration',
-    bio: 'FairNest\'s backend, cloud infrastructure, and AI integration all run through Terence. He architects the data layer, builds Firebase Cloud Functions, and ensures every feature — from report filing to AI-powered chat — works reliably across platforms.',
+    bio: "FairNest's backend, cloud infrastructure, and AI integration all run through Terence. He architects the data layer, builds Firebase Cloud Functions, and ensures every feature, from report filing to AI powered chat, works reliably across platforms.",
   },
   {
     image: require('../../assets/AALIYAH.png'),
@@ -74,16 +74,70 @@ const TEAM_PLACEHOLDERS = [
     role: 'Research & Outreach',
     bio: 'Aaliyah bridges community needs and system design by gathering requirements, interpreting user feedback, and ensuring the platform stays aligned with what residents actually need. Her analytical thinking and attention to detail keep FairNest grounded in real-world expectations.',
   },
+  {
+    image: require('../../assets/Ray.png'),
+    name: "Ray M'Passi",
+    role: 'Quality Assurance & Testing',
+    bio: 'Ray helps keep FairNest reliable before release by identifying bugs, validating features, and confirming that each workflow meets requirements. His careful testing supports security, accuracy, and a polished final experience for residents.',
+  },
+  {
+    image: require('../../assets/Christian.png'),
+    name: 'Christian Malone',
+    role: 'Database & Cloud Engineer',
+    bio: 'Christian supports FairNest’s secure cloud infrastructure by helping manage hosting, shape the database layer, and strengthen data protection. His work helps keep the platform scalable, reliable, and safe for residents using it.',
+  },
 ];
 
 export default function AboutScreen({ navigation }) {
   const { width } = useWindowDimensions();
   const isMedium = width >= 760;
   const isWide = width >= 1120;
+  const teamGridWidth = Math.min(width - 56, 1240);
+  const wideTeamCardWidth = (teamGridWidth - 54) / 4;
+  const wideTeamCardStyle = {
+    width: wideTeamCardWidth,
+    flexBasis: wideTeamCardWidth,
+    flexGrow: 0,
+    flexShrink: 0,
+    minHeight: Math.round(wideTeamCardWidth * 1.5),
+  };
 
   const [hoveredTeam, setHoveredTeam] = useState(null);
   const [hoveredPrimary, setHoveredPrimary] = useState(false);
   const [hoveredSecondary, setHoveredSecondary] = useState(false);
+
+  const renderTeamCard = (member, index, extraStyle = null) => (
+    <TouchableOpacity
+      key={`${member.name}-${member.role}-${index}`}
+      activeOpacity={0.92}
+      onPress={() => {}}
+      onMouseEnter={() => setHoveredTeam(member.role)}
+      onMouseLeave={() => setHoveredTeam(null)}
+      style={[
+        styles.teamCard,
+        extraStyle,
+        hoveredTeam === member.role && styles.teamCardHover,
+      ]}>
+      <View style={styles.teamAvatar}>
+        {member.image ? (
+          <Image
+            source={member.image}
+            style={[
+              styles.teamAvatarImage,
+              member.imageTop && styles.teamAvatarImageTop,
+            ]}
+            accessibilityRole="image"
+            accessibilityLabel={`Photo of ${member.name}`}
+          />
+        ) : (
+          <Text style={styles.teamAvatarText}>{member.emoji}</Text>
+        )}
+      </View>
+      <Text style={styles.teamName}>{member.name}</Text>
+      <Text style={styles.teamRole}>{member.role}</Text>
+      <Text style={styles.teamBio}>{member.bio}</Text>
+    </TouchableOpacity>
+  );
 
   return (
     <ScrollView
@@ -175,48 +229,31 @@ export default function AboutScreen({ navigation }) {
       <View style={styles.teamSection}>
         <View style={styles.teamIntro}>
           <Text style={styles.sectionEyebrow}>Meet Our Team</Text>
-          <Text style={styles.sectionTitle}>
-            The people building the platform
-          </Text>
-          <Text style={styles.sectionText}>
-            These cards are ready for real headshots and bios later. For now,
-            the layout uses emoji placeholders so the section already feels
-            complete and easy to update.
-          </Text>
         </View>
 
-        <View style={[styles.teamGrid, isMedium && styles.teamGridMedium]}>
-          {TEAM_PLACEHOLDERS.map((member) => (
-            <TouchableOpacity
-              key={member.role}
-              activeOpacity={0.92}
-              onPress={() => {}}
-              onMouseEnter={() => setHoveredTeam(member.role)}
-              onMouseLeave={() => setHoveredTeam(null)}
-              style={[
-                styles.teamCard,
-                hoveredTeam === member.role && styles.teamCardHover,
-              ]}>
-              <View style={styles.teamAvatar}>
-                {member.image ? (
-                  <Image
-                    source={member.image}
-                    style={[
-                      styles.teamAvatarImage,
-                      member.imageTop && styles.teamAvatarImageTop,
-                    ]}
-                    accessibilityRole="image"
-                    accessibilityLabel={`Photo of ${member.name}`}
-                  />
-                ) : (
-                  <Text style={styles.teamAvatarText}>{member.emoji}</Text>
+        <View style={styles.teamGrid}>
+          {isWide ? (
+            <>
+              <View style={styles.teamRowWide}>
+                {TEAM_PLACEHOLDERS.slice(0, 4).map((member, index) =>
+                  renderTeamCard(member, index, wideTeamCardStyle)
                 )}
               </View>
-              <Text style={styles.teamName}>{member.name}</Text>
-              <Text style={styles.teamRole}>{member.role}</Text>
-              <Text style={styles.teamBio}>{member.bio}</Text>
-            </TouchableOpacity>
-          ))}
+
+              <View style={[styles.teamRowWide, styles.teamRowCentered]}>
+                {TEAM_PLACEHOLDERS.slice(4).map((member, index) =>
+                  renderTeamCard(member, index + 4, wideTeamCardStyle)
+                )}
+              </View>
+            </>
+          ) : (
+            <View
+              style={[styles.teamGridStack, isMedium && styles.teamGridMedium]}>
+              {TEAM_PLACEHOLDERS.map((member, index) =>
+                renderTeamCard(member, index)
+              )}
+            </View>
+          )}
         </View>
       </View>
 
@@ -507,9 +544,20 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     gap: 18,
   },
+  teamGridStack: {
+    gap: 18,
+  },
   teamGridMedium: {
     flexDirection: 'row',
     flexWrap: 'wrap',
+  },
+  teamRowWide: {
+    flexDirection: 'row',
+    alignItems: 'stretch',
+    gap: 18,
+  },
+  teamRowCentered: {
+    justifyContent: 'center',
   },
   teamCard: {
     flex: 1,

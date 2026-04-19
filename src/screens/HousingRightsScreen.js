@@ -120,7 +120,8 @@ const DISCRIMINATION_SCENARIOS = [
     title: 'Neighborhood Steering',
     example:
       'A real estate agent only shows you properties in certain neighborhoods based on your race or ethnicity, while showing other areas to white clients.',
-    violation: 'Race and national origin discrimination under the Fair Housing Act.',
+    violation:
+      'Race and national origin discrimination under the Fair Housing Act.',
     tip: 'Document which properties were shown to you vs. what was available. Request listings in writing.',
   },
   {
@@ -128,7 +129,8 @@ const DISCRIMINATION_SCENARIOS = [
     title: 'Refusing Families with Children',
     example:
       'A landlord tells you the unit is unavailable after learning you have children, but you later see it listed again online.',
-    violation: 'Familial status discrimination — unless the property qualifies as senior housing.',
+    violation:
+      'Familial status discrimination — unless the property qualifies as senior housing.',
     tip: 'Save the original listing, screenshot the re-posted ad, and note the dates of each interaction.',
   },
   {
@@ -136,7 +138,8 @@ const DISCRIMINATION_SCENARIOS = [
     title: 'Denying a Reasonable Accommodation',
     example:
       'Your landlord refuses to allow an emotional support animal despite a letter from your doctor, citing a "no pets" policy.',
-    violation: 'Disability discrimination — assistance animals are not pets under fair housing law.',
+    violation:
+      'Disability discrimination — assistance animals are not pets under fair housing law.',
     tip: 'Put your accommodation request in writing. Keep copies of your medical documentation and any landlord response.',
   },
   {
@@ -144,7 +147,8 @@ const DISCRIMINATION_SCENARIOS = [
     title: 'Retaliation After a Complaint',
     example:
       'After you report a maintenance issue or ask about your rights, your landlord raises your rent, threatens eviction, or stops making repairs.',
-    violation: 'Retaliation is separately prohibited under the Fair Housing Act.',
+    violation:
+      'Retaliation is separately prohibited under the Fair Housing Act.',
     tip: 'Document the timeline: when you complained, what changed afterward, and any written notices.',
   },
   {
@@ -160,7 +164,8 @@ const DISCRIMINATION_SCENARIOS = [
     title: 'Hostile Housing Environment',
     example:
       'A landlord or neighbor repeatedly makes slurs, threats, or unwanted advances that make you feel unsafe in your home.',
-    violation: 'Harassment based on a protected class can violate both federal and Durham fair housing law.',
+    violation:
+      'Harassment based on a protected class can violate both federal and Durham fair housing law.',
     tip: 'Keep a written log with dates, times, witnesses, and exact words. Report threats to police and to a fair housing agency.',
   },
 ];
@@ -188,7 +193,7 @@ const FAIR_HOUSING_ACT_SECTIONS = [
     id: 'durham-additions',
     title: 'How does Durham go further?',
     content:
-      'The City of Durham\'s fair housing ordinance adds protections beyond the federal baseline. Durham includes sexual orientation, gender identity, military status, and protected hairstyles as locally protected classes. The city\'s Human Relations Division handles local complaints and can investigate violations of both federal and local protections.',
+      "The City of Durham's fair housing ordinance adds protections beyond the federal baseline. Durham includes sexual orientation, gender identity, military status, and protected hairstyles as locally protected classes. The city's Human Relations Division handles local complaints and can investigate violations of both federal and local protections.",
   },
   {
     id: 'enforcement',
@@ -392,363 +397,389 @@ export default function HousingRightsScreen({ navigation }) {
         </View>
       </View>
 
-      <View style={[styles.workspace, isWide && styles.workspaceWide]}>
-        <View style={[styles.sideRail, isWide && styles.sideRailWide]}>
-          <View style={styles.sidePanel}>
-            <Text style={styles.sidePanelEyebrow}>Quick Facts</Text>
-            <Text style={styles.sidePanelTitle}>
-              Important timing and contacts
-            </Text>
-            <View style={styles.snapshotCard}>
-              {QUICK_FACTS.map((fact) => (
-                <SnapshotRow
-                  key={fact.label}
-                  label={fact.label}
-                  value={fact.value}
-                />
-              ))}
+      <View style={styles.workspace}>
+        <View style={[styles.overviewDeck, isWide && styles.overviewDeckWide]}>
+          <View style={[styles.sideRail, isWide && styles.sideRailWide]}>
+            <View style={[styles.sidePanel, isWide && styles.sidePanelWide]}>
+              <Text style={styles.sidePanelEyebrow}>Quick Facts</Text>
+              <Text style={styles.sidePanelTitle}>
+                Important timing and contacts
+              </Text>
+              <View style={styles.snapshotCard}>
+                {QUICK_FACTS.map((fact) => (
+                  <SnapshotRow
+                    key={fact.label}
+                    label={fact.label}
+                    value={fact.value}
+                  />
+                ))}
+              </View>
+            </View>
+
+            <View
+              style={[styles.sidePanelMuted, isWide && styles.sidePanelWide]}>
+              <Text style={styles.sidePanelEyebrow}>Durham Note</Text>
+              <Text style={styles.sidePanelTitle}>
+                Local protections can go further
+              </Text>
+              <Text style={styles.sidePanelText}>
+                Durham says its Human Relations Division enforces both the
+                federal Fair Housing Act and the City's fair housing ordinance.
+              </Text>
+              <View style={styles.noteList}>
+                {LOCAL_NOTE_ITEMS.map((item) => (
+                  <View key={item} style={styles.noteRow}>
+                    <View style={styles.noteDot} />
+                    <Text style={styles.noteText}>{item}</Text>
+                  </View>
+                ))}
+              </View>
             </View>
           </View>
 
-          <View style={styles.sidePanelMuted}>
-            <Text style={styles.sidePanelEyebrow}>Durham Note</Text>
-            <Text style={styles.sidePanelTitle}>
-              Local protections can go further
-            </Text>
-            <Text style={styles.sidePanelText}>
-              Durham says its Human Relations Division enforces both the federal
-              Fair Housing Act and the City's fair housing ordinance.
-            </Text>
-            <View style={styles.noteList}>
-              {LOCAL_NOTE_ITEMS.map((item) => (
-                <View key={item} style={styles.noteRow}>
-                  <View style={styles.noteDot} />
-                  <Text style={styles.noteText}>{item}</Text>
+          <View style={styles.overviewMain}>
+            <View style={styles.sectionBlock}>
+              <Text style={styles.sectionLabel}>WHO IS PROTECTED</Text>
+              <Text style={styles.sectionTitle}>
+                Protected classes under the law
+              </Text>
+              <Text style={styles.sectionDesc}>
+                Hover across the categories below to preview what each
+                protection generally covers. Durham also lists several local
+                protections beyond the basic federal Fair Housing Act
+                categories.
+              </Text>
+
+              <View style={styles.classExplorer}>
+                <View style={styles.tagGrid}>
+                  {PROTECTED_CLASSES.map((item) => {
+                    const isActive = activeClass.id === item.id;
+
+                    return (
+                      <TouchableOpacity
+                        key={item.id}
+                        activeOpacity={0.9}
+                        onPress={() => setSelectedClass(item.id)}
+                        onMouseEnter={() => setHoveredClass(item.id)}
+                        onMouseLeave={() => setHoveredClass(null)}
+                        style={[styles.tag, isActive && styles.tagActive]}>
+                        <Text
+                          style={[
+                            styles.tagText,
+                            isActive && styles.tagTextActive,
+                          ]}>
+                          {item.title}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
                 </View>
-              ))}
+
+                <View style={styles.classDetailCard}>
+                  <Text style={styles.classDetailScope}>
+                    {activeClass.scope}
+                  </Text>
+                  <Text style={styles.classDetailTitle}>
+                    {activeClass.title}
+                  </Text>
+                  <Text style={styles.classDetailText}>
+                    {activeClass.detail}
+                  </Text>
+                </View>
+              </View>
             </View>
-          </View>
-        </View>
 
-        <View style={styles.mainColumn}>
-          <View style={styles.sectionBlock}>
-            <Text style={styles.sectionLabel}>WHO IS PROTECTED</Text>
-            <Text style={styles.sectionTitle}>
-              Protected classes under the law
-            </Text>
-            <Text style={styles.sectionDesc}>
-              Hover across the categories below to preview what each protection
-              generally covers. Durham also lists several local protections
-              beyond the basic federal Fair Housing Act categories.
-            </Text>
+            <View style={styles.card}>
+              <View style={styles.cardAccent} />
+              <View style={styles.cardInner}>
+                <Text style={styles.cardLabel}>LANDLORD OBLIGATIONS</Text>
+                <Text style={styles.cardTitle}>What landlords cannot do</Text>
+                {LANDLORD_CANNOT.map((item) => (
+                  <View key={item} style={styles.listRow}>
+                    <View style={styles.listDot} />
+                    <Text style={styles.listText}>{item}</Text>
+                  </View>
+                ))}
+              </View>
+            </View>
 
-            <View style={styles.classExplorer}>
-              <View style={styles.tagGrid}>
-                {PROTECTED_CLASSES.map((item) => {
-                  const isActive = activeClass.id === item.id;
+            <View style={styles.sectionBlock}>
+              <Text style={styles.sectionLabel}>COMMON SCENARIOS</Text>
+              <Text style={styles.sectionTitle}>
+                Recognizing housing discrimination
+              </Text>
+              <Text style={styles.sectionDesc}>
+                These real-world examples show how discrimination can appear in
+                everyday housing situations. Tap any scenario to see more
+                detail.
+              </Text>
 
+              <View style={styles.articleList}>
+                {DISCRIMINATION_SCENARIOS.map((item) => {
+                  const isOpen = expandedScenario === item.id;
                   return (
                     <TouchableOpacity
                       key={item.id}
-                      activeOpacity={0.9}
-                      onPress={() => setSelectedClass(item.id)}
-                      onMouseEnter={() => setHoveredClass(item.id)}
-                      onMouseLeave={() => setHoveredClass(null)}
-                      style={[styles.tag, isActive && styles.tagActive]}>
-                      <Text
-                        style={[
-                          styles.tagText,
-                          isActive && styles.tagTextActive,
-                        ]}>
-                        {item.title}
-                      </Text>
+                      style={[
+                        styles.articleCard,
+                        isOpen && styles.articleCardOpen,
+                      ]}
+                      onPress={() =>
+                        setExpandedScenario(isOpen ? null : item.id)
+                      }
+                      activeOpacity={0.75}
+                      accessibilityLabel={`${item.title} scenario`}>
+                      <View style={styles.articleHeader}>
+                        <Text style={styles.articleTitle}>{item.title}</Text>
+                        <Text style={styles.articleToggle}>
+                          {isOpen ? '−' : '+'}
+                        </Text>
+                      </View>
+                      {isOpen && (
+                        <View style={styles.articleBody}>
+                          <Text style={styles.articleSubhead}>Example</Text>
+                          <Text style={styles.articleText}>{item.example}</Text>
+                          <Text style={styles.articleSubhead}>
+                            Why it violates the law
+                          </Text>
+                          <Text style={styles.articleText}>
+                            {item.violation}
+                          </Text>
+                          <Text style={styles.articleSubhead}>What to do</Text>
+                          <Text style={styles.articleText}>{item.tip}</Text>
+                        </View>
+                      )}
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </View>
+
+            <View style={styles.sectionBlock}>
+              <Text style={styles.sectionLabel}>THE LAW</Text>
+              <Text style={styles.sectionTitle}>
+                Understanding the Fair Housing Act
+              </Text>
+              <Text style={styles.sectionDesc}>
+                The Fair Housing Act is the foundation of housing discrimination
+                protections in the United States. Tap any section to learn more.
+              </Text>
+
+              <View style={styles.articleList}>
+                {FAIR_HOUSING_ACT_SECTIONS.map((item) => {
+                  const isOpen = expandedArticle === item.id;
+                  return (
+                    <TouchableOpacity
+                      key={item.id}
+                      style={[
+                        styles.articleCard,
+                        isOpen && styles.articleCardOpen,
+                      ]}
+                      onPress={() =>
+                        setExpandedArticle(isOpen ? null : item.id)
+                      }
+                      activeOpacity={0.75}
+                      accessibilityLabel={`${item.title} article`}>
+                      <View style={styles.articleHeader}>
+                        <Text style={styles.articleTitle}>{item.title}</Text>
+                        <Text style={styles.articleToggle}>
+                          {isOpen ? '−' : '+'}
+                        </Text>
+                      </View>
+                      {isOpen && (
+                        <View style={styles.articleBody}>
+                          <Text style={styles.articleText}>{item.content}</Text>
+                        </View>
+                      )}
                     </TouchableOpacity>
                   );
                 })}
               </View>
 
-              <View style={styles.classDetailCard}>
-                <Text style={styles.classDetailScope}>{activeClass.scope}</Text>
-                <Text style={styles.classDetailTitle}>{activeClass.title}</Text>
-                <Text style={styles.classDetailText}>{activeClass.detail}</Text>
+              <View style={styles.sourceRow}>
+                <Text style={styles.sourceLabel}>Sources: </Text>
+                <Text
+                  style={styles.sourceLink}
+                  onPress={() =>
+                    Linking.openURL(
+                      'https://www.hud.gov/program_offices/fair_housing_equal_opp/fair_housing_act_overview'
+                    )
+                  }>
+                  HUD.gov — Fair Housing Act
+                </Text>
+                <Text style={styles.sourceSep}> · </Text>
+                <Text
+                  style={styles.sourceLink}
+                  onPress={() =>
+                    Linking.openURL(
+                      'https://www.justice.gov/crt/fair-housing-act-1'
+                    )
+                  }>
+                  DOJ — Fair Housing Act Text
+                </Text>
               </View>
             </View>
-          </View>
 
-          <View style={styles.card}>
-            <View style={styles.cardAccent} />
-            <View style={styles.cardInner}>
-              <Text style={styles.cardLabel}>LANDLORD OBLIGATIONS</Text>
-              <Text style={styles.cardTitle}>What landlords cannot do</Text>
-              {LANDLORD_CANNOT.map((item) => (
-                <View key={item} style={styles.listRow}>
-                  <View style={styles.listDot} />
-                  <Text style={styles.listText}>{item}</Text>
-                </View>
-              ))}
-            </View>
-          </View>
-
-          <View style={styles.sectionBlock}>
-            <Text style={styles.sectionLabel}>COMMON SCENARIOS</Text>
-            <Text style={styles.sectionTitle}>
-              Recognizing housing discrimination
-            </Text>
-            <Text style={styles.sectionDesc}>
-              These real-world examples show how discrimination can appear in
-              everyday housing situations. Tap any scenario to see more detail.
-            </Text>
-
-            <View style={styles.articleList}>
-              {DISCRIMINATION_SCENARIOS.map((item) => {
-                const isOpen = expandedScenario === item.id;
-                return (
-                  <TouchableOpacity
-                    key={item.id}
-                    style={[styles.articleCard, isOpen && styles.articleCardOpen]}
-                    onPress={() =>
-                      setExpandedScenario(isOpen ? null : item.id)
-                    }
-                    activeOpacity={0.75}
-                    accessibilityLabel={`${item.title} scenario`}>
-                    <View style={styles.articleHeader}>
-                      <Text style={styles.articleTitle}>{item.title}</Text>
-                      <Text style={styles.articleToggle}>
-                        {isOpen ? '−' : '+'}
-                      </Text>
-                    </View>
-                    {isOpen && (
-                      <View style={styles.articleBody}>
-                        <Text style={styles.articleSubhead}>Example</Text>
-                        <Text style={styles.articleText}>{item.example}</Text>
-                        <Text style={styles.articleSubhead}>Why it violates the law</Text>
-                        <Text style={styles.articleText}>{item.violation}</Text>
-                        <Text style={styles.articleSubhead}>What to do</Text>
-                        <Text style={styles.articleText}>{item.tip}</Text>
-                      </View>
-                    )}
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
-          </View>
-
-          <View style={styles.sectionBlock}>
-            <Text style={styles.sectionLabel}>THE LAW</Text>
-            <Text style={styles.sectionTitle}>
-              Understanding the Fair Housing Act
-            </Text>
-            <Text style={styles.sectionDesc}>
-              The Fair Housing Act is the foundation of housing discrimination
-              protections in the United States. Tap any section to learn more.
-            </Text>
-
-            <View style={styles.articleList}>
-              {FAIR_HOUSING_ACT_SECTIONS.map((item) => {
-                const isOpen = expandedArticle === item.id;
-                return (
-                  <TouchableOpacity
-                    key={item.id}
-                    style={[styles.articleCard, isOpen && styles.articleCardOpen]}
-                    onPress={() =>
-                      setExpandedArticle(isOpen ? null : item.id)
-                    }
-                    activeOpacity={0.75}
-                    accessibilityLabel={`${item.title} article`}>
-                    <View style={styles.articleHeader}>
-                      <Text style={styles.articleTitle}>{item.title}</Text>
-                      <Text style={styles.articleToggle}>
-                        {isOpen ? '−' : '+'}
-                      </Text>
-                    </View>
-                    {isOpen && (
-                      <View style={styles.articleBody}>
-                        <Text style={styles.articleText}>{item.content}</Text>
-                      </View>
-                    )}
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
-
-            <View style={styles.sourceRow}>
-              <Text style={styles.sourceLabel}>Sources: </Text>
-              <Text
-                style={styles.sourceLink}
-                onPress={() =>
-                  Linking.openURL('https://www.hud.gov/program_offices/fair_housing_equal_opp/fair_housing_act_overview')
-                }>
-                HUD.gov — Fair Housing Act
+            <View style={styles.sectionBlock}>
+              <Text style={styles.sectionLabel}>COMPLAINT PROCESS</Text>
+              <Text style={styles.sectionTitle}>
+                How a fair housing complaint works
               </Text>
-              <Text style={styles.sourceSep}> · </Text>
-              <Text
-                style={styles.sourceLink}
-                onPress={() =>
-                  Linking.openURL('https://www.justice.gov/crt/fair-housing-act-1')
-                }>
-                DOJ — Fair Housing Act Text
+              <Text style={styles.sectionDesc}>
+                Filing a complaint is free and confidential. Here is what
+                happens at each stage, from recognizing an issue to resolution.
               </Text>
+
+              <View style={styles.articleList}>
+                {COMPLAINT_PROCESS_STEPS.map((item) => {
+                  const isOpen = expandedStep === item.id;
+                  return (
+                    <TouchableOpacity
+                      key={item.id}
+                      style={[
+                        styles.articleCard,
+                        isOpen && styles.articleCardOpen,
+                      ]}
+                      onPress={() => setExpandedStep(isOpen ? null : item.id)}
+                      activeOpacity={0.75}
+                      accessibilityLabel={`Step ${item.step}: ${item.title}`}>
+                      <View style={styles.articleHeader}>
+                        <View style={styles.stepBadge}>
+                          <Text style={styles.stepBadgeText}>{item.step}</Text>
+                        </View>
+                        <Text style={[styles.articleTitle, { flex: 1 }]}>
+                          {item.title}
+                        </Text>
+                        <Text style={styles.articleToggle}>
+                          {isOpen ? '−' : '+'}
+                        </Text>
+                      </View>
+                      {isOpen && (
+                        <View style={styles.articleBody}>
+                          <Text style={styles.articleText}>{item.desc}</Text>
+                        </View>
+                      )}
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
             </View>
-          </View>
 
-          <View style={styles.sectionBlock}>
-            <Text style={styles.sectionLabel}>COMPLAINT PROCESS</Text>
-            <Text style={styles.sectionTitle}>
-              How a fair housing complaint works
-            </Text>
-            <Text style={styles.sectionDesc}>
-              Filing a complaint is free and confidential. Here is what happens
-              at each stage, from recognizing an issue to resolution.
-            </Text>
+            <View style={styles.sectionBlock}>
+              <Text style={styles.sectionLabel}>TAKE ACTION</Text>
+              <Text style={styles.sectionTitle}>What you can do next</Text>
+              <View
+                style={[styles.actionGrid, isMedium && styles.actionGridWide]}>
+                {ACTION_STEPS.map((item) => (
+                  <TouchableOpacity
+                    key={item.id}
+                    activeOpacity={1}
+                    onPress={() => {}}
+                    onMouseEnter={() => setHoveredAction(item.id)}
+                    onMouseLeave={() => setHoveredAction(null)}
+                    style={[
+                      styles.actionCard,
+                      isMedium && styles.actionCardWide,
+                      hoveredAction === item.id && styles.actionCardHover,
+                    ]}>
+                    <View style={styles.actionStepBadge}>
+                      <Text style={styles.actionStepText}>{item.step}</Text>
+                    </View>
+                    <View style={styles.actionText}>
+                      <Text style={styles.actionTitle}>{item.title}</Text>
+                      <Text style={styles.actionDesc}>{item.desc}</Text>
+                    </View>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
 
-            <View style={styles.articleList}>
-              {COMPLAINT_PROCESS_STEPS.map((item) => {
-                const isOpen = expandedStep === item.id;
+            <View style={styles.resourcesCard}>
+              <Text style={styles.cardLabel}>OFFICIAL RESOURCES</Text>
+              <Text style={styles.cardTitle}>
+                More Durham and fair housing links
+              </Text>
+              <Text style={styles.resourcesIntro}>
+                These links point to City of Durham, HUD, Durham Housing
+                Authority, and Legal Aid NC pages that are relevant to local
+                housing rights, discrimination reporting, and support.
+              </Text>
+
+              {RESOURCE_LINKS.map((item, index) => {
+                const isHovered = hoveredLink === item.id;
+
                 return (
                   <TouchableOpacity
                     key={item.id}
-                    style={[styles.articleCard, isOpen && styles.articleCardOpen]}
-                    onPress={() =>
-                      setExpandedStep(isOpen ? null : item.id)
-                    }
-                    activeOpacity={0.75}
-                    accessibilityLabel={`Step ${item.step}: ${item.title}`}>
-                    <View style={styles.articleHeader}>
-                      <View style={styles.stepBadge}>
-                        <Text style={styles.stepBadgeText}>{item.step}</Text>
-                      </View>
-                      <Text style={[styles.articleTitle, { flex: 1 }]}>
+                    style={[
+                      styles.linkRow,
+                      index === RESOURCE_LINKS.length - 1 && styles.linkRowLast,
+                      isHovered && styles.linkRowHover,
+                    ]}
+                    onPress={() => Linking.openURL(item.url)}
+                    onMouseEnter={() => setHoveredLink(item.id)}
+                    onMouseLeave={() => setHoveredLink(null)}
+                    activeOpacity={0.75}>
+                    <View style={styles.linkIcon}>
+                      <Text style={styles.linkIconText}>Go</Text>
+                    </View>
+                    <View style={styles.linkContent}>
+                      <Text style={styles.linkEyebrow}>{item.eyebrow}</Text>
+                      <Text
+                        style={[
+                          styles.linkTitle,
+                          isHovered && styles.linkTitleHover,
+                        ]}>
                         {item.title}
                       </Text>
-                      <Text style={styles.articleToggle}>
-                        {isOpen ? '−' : '+'}
-                      </Text>
+                      <Text style={styles.linkSub}>{item.desc}</Text>
                     </View>
-                    {isOpen && (
-                      <View style={styles.articleBody}>
-                        <Text style={styles.articleText}>{item.desc}</Text>
-                      </View>
-                    )}
                   </TouchableOpacity>
                 );
               })}
             </View>
-          </View>
 
-          <View style={styles.sectionBlock}>
-            <Text style={styles.sectionLabel}>TAKE ACTION</Text>
-            <Text style={styles.sectionTitle}>What you can do next</Text>
-            <View
-              style={[styles.actionGrid, isMedium && styles.actionGridWide]}>
-              {ACTION_STEPS.map((item) => (
-                <TouchableOpacity
-                  key={item.id}
-                  activeOpacity={1}
-                  onPress={() => {}}
-                  onMouseEnter={() => setHoveredAction(item.id)}
-                  onMouseLeave={() => setHoveredAction(null)}
-                  style={[
-                    styles.actionCard,
-                    isMedium && styles.actionCardWide,
-                    hoveredAction === item.id && styles.actionCardHover,
-                  ]}>
-                  <View style={styles.actionStepBadge}>
-                    <Text style={styles.actionStepText}>{item.step}</Text>
-                  </View>
-                  <View style={styles.actionText}>
-                    <Text style={styles.actionTitle}>{item.title}</Text>
-                    <Text style={styles.actionDesc}>{item.desc}</Text>
-                  </View>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
-
-          <View style={styles.resourcesCard}>
-            <Text style={styles.cardLabel}>OFFICIAL RESOURCES</Text>
-            <Text style={styles.cardTitle}>
-              More Durham and fair housing links
-            </Text>
-            <Text style={styles.resourcesIntro}>
-              These links point to City of Durham, HUD, Durham Housing
-              Authority, and Legal Aid NC pages that are relevant to local
-              housing rights, discrimination reporting, and support.
-            </Text>
-
-            {RESOURCE_LINKS.map((item, index) => {
-              const isHovered = hoveredLink === item.id;
-
-              return (
-                <TouchableOpacity
-                  key={item.id}
-                  style={[
-                    styles.linkRow,
-                    index === RESOURCE_LINKS.length - 1 && styles.linkRowLast,
-                    isHovered && styles.linkRowHover,
-                  ]}
-                  onPress={() => Linking.openURL(item.url)}
-                  onMouseEnter={() => setHoveredLink(item.id)}
-                  onMouseLeave={() => setHoveredLink(null)}
-                  activeOpacity={0.75}>
-                  <View style={styles.linkIcon}>
-                    <Text style={styles.linkIconText}>Go</Text>
-                  </View>
-                  <View style={styles.linkContent}>
-                    <Text style={styles.linkEyebrow}>{item.eyebrow}</Text>
-                    <Text
-                      style={[
-                        styles.linkTitle,
-                        isHovered && styles.linkTitleHover,
-                      ]}>
-                      {item.title}
-                    </Text>
-                    <Text style={styles.linkSub}>{item.desc}</Text>
-                  </View>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-
-          <View style={styles.ctaRow}>
-            <TouchableOpacity
-              style={[
-                styles.primaryBtn,
-                hoveredBtn === 'primary' && styles.primaryBtnHover,
-              ]}
-              onPress={() => navigation.navigate('DiscriminationChecker')}
-              onMouseEnter={() => setHoveredBtn('primary')}
-              onMouseLeave={() => setHoveredBtn(null)}
-              activeOpacity={0.75}>
-              <Text style={styles.primaryBtnText}>
-                Check If You Qualify to File
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[
-                styles.secondaryBtn,
-                hoveredBtn === 'secondary' && styles.secondaryBtnHover,
-              ]}
-              onPress={() =>
-                navigation.navigate('Resources', { category: 'housing' })
-              }
-              onMouseEnter={() => setHoveredBtn('secondary')}
-              onMouseLeave={() => setHoveredBtn(null)}
-              activeOpacity={0.75}>
-              <Text
+            <View style={styles.ctaRow}>
+              <TouchableOpacity
                 style={[
-                  styles.secondaryBtnText,
-                  hoveredBtn === 'secondary' && styles.secondaryBtnTextHover,
-                ]}>
-                Find Local Housing Resources
-              </Text>
-            </TouchableOpacity>
-          </View>
+                  styles.primaryBtn,
+                  hoveredBtn === 'primary' && styles.primaryBtnHover,
+                ]}
+                onPress={() => navigation.navigate('DiscriminationChecker')}
+                onMouseEnter={() => setHoveredBtn('primary')}
+                onMouseLeave={() => setHoveredBtn(null)}
+                activeOpacity={0.75}>
+                <Text style={styles.primaryBtnText}>
+                  Check If You Qualify to File
+                </Text>
+              </TouchableOpacity>
 
-          <Text style={styles.disclaimer}>
-            This page is educational and not legal advice. If you need advice on
-            a specific situation, contact a qualified advocate or attorney.
-          </Text>
+              <TouchableOpacity
+                style={[
+                  styles.secondaryBtn,
+                  hoveredBtn === 'secondary' && styles.secondaryBtnHover,
+                ]}
+                onPress={() =>
+                  navigation.navigate('Resources', { category: 'housing' })
+                }
+                onMouseEnter={() => setHoveredBtn('secondary')}
+                onMouseLeave={() => setHoveredBtn(null)}
+                activeOpacity={0.75}>
+                <Text
+                  style={[
+                    styles.secondaryBtnText,
+                    hoveredBtn === 'secondary' && styles.secondaryBtnTextHover,
+                  ]}>
+                  Find Local Housing Resources
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            <Text style={styles.disclaimer}>
+              This page is educational and not legal advice. If you need advice
+              on a specific situation, contact a qualified advocate or attorney.
+            </Text>
+          </View>
         </View>
       </View>
     </ScrollView>
@@ -791,7 +822,7 @@ const styles = StyleSheet.create({
   },
   heroInner: {
     width: '100%',
-    maxWidth: 1380,
+    maxWidth: 1440,
     alignSelf: 'center',
     gap: 28,
   },
@@ -889,22 +920,29 @@ const styles = StyleSheet.create({
   },
   workspace: {
     width: '100%',
-    maxWidth: 1380,
+    maxWidth: 1440,
     alignSelf: 'center',
     paddingHorizontal: 24,
     marginTop: 28,
     gap: 28,
   },
-  workspaceWide: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
+  overviewDeck: {
+    gap: 24,
+  },
+  overviewDeckWide: {
+    gap: 24,
   },
   sideRail: {
     width: '100%',
     gap: 18,
   },
   sideRailWide: {
-    width: 340,
+    flexDirection: 'row',
+    alignItems: 'stretch',
+  },
+  overviewMain: {
+    width: '100%',
+    minWidth: 0,
   },
   sidePanel: {
     borderRadius: 28,
@@ -924,6 +962,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#EEF5E9',
     borderWidth: 1,
     borderColor: 'rgba(27, 94, 32, 0.08)',
+  },
+  sidePanelWide: {
+    flex: 1,
+    minWidth: 0,
   },
   sidePanelEyebrow: {
     color: COLORS.primary,
@@ -991,10 +1033,6 @@ const styles = StyleSheet.create({
     color: COLORS.textMuted,
     fontSize: fontSize.small,
     lineHeight: 22,
-  },
-  mainColumn: {
-    flex: 1,
-    minWidth: 0,
   },
   sectionBlock: {
     marginBottom: 28,
@@ -1370,10 +1408,14 @@ const styles = StyleSheet.create({
     lineHeight: 21,
   },
   ctaRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 12,
     marginBottom: 18,
   },
   primaryBtn: {
+    flexGrow: 1,
+    minWidth: 260,
     backgroundColor: COLORS.primaryDeep,
     paddingHorizontal: 20,
     paddingVertical: 17,
@@ -1390,6 +1432,8 @@ const styles = StyleSheet.create({
     fontSize: fontSize.button,
   },
   secondaryBtn: {
+    flexGrow: 1,
+    minWidth: 260,
     borderWidth: 1.5,
     borderColor: COLORS.primary,
     paddingHorizontal: 20,

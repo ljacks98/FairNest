@@ -90,7 +90,7 @@ const CATEGORY_CONTENT = {
   employment: {
     title: 'Jobs & Employment',
     subtitle:
-      'Job listings, workforce training, and career support programs in Durham — focused on entry-level roles and residents facing employment barriers.',
+      'Job listings, workforce training, and career support programs in Durham focused on entry level roles and residents facing employment barriers.',
     facts: [
       {
         label: 'Entry-level focus',
@@ -205,8 +205,11 @@ export default function ResourceScreen({ navigation, route }) {
   const { width } = useWindowDimensions();
   const isMedium = width >= 760;
   const isWide = width >= 1120;
+  const isExtraWide = width >= 1440;
 
-  const [selectedCategory, setSelectedCategory] = useState(category || 'housing');
+  const [selectedCategory, setSelectedCategory] = useState(
+    category || 'housing'
+  );
   const resolvedCategory = selectedCategory;
   const content =
     CATEGORY_CONTENT[resolvedCategory] || CATEGORY_CONTENT.housing;
@@ -272,10 +275,13 @@ export default function ResourceScreen({ navigation, route }) {
                   {filtered.length} results available
                 </Text>
               </View>
-              {(resolvedCategory === 'housing' || resolvedCategory === 'employment') && (
+              {(resolvedCategory === 'housing' ||
+                resolvedCategory === 'employment') && (
                 <View style={styles.heroBadge}>
                   <Text style={styles.heroBadgeText}>
-                    {resolvedCategory === 'employment' ? 'Filter by job type' : 'Filter by housing need'}
+                    {resolvedCategory === 'employment'
+                      ? 'Filter by job type'
+                      : 'Filter by housing need'}
                   </Text>
                 </View>
               )}
@@ -297,9 +303,9 @@ export default function ResourceScreen({ navigation, route }) {
         </View>
       </View>
 
-      <View style={[styles.workspace, isWide && styles.workspaceWide]}>
+      <View style={styles.workspace}>
         <View style={[styles.sideRail, isWide && styles.sideRailWide]}>
-          <View style={styles.sidePanel}>
+          <View style={[styles.sidePanel, isWide && styles.sidePanelWide]}>
             <Text style={styles.sidePanelEyebrow}>Quick Summary</Text>
             <Text style={styles.sidePanelTitle}>What is on this page</Text>
             <View style={styles.snapshotCard}>
@@ -308,12 +314,15 @@ export default function ResourceScreen({ navigation, route }) {
                 label="Visible results"
                 value={`${filtered.length} resource${filtered.length === 1 ? '' : 's'}`}
               />
-              {(resolvedCategory === 'housing' || resolvedCategory === 'employment') ? (
+              {resolvedCategory === 'housing' ||
+              resolvedCategory === 'employment' ? (
                 <SnapshotRow
                   label="Active filter"
                   value={
-                    (resolvedCategory === 'employment' ? EMPLOYMENT_FILTERS : HOUSING_FILTERS)
-                      .find((item) => item.value === activeType)?.label ||
+                    (resolvedCategory === 'employment'
+                      ? EMPLOYMENT_FILTERS
+                      : HOUSING_FILTERS
+                    ).find((item) => item.value === activeType)?.label ||
                     `All ${resolvedCategory} resources`
                   }
                 />
@@ -321,7 +330,7 @@ export default function ResourceScreen({ navigation, route }) {
             </View>
           </View>
 
-          <View style={styles.sidePanelMuted}>
+          <View style={[styles.sidePanelMuted, isWide && styles.sidePanelWide]}>
             <Text style={styles.sidePanelEyebrow}>Helpful Notes</Text>
             <Text style={styles.sidePanelTitle}>
               Things worth keeping in mind
@@ -379,9 +388,13 @@ export default function ResourceScreen({ navigation, route }) {
               ))}
             </View>
 
-            {(resolvedCategory === 'housing' || resolvedCategory === 'employment') && (
+            {(resolvedCategory === 'housing' ||
+              resolvedCategory === 'employment') && (
               <View style={styles.filterRowSub}>
-                {(resolvedCategory === 'employment' ? EMPLOYMENT_FILTERS : HOUSING_FILTERS).map((f) => (
+                {(resolvedCategory === 'employment'
+                  ? EMPLOYMENT_FILTERS
+                  : HOUSING_FILTERS
+                ).map((f) => (
                   <TouchableOpacity
                     key={String(f.value)}
                     style={[
@@ -420,6 +433,7 @@ export default function ResourceScreen({ navigation, route }) {
                 style={[
                   styles.card,
                   isMedium && styles.cardWide,
+                  isExtraWide && styles.cardWideLarge,
                   hoveredCard === resource.id && styles.cardHover,
                 ]}
                 onMouseEnter={() => setHoveredCard(resource.id)}
@@ -589,7 +603,7 @@ const styles = StyleSheet.create({
   },
   heroInner: {
     width: '100%',
-    maxWidth: 1380,
+    maxWidth: 1440,
     alignSelf: 'center',
     gap: 28,
   },
@@ -687,22 +701,19 @@ const styles = StyleSheet.create({
   },
   workspace: {
     width: '100%',
-    maxWidth: 1380,
+    maxWidth: 1440,
     alignSelf: 'center',
     paddingHorizontal: 24,
     marginTop: 28,
     gap: 28,
-  },
-  workspaceWide: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
   },
   sideRail: {
     width: '100%',
     gap: 18,
   },
   sideRailWide: {
-    width: 340,
+    flexDirection: 'row',
+    alignItems: 'stretch',
   },
   sidePanel: {
     borderRadius: 28,
@@ -722,6 +733,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#EEF5E9',
     borderWidth: 1,
     borderColor: 'rgba(27, 94, 32, 0.08)',
+  },
+  sidePanelWide: {
+    flex: 1,
+    minWidth: 0,
   },
   sidePanelEyebrow: {
     color: COLORS.primary,
@@ -785,7 +800,7 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
   mainColumn: {
-    flex: 1,
+    width: '100%',
     minWidth: 0,
   },
   resourcesTopCard: {
@@ -890,6 +905,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     alignItems: 'stretch',
+    justifyContent: 'space-between',
   },
   card: {
     backgroundColor: '#FFFFFF',
@@ -908,6 +924,9 @@ const styles = StyleSheet.create({
     flexGrow: 0,
     flexShrink: 0,
     justifyContent: 'flex-start',
+  },
+  cardWideLarge: {
+    flexBasis: '31.5%',
   },
   cardHover: {
     transform: [{ translateY: -2 }],
