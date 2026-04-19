@@ -160,16 +160,6 @@ export default function FairHousingSupportScreen({ navigation }) {
       contentContainerStyle={styles.pageFill}>
       <Navbar navigation={navigation} currentRoute="FairHousingSupport" />
 
-      <View style={styles.breadcrumb}>
-        <Text
-          onPress={() => navigation.navigate('Home')}
-          style={styles.breadcrumbLink}>
-          Home
-        </Text>
-        <Text style={styles.breadcrumbSep}> / </Text>
-        <Text style={styles.breadcrumbCurrent}>Fair Housing Support</Text>
-      </View>
-
       <View style={styles.hero}>
         <View style={styles.heroGlowA} />
         <View style={styles.heroGlowB} />
@@ -439,29 +429,6 @@ const styles = StyleSheet.create({
   },
   pageFill: {
     paddingBottom: 56,
-  },
-  breadcrumb: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    backgroundColor: COLORS.white,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
-  },
-  breadcrumbLink: {
-    fontSize: fontSize.caption,
-    color: COLORS.primary,
-    ...font.bold,
-  },
-  breadcrumbSep: {
-    fontSize: fontSize.caption,
-    color: '#A1A79F',
-    marginHorizontal: 4,
-  },
-  breadcrumbCurrent: {
-    fontSize: fontSize.caption,
-    color: COLORS.textMuted,
   },
   hero: {
     position: 'relative',

@@ -19,6 +19,23 @@ export const COLORS = {
   iconTint:    '#E8F5E9',   // icon circle backgrounds
 
   amber: '#F5A623',  // amber accent   — primary CTAs only
+
+  // Error / validation tokens
+  errorBg:     '#fdf0ee',
+  errorBorder: '#f5c0b8',
+  errorText:   '#c0392b',
+  dangerBg:    '#FFEBEE',
+  dangerBorder:'#FFCDD2',
+  dangerText:  '#C62828',
+  dangerDeep:  '#B71C1C',
+
+  // Neutral tones
+  placeholder: '#c0c8c0',
+  muted:       '#999999',
+  subtle:      '#888888',
+  divider:     '#eeeeee',
+  inputBg:     '#fafafa',
+  hoverDeep:   '#163d18',
 };
 
 // ── Centralized status system ─────────────────────────────────────────────────

@@ -19,29 +19,323 @@ import { fontSize, font } from '../theme/typography';
 // ── Search index ─────────────────────────────────────────────────────────────
 
 const SEARCH_INDEX = [
-  { icon: '📋', label: 'File a Report', hint: 'Submit a housing discrimination report', keywords: ['report', 'file', 'submit', 'complaint', 'issue', 'incident', 'discrimination', 'bias'], route: 'Report', requiresAuth: true, category: 'Actions' },
-  { icon: '📖', label: 'Know Your Rights', hint: 'Tenant rights & legal protections', keywords: ['rights', 'tenant', 'law', 'legal', 'protection', 'fair housing', 'lease', 'landlord', 'know'], route: 'HousingRights', requiresAuth: false, category: 'Learn' },
-  { icon: '📅', label: 'Schedule a Call', hint: 'Book a free consultation', keywords: ['schedule', 'call', 'consultation', 'lawyer', 'attorney', 'book', 'appointment', 'speak', 'legal'], route: 'ScheduleCall', requiresAuth: true, category: 'Actions' },
-  { icon: '💬', label: 'Ask AI Assistant', hint: 'Instant answers to housing questions', keywords: ['ask', 'ai', 'chat', 'question', 'help', 'assistant', 'talk', 'message', 'bot', 'answer'], route: 'ChatInterface', requiresAuth: true, category: 'Actions' },
-  { icon: '🛡️', label: 'Check If You Qualify', hint: 'Free discrimination self-assessment', keywords: ['qualify', 'checker', 'check', 'am i', 'do i', 'protected', 'class', 'assess', 'eligible'], route: 'DiscriminationChecker', requiresAuth: false, category: 'Tools' },
-  { icon: '🏠', label: 'Housing Resources', hint: 'Local programs & assistance near you', keywords: ['resources', 'programs', 'assistance', 'voucher', 'section 8', 'shelter', 'affordable', 'homeless', 'rent help'], route: 'Resources', requiresAuth: false, category: 'Resources' },
-  { icon: '👥', label: 'Fair Housing Support', hint: 'Connect with local advocates', keywords: ['support', 'advocate', 'organization', 'community', 'partner', 'nonprofit', 'fair housing'], route: 'FairHousingSupport', requiresAuth: false, category: 'Resources' },
-  { icon: 'ℹ️', label: 'About FairNest', hint: 'Our mission & team', keywords: ['about', 'mission', 'team', 'who', 'fairnest', 'story', 'contact'], route: 'About', requiresAuth: false, category: 'Info' },
-  { icon: '👤', label: 'My Profile', hint: 'View your reports and history', keywords: ['profile', 'account', 'my reports', 'history', 'settings', 'dashboard'], route: 'Profile', requiresAuth: true, category: 'Account' },
-  { icon: '🔑', label: 'Eviction Help', hint: 'Rights & steps if facing eviction', keywords: ['evict', 'eviction', 'notice', 'kicked out', 'forced out', 'lease termination', 'move out'], route: 'HousingRights', requiresAuth: false, category: 'Topics' },
-  { icon: '🔧', label: 'Repair & Maintenance', hint: 'When your landlord won\'t fix issues', keywords: ['repair', 'fix', 'broken', 'maintenance', 'habitability', 'mold', 'heat', 'water', 'pest', 'conditions'], route: 'HousingRights', requiresAuth: false, category: 'Topics' },
-  { icon: '💰', label: 'Rent & Deposit Issues', hint: 'Overcharges, hikes & security deposits', keywords: ['rent', 'increase', 'late fee', 'overcharge', 'deposit', 'security deposit', 'pricing', 'fee'], route: 'HousingRights', requiresAuth: false, category: 'Topics' },
-  { icon: '🚫', label: 'Race & Color Discrimination', hint: 'Denied housing based on race', keywords: ['race', 'racial', 'color', 'ethnic', 'ethnicity', 'national origin', 'skin', 'biased'], route: 'DiscriminationChecker', requiresAuth: false, category: 'Topics' },
-  { icon: '♿', label: 'Disability Accommodations', hint: 'ADA rights & accessibility', keywords: ['disability', 'disabled', 'accommodation', 'accessibility', 'wheelchair', 'ada', 'handicap', 'impairment'], route: 'DiscriminationChecker', requiresAuth: false, category: 'Topics' },
-  { icon: '👶', label: 'Familial Status Rights', hint: 'Rights for families with children', keywords: ['family', 'children', 'kids', 'pregnant', 'pregnancy', 'familial', 'parent', 'child'], route: 'DiscriminationChecker', requiresAuth: false, category: 'Topics' },
+  {
+    icon: '📋',
+    label: 'File a Report',
+    hint: 'Submit a housing discrimination report',
+    keywords: [
+      'report',
+      'file',
+      'submit',
+      'complaint',
+      'issue',
+      'incident',
+      'discrimination',
+      'bias',
+    ],
+    route: 'Report',
+    requiresAuth: true,
+    category: 'Actions',
+  },
+  {
+    icon: '📖',
+    label: 'Know Your Rights',
+    hint: 'Tenant rights & legal protections',
+    keywords: [
+      'rights',
+      'tenant',
+      'law',
+      'legal',
+      'protection',
+      'fair housing',
+      'lease',
+      'landlord',
+      'know',
+    ],
+    route: 'HousingRights',
+    requiresAuth: false,
+    category: 'Learn',
+  },
+  {
+    icon: '📅',
+    label: 'Schedule a Call',
+    hint: 'Book a free consultation',
+    keywords: [
+      'schedule',
+      'call',
+      'consultation',
+      'lawyer',
+      'attorney',
+      'book',
+      'appointment',
+      'speak',
+      'legal',
+    ],
+    route: 'ScheduleCall',
+    requiresAuth: true,
+    category: 'Actions',
+  },
+  {
+    icon: '💬',
+    label: 'Ask AI Assistant',
+    hint: 'Instant answers to housing questions',
+    keywords: [
+      'ask',
+      'ai',
+      'chat',
+      'question',
+      'help',
+      'assistant',
+      'talk',
+      'message',
+      'bot',
+      'answer',
+    ],
+    route: 'ChatInterface',
+    requiresAuth: true,
+    category: 'Actions',
+  },
+  {
+    icon: '🛡️',
+    label: 'Check If You Qualify',
+    hint: 'Free discrimination self-assessment',
+    keywords: [
+      'qualify',
+      'checker',
+      'check',
+      'am i',
+      'do i',
+      'protected',
+      'class',
+      'assess',
+      'eligible',
+    ],
+    route: 'DiscriminationChecker',
+    requiresAuth: false,
+    category: 'Tools',
+  },
+  {
+    icon: '🏠',
+    label: 'Housing Resources',
+    hint: 'Local programs & assistance near you',
+    keywords: [
+      'resources',
+      'programs',
+      'assistance',
+      'voucher',
+      'section 8',
+      'shelter',
+      'affordable',
+      'homeless',
+      'rent help',
+    ],
+    route: 'Resources',
+    requiresAuth: false,
+    category: 'Resources',
+  },
+  {
+    icon: '💼',
+    label: 'Jobs & Employment',
+    hint: 'Job listings, training & career support',
+    keywords: [
+      'jobs',
+      'employment',
+      'work',
+      'career',
+      'hiring',
+      'training',
+      'resume',
+      'workforce',
+      'entry level',
+      'listings',
+    ],
+    route: 'Resources',
+    routeParams: { category: 'employment' },
+    requiresAuth: false,
+    category: 'Resources',
+  },
+  {
+    icon: '👥',
+    label: 'Fair Housing Support',
+    hint: 'Connect with local advocates',
+    keywords: [
+      'support',
+      'advocate',
+      'organization',
+      'community',
+      'partner',
+      'nonprofit',
+      'fair housing',
+    ],
+    route: 'FairHousingSupport',
+    requiresAuth: false,
+    category: 'Resources',
+  },
+  {
+    icon: 'ℹ️',
+    label: 'About FairNest',
+    hint: 'Our mission & team',
+    keywords: [
+      'about',
+      'mission',
+      'team',
+      'who',
+      'fairnest',
+      'story',
+      'contact',
+    ],
+    route: 'About',
+    requiresAuth: false,
+    category: 'Info',
+  },
+  {
+    icon: '👤',
+    label: 'My Profile',
+    hint: 'View your reports and history',
+    keywords: [
+      'profile',
+      'account',
+      'my reports',
+      'history',
+      'settings',
+      'dashboard',
+    ],
+    route: 'Profile',
+    requiresAuth: true,
+    category: 'Account',
+  },
+  {
+    icon: '🔑',
+    label: 'Eviction Help',
+    hint: 'Rights & steps if facing eviction',
+    keywords: [
+      'evict',
+      'eviction',
+      'notice',
+      'kicked out',
+      'forced out',
+      'lease termination',
+      'move out',
+    ],
+    route: 'HousingRights',
+    requiresAuth: false,
+    category: 'Topics',
+  },
+  {
+    icon: '🔧',
+    label: 'Repair & Maintenance',
+    hint: "When your landlord won't fix issues",
+    keywords: [
+      'repair',
+      'fix',
+      'broken',
+      'maintenance',
+      'habitability',
+      'mold',
+      'heat',
+      'water',
+      'pest',
+      'conditions',
+    ],
+    route: 'HousingRights',
+    requiresAuth: false,
+    category: 'Topics',
+  },
+  {
+    icon: '💰',
+    label: 'Rent & Deposit Issues',
+    hint: 'Overcharges, hikes & security deposits',
+    keywords: [
+      'rent',
+      'increase',
+      'late fee',
+      'overcharge',
+      'deposit',
+      'security deposit',
+      'pricing',
+      'fee',
+    ],
+    route: 'HousingRights',
+    requiresAuth: false,
+    category: 'Topics',
+  },
+  {
+    icon: '🚫',
+    label: 'Race & Color Discrimination',
+    hint: 'Denied housing based on race',
+    keywords: [
+      'race',
+      'racial',
+      'color',
+      'ethnic',
+      'ethnicity',
+      'national origin',
+      'skin',
+      'biased',
+    ],
+    route: 'DiscriminationChecker',
+    requiresAuth: false,
+    category: 'Topics',
+  },
+  {
+    icon: '♿',
+    label: 'Disability Accommodations',
+    hint: 'ADA rights & accessibility',
+    keywords: [
+      'disability',
+      'disabled',
+      'accommodation',
+      'accessibility',
+      'wheelchair',
+      'ada',
+      'handicap',
+      'impairment',
+    ],
+    route: 'DiscriminationChecker',
+    requiresAuth: false,
+    category: 'Topics',
+  },
+  {
+    icon: '👶',
+    label: 'Familial Status Rights',
+    hint: 'Rights for families with children',
+    keywords: [
+      'family',
+      'children',
+      'kids',
+      'pregnant',
+      'pregnancy',
+      'familial',
+      'parent',
+      'child',
+    ],
+    route: 'DiscriminationChecker',
+    requiresAuth: false,
+    category: 'Topics',
+  },
 ];
 
 const QUICK_ACTIONS = [
   { icon: '📋', label: 'File a Report', route: 'Report', requiresAuth: true },
-  { icon: '📖', label: 'Know My Rights', route: 'HousingRights', requiresAuth: false },
+  {
+    icon: '📖',
+    label: 'Know My Rights',
+    route: 'HousingRights',
+    requiresAuth: false,
+  },
   { icon: '💬', label: 'Ask AI', route: 'ChatInterface', requiresAuth: true },
-  { icon: '📅', label: 'Book a Call', route: 'ScheduleCall', requiresAuth: true },
-  { icon: '🛡️', label: 'Check Eligibility', route: 'DiscriminationChecker', requiresAuth: false },
+  {
+    icon: '📅',
+    label: 'Book a Call',
+    route: 'ScheduleCall',
+    requiresAuth: true,
+  },
+  {
+    icon: '🛡️',
+    label: 'Check Eligibility',
+    route: 'DiscriminationChecker',
+    requiresAuth: false,
+  },
 ];
 
 // ── Data ──────────────────────────────────────────────────────────────────────
@@ -83,7 +377,7 @@ const STEPS = [
     num: '02',
     icon: '📖',
     title: 'Know Your Rights',
-    desc: 'Get clear, plain-language guidance on what legal protections apply to your case.',
+    desc: 'Get clear, plain language guidance on what legal protections apply to your case.',
     route: 'HousingRights',
   },
   {
@@ -171,8 +465,16 @@ export default function HomeScreen({ navigation }) {
   useEffect(() => {
     const pulse = Animated.loop(
       Animated.sequence([
-        Animated.timing(pulseDotAnim, { toValue: 0.25, duration: 900, useNativeDriver: true }),
-        Animated.timing(pulseDotAnim, { toValue: 1, duration: 900, useNativeDriver: true }),
+        Animated.timing(pulseDotAnim, {
+          toValue: 0.25,
+          duration: 900,
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulseDotAnim, {
+          toValue: 1,
+          duration: 900,
+          useNativeDriver: true,
+        }),
       ])
     );
     pulse.start();
@@ -181,22 +483,39 @@ export default function HomeScreen({ navigation }) {
 
   const onCheckerHoverIn = () =>
     Animated.parallel([
-      Animated.timing(checkerArrowX, { toValue: 6, duration: 180, useNativeDriver: true }),
-      Animated.timing(checkerCtaScale, { toValue: 1.12, duration: 180, useNativeDriver: true }),
+      Animated.timing(checkerArrowX, {
+        toValue: 6,
+        duration: 180,
+        useNativeDriver: true,
+      }),
+      Animated.timing(checkerCtaScale, {
+        toValue: 1.12,
+        duration: 180,
+        useNativeDriver: true,
+      }),
     ]).start();
   const onCheckerHoverOut = () =>
     Animated.parallel([
-      Animated.timing(checkerArrowX, { toValue: 0, duration: 180, useNativeDriver: true }),
-      Animated.timing(checkerCtaScale, { toValue: 1, duration: 180, useNativeDriver: true }),
+      Animated.timing(checkerArrowX, {
+        toValue: 0,
+        duration: 180,
+        useNativeDriver: true,
+      }),
+      Animated.timing(checkerCtaScale, {
+        toValue: 1,
+        duration: 180,
+        useNativeDriver: true,
+      }),
     ]).start();
 
   const getFilteredSuggestions = (text) => {
     if (!text.trim()) return [];
     const lower = text.toLowerCase();
-    return SEARCH_INDEX.filter(item =>
-      item.label.toLowerCase().includes(lower) ||
-      item.hint.toLowerCase().includes(lower) ||
-      item.keywords.some(k => k.includes(lower) || lower.includes(k))
+    return SEARCH_INDEX.filter(
+      (item) =>
+        item.label.toLowerCase().includes(lower) ||
+        item.hint.toLowerCase().includes(lower) ||
+        item.keywords.some((k) => k.includes(lower) || lower.includes(k))
     ).slice(0, 6);
   };
 
@@ -258,13 +577,13 @@ export default function HomeScreen({ navigation }) {
           <View style={styles.hero}>
             <Navbar navigation={navigation} currentRoute="Home" transparent />
             <View style={styles.heroContent}>
-              <Text style={styles.heroEyebrow}>FAIRNEST — DURHAM, NC</Text>
+              <Text style={styles.heroEyebrow}>FAIRNEST DURHAM, NC</Text>
               <Text style={styles.heroTitle}>
                 Every Durham{'\n'}resident deserves{'\n'}fair housing.
               </Text>
               <Text style={styles.heroSub}>
                 Navigate your rights, report discrimination, and connect with
-                local support — all in one place, at no cost.
+                local support all in one place, at no cost.
               </Text>
               <View style={styles.searchWrapper}>
                 <View style={styles.searchRow}>
@@ -294,21 +613,30 @@ export default function HomeScreen({ navigation }) {
                   <View style={styles.searchDropdown}>
                     {query.trim() === '' ? (
                       <>
-                        <Text style={styles.dropdownSectionLabel}>Quick Actions</Text>
+                        <Text style={styles.dropdownSectionLabel}>
+                          Quick Actions
+                        </Text>
                         {QUICK_ACTIONS.map((action) => (
                           <TouchableOpacity
                             key={action.label}
                             style={[
                               styles.dropdownItem,
-                              hoveredSuggestion === action.label && styles.dropdownItemHover,
+                              hoveredSuggestion === action.label &&
+                                styles.dropdownItemHover,
                             ]}
                             onPress={() => handleSearchNavigate(action)}
-                            onMouseEnter={() => setHoveredSuggestion(action.label)}
+                            onMouseEnter={() =>
+                              setHoveredSuggestion(action.label)
+                            }
                             onMouseLeave={() => setHoveredSuggestion(null)}
                             activeOpacity={0.7}
                             accessibilityLabel={action.label}>
-                            <Text style={styles.dropdownIcon}>{action.icon}</Text>
-                            <Text style={styles.dropdownItemLabel}>{action.label}</Text>
+                            <Text style={styles.dropdownIcon}>
+                              {action.icon}
+                            </Text>
+                            <Text style={styles.dropdownItemLabel}>
+                              {action.label}
+                            </Text>
                             <Text style={styles.dropdownArrow}>→</Text>
                           </TouchableOpacity>
                         ))}
@@ -317,45 +645,62 @@ export default function HomeScreen({ navigation }) {
                           Type anything — eviction, rent, rights, lawyer...
                         </Text>
                       </>
-                    ) : (() => {
-                      const suggestions = getFilteredSuggestions(query);
-                      return suggestions.length > 0 ? (
-                        <>
-                          <Text style={styles.dropdownSectionLabel}>
-                            {suggestions.length} result{suggestions.length !== 1 ? 's' : ''}
-                          </Text>
-                          {suggestions.map((item) => (
-                            <TouchableOpacity
-                              key={item.label}
-                              style={[
-                                styles.dropdownItem,
-                                hoveredSuggestion === item.label && styles.dropdownItemHover,
-                              ]}
-                              onPress={() => handleSearchNavigate(item)}
-                              onMouseEnter={() => setHoveredSuggestion(item.label)}
-                              onMouseLeave={() => setHoveredSuggestion(null)}
-                              activeOpacity={0.7}
-                              accessibilityLabel={item.label}>
-                              <Text style={styles.dropdownIcon}>{item.icon}</Text>
-                              <View style={styles.dropdownItemBody}>
-                                <Text style={styles.dropdownItemLabel}>{item.label}</Text>
-                                <Text style={styles.dropdownItemHint}>{item.hint}</Text>
-                              </View>
-                              <View style={styles.dropdownTag}>
-                                <Text style={styles.dropdownTagText}>{item.category}</Text>
-                              </View>
-                            </TouchableOpacity>
-                          ))}
-                        </>
-                      ) : (
-                        <View style={styles.dropdownEmpty}>
-                          <Text style={styles.dropdownEmptyTitle}>No results for "{query}"</Text>
-                          <Text style={styles.dropdownEmptyHint}>
-                            Try: "eviction", "report", "rights", "schedule a call"
-                          </Text>
-                        </View>
-                      );
-                    })()}
+                    ) : (
+                      (() => {
+                        const suggestions = getFilteredSuggestions(query);
+                        return suggestions.length > 0 ? (
+                          <>
+                            <Text style={styles.dropdownSectionLabel}>
+                              {suggestions.length} result
+                              {suggestions.length !== 1 ? 's' : ''}
+                            </Text>
+                            {suggestions.map((item) => (
+                              <TouchableOpacity
+                                key={item.label}
+                                style={[
+                                  styles.dropdownItem,
+                                  hoveredSuggestion === item.label &&
+                                    styles.dropdownItemHover,
+                                ]}
+                                onPress={() => handleSearchNavigate(item)}
+                                onMouseEnter={() =>
+                                  setHoveredSuggestion(item.label)
+                                }
+                                onMouseLeave={() => setHoveredSuggestion(null)}
+                                activeOpacity={0.7}
+                                accessibilityLabel={item.label}>
+                                <Text style={styles.dropdownIcon}>
+                                  {item.icon}
+                                </Text>
+                                <View style={styles.dropdownItemBody}>
+                                  <Text style={styles.dropdownItemLabel}>
+                                    {item.label}
+                                  </Text>
+                                  <Text style={styles.dropdownItemHint}>
+                                    {item.hint}
+                                  </Text>
+                                </View>
+                                <View style={styles.dropdownTag}>
+                                  <Text style={styles.dropdownTagText}>
+                                    {item.category}
+                                  </Text>
+                                </View>
+                              </TouchableOpacity>
+                            ))}
+                          </>
+                        ) : (
+                          <View style={styles.dropdownEmpty}>
+                            <Text style={styles.dropdownEmptyTitle}>
+                              No results for "{query}"
+                            </Text>
+                            <Text style={styles.dropdownEmptyHint}>
+                              Try: "eviction", "report", "rights", "schedule a
+                              call"
+                            </Text>
+                          </View>
+                        );
+                      })()
+                    )}
                   </View>
                 )}
               </View>
@@ -400,11 +745,13 @@ export default function HomeScreen({ navigation }) {
             <View style={styles.checkerBody}>
               <View style={styles.checkerBadge}>
                 <View style={styles.checkerBadgeDot} />
-                <Text style={styles.checkerBadgeText}>FREE SELF-ASSESSMENT</Text>
+                <Text style={styles.checkerBadgeText}>
+                  FREE SELF-ASSESSMENT
+                </Text>
               </View>
               <View style={styles.checkerTitleRow}>
                 <View style={styles.checkerIconCircle}>
-                  <Text style={{ fontSize: 18 }}>🛡️</Text>
+                  <Text style={styles.checkerEmoji}>🛡️</Text>
                 </View>
                 <Text style={styles.checkerTitle}>
                   Have you been treated unfairly because of who you are?
@@ -412,7 +759,7 @@ export default function HomeScreen({ navigation }) {
               </View>
               <Text style={styles.checkerDesc}>
                 Answer a few questions to find out if your situation qualifies
-                as housing discrimination — and what to do next.
+                as housing discrimination and what to do next.
               </Text>
               <TouchableOpacity
                 style={styles.checkerCta}
@@ -421,10 +768,15 @@ export default function HomeScreen({ navigation }) {
                 onMouseLeave={onCheckerHoverOut}
                 activeOpacity={0.7}
                 accessibilityLabel="Take the free housing discrimination self-assessment">
-                <Animated.View style={[styles.checkerCtaInner, { transform: [{ scale: checkerCtaScale }] }]}>
+                <Animated.View
+                  style={[
+                    styles.checkerCtaInner,
+                    { transform: [{ scale: checkerCtaScale }] },
+                  ]}>
                   <Text style={styles.checkerCtaText}>Find out now</Text>
-                  <Animated.View style={{ transform: [{ translateX: checkerArrowX }] }}>
-                    <Text style={{ fontSize: 15, color: COLORS.primaryDeep }}>→</Text>
+                  <Animated.View
+                    style={{ transform: [{ translateX: checkerArrowX }] }}>
+                    <Text style={styles.checkerArrowText}>→</Text>
                   </Animated.View>
                 </Animated.View>
               </TouchableOpacity>
@@ -460,16 +812,40 @@ export default function HomeScreen({ navigation }) {
                   onMouseLeave={() => setHoveredCard(null)}
                   activeOpacity={0.7}
                   accessibilityLabel={card.title}>
-                  <View style={[styles.featureBar, hovered && styles.featureBarHover]} />
+                  <View
+                    style={[
+                      styles.featureBar,
+                      hovered && styles.featureBarHover,
+                    ]}
+                  />
                   <View style={styles.featureBody}>
-                    <View style={[styles.iconCircle, hovered && styles.iconCircleHover]}>
+                    <View
+                      style={[
+                        styles.iconCircle,
+                        hovered && styles.iconCircleHover,
+                      ]}>
                       <Text style={styles.iconCircleEmoji}>{card.icon}</Text>
                     </View>
                     <View style={styles.featureText}>
-                      <Text style={[styles.featureTitle, hovered && styles.featureTitleHover]}>{card.title}</Text>
-                      <Text style={[styles.featureDesc, hovered && styles.featureDescHover]}>{card.desc}</Text>
+                      <Text
+                        style={[
+                          styles.featureTitle,
+                          hovered && styles.featureTitleHover,
+                        ]}>
+                        {card.title}
+                      </Text>
+                      <Text
+                        style={[
+                          styles.featureDesc,
+                          hovered && styles.featureDescHover,
+                        ]}>
+                        {card.desc}
+                      </Text>
                     </View>
-                    <Text style={[styles.chevron, hovered && styles.chevronHover]}>›</Text>
+                    <Text
+                      style={[styles.chevron, hovered && styles.chevronHover]}>
+                      ›
+                    </Text>
                   </View>
                 </TouchableOpacity>
               );
@@ -500,7 +876,7 @@ export default function HomeScreen({ navigation }) {
                     styles.impactCardLast,
                 ]}>
                 <View style={styles.impactIconWrap}>
-                  <Text style={{ fontSize: 18 }}>{stat.icon}</Text>
+                  <Text style={styles.impactEmoji}>{stat.icon}</Text>
                 </View>
                 <View style={styles.impactNumberRow}>
                   <Text style={styles.impactNumber}>{stat.number}</Text>
@@ -542,18 +918,38 @@ export default function HomeScreen({ navigation }) {
                     onMouseLeave={() => setHoveredStep(null)}
                     activeOpacity={0.85}
                     accessibilityLabel={step.title}>
-                    <View style={[styles.stepBadge, stepHovered && styles.stepBadgeHover]}>
-                      <Text style={[styles.stepBadgeNum, stepHovered && styles.stepBadgeNumHover]}>
+                    <View
+                      style={[
+                        styles.stepBadge,
+                        stepHovered && styles.stepBadgeHover,
+                      ]}>
+                      <Text
+                        style={[
+                          styles.stepBadgeNum,
+                          stepHovered && styles.stepBadgeNumHover,
+                        ]}>
                         {step.num}
                       </Text>
                     </View>
-                    <View style={[styles.stepIconWrap, stepHovered && styles.stepIconWrapHover]}>
-                      <Text style={{ fontSize: 26 }}>{step.icon}</Text>
+                    <View
+                      style={[
+                        styles.stepIconWrap,
+                        stepHovered && styles.stepIconWrapHover,
+                      ]}>
+                      <Text style={styles.stepEmoji}>{step.icon}</Text>
                     </View>
-                    <Text style={[styles.stepTitle, stepHovered && styles.stepTitleHover]}>
+                    <Text
+                      style={[
+                        styles.stepTitle,
+                        stepHovered && styles.stepTitleHover,
+                      ]}>
                       {step.title}
                     </Text>
-                    <Text style={[styles.stepDesc, stepHovered && styles.stepDescHover]}>
+                    <Text
+                      style={[
+                        styles.stepDesc,
+                        stepHovered && styles.stepDescHover,
+                      ]}>
                       {step.desc}
                     </Text>
                   </TouchableOpacity>
@@ -576,33 +972,48 @@ export default function HomeScreen({ navigation }) {
           </Text>
           <Text style={styles.ctaSub}>
             FairNest was built by NCCU students to give you the tools to
-            understand, document, and fight housing discrimination — at no cost.
+            understand, document, and fight housing discrimination at no cost.
           </Text>
           <View style={[styles.ctaBtns, isWide && styles.ctaBtnsWide]}>
             <TouchableOpacity
-              style={[styles.ctaBtnPrimary, hoveredCtaPrimary && styles.ctaBtnPrimaryHover]}
+              style={[
+                styles.ctaBtnPrimary,
+                hoveredCtaPrimary && styles.ctaBtnPrimaryHover,
+              ]}
               onPress={() => navigation.navigate('DiscriminationChecker')}
               onMouseEnter={() => setHoveredCtaPrimary(true)}
               onMouseLeave={() => setHoveredCtaPrimary(false)}
               activeOpacity={0.7}
               accessibilityLabel="Get started with the discrimination checker">
-              <Text style={[styles.ctaBtnPrimaryText, hoveredCtaPrimary && styles.ctaBtnPrimaryTextHover]}>
-                Get Started — It's Free
+              <Text
+                style={[
+                  styles.ctaBtnPrimaryText,
+                  hoveredCtaPrimary && styles.ctaBtnPrimaryTextHover,
+                ]}>
+                Get Started It's Free
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.ctaBtnSecondary, hoveredCtaSecondary && styles.ctaBtnSecondaryHover]}
+              style={[
+                styles.ctaBtnSecondary,
+                hoveredCtaSecondary && styles.ctaBtnSecondaryHover,
+              ]}
               onPress={() => navigation.navigate('About')}
               onMouseEnter={() => setHoveredCtaSecondary(true)}
               onMouseLeave={() => setHoveredCtaSecondary(false)}
               activeOpacity={0.7}
               accessibilityLabel="Learn about FairNest">
-              <Text style={[styles.ctaBtnSecondaryText, hoveredCtaSecondary && styles.ctaBtnSecondaryTextHover]}>Learn About Us</Text>
+              <Text
+                style={[
+                  styles.ctaBtnSecondaryText,
+                  hoveredCtaSecondary && styles.ctaBtnSecondaryTextHover,
+                ]}>
+                Learn About Us
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
       </ScrollView>
-
     </View>
   );
 }
@@ -943,7 +1354,12 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.03)',
   },
   checkerBar: { width: 8, backgroundColor: COLORS.amber },
-  checkerBody: { flex: 1, paddingVertical: 56, paddingHorizontal: 48, alignItems: 'center' },
+  checkerBody: {
+    flex: 1,
+    paddingVertical: 56,
+    paddingHorizontal: 48,
+    alignItems: 'center',
+  },
   checkerEyebrow: {
     fontSize: fontSize.tiny,
     ...font.bold,
@@ -961,14 +1377,21 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   checkerIconCircle: {
-    width: 38,
-    height: 38,
-    borderRadius: 10,
+    width: 40,
+    height: 40,
+    borderRadius: 12,
     backgroundColor: 'rgba(232,160,0,0.16)',
     justifyContent: 'center',
     alignItems: 'center',
     flexShrink: 0,
-    marginTop: 2,
+    marginTop: 4,
+  },
+  checkerEmoji: {
+    fontSize: 18,
+  },
+  checkerArrowText: {
+    fontSize: 16,
+    color: COLORS.primaryDeep,
   },
   checkerTitle: {
     flex: 1,
@@ -1049,6 +1472,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 16,
+  },
+  stepEmoji: {
+    fontSize: 24,
   },
   stepTitle: {
     fontSize: fontSize.h4,
@@ -1212,7 +1638,10 @@ const styles = StyleSheet.create({
   },
   ctaBtnPrimaryHover: { backgroundColor: COLORS.primary },
   ctaBtnPrimaryTextHover: { color: COLORS.white },
-  ctaBtnSecondaryHover: { backgroundColor: COLORS.white, borderColor: COLORS.white },
+  ctaBtnSecondaryHover: {
+    backgroundColor: COLORS.white,
+    borderColor: COLORS.white,
+  },
   ctaBtnSecondaryTextHover: { color: COLORS.primaryDeep },
 
   // ── Emergency bar ─────────────────────────────────────────────────────────
@@ -1320,6 +1749,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 12,
+  },
+  impactEmoji: {
+    fontSize: 18,
   },
   impactNumber: {
     fontSize: 56,
@@ -1509,6 +1941,6 @@ const styles = StyleSheet.create({
   },
 
   iconCircleEmoji: { fontSize: 20 },
-  chevron:         { fontSize: 18, color: COLORS.border, marginLeft: 4 },
-  chevronHover:    { color: COLORS.primary },
+  chevron: { fontSize: 18, color: COLORS.border, marginLeft: 4 },
+  chevronHover: { color: COLORS.primary },
 });

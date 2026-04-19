@@ -114,6 +114,129 @@ const PROTECTED_CLASSES = [
   },
 ];
 
+const DISCRIMINATION_SCENARIOS = [
+  {
+    id: 'steering',
+    title: 'Neighborhood Steering',
+    example:
+      'A real estate agent only shows you properties in certain neighborhoods based on your race or ethnicity, while showing other areas to white clients.',
+    violation: 'Race and national origin discrimination under the Fair Housing Act.',
+    tip: 'Document which properties were shown to you vs. what was available. Request listings in writing.',
+  },
+  {
+    id: 'familial',
+    title: 'Refusing Families with Children',
+    example:
+      'A landlord tells you the unit is unavailable after learning you have children, but you later see it listed again online.',
+    violation: 'Familial status discrimination — unless the property qualifies as senior housing.',
+    tip: 'Save the original listing, screenshot the re-posted ad, and note the dates of each interaction.',
+  },
+  {
+    id: 'disability-denial',
+    title: 'Denying a Reasonable Accommodation',
+    example:
+      'Your landlord refuses to allow an emotional support animal despite a letter from your doctor, citing a "no pets" policy.',
+    violation: 'Disability discrimination — assistance animals are not pets under fair housing law.',
+    tip: 'Put your accommodation request in writing. Keep copies of your medical documentation and any landlord response.',
+  },
+  {
+    id: 'retaliation',
+    title: 'Retaliation After a Complaint',
+    example:
+      'After you report a maintenance issue or ask about your rights, your landlord raises your rent, threatens eviction, or stops making repairs.',
+    violation: 'Retaliation is separately prohibited under the Fair Housing Act.',
+    tip: 'Document the timeline: when you complained, what changed afterward, and any written notices.',
+  },
+  {
+    id: 'different-terms',
+    title: 'Different Terms or Conditions',
+    example:
+      'A property manager requires a higher security deposit from tenants of a certain national origin, or enforces guest policies more strictly against certain tenants.',
+    violation: 'Discrimination in terms, conditions, or privileges of housing.',
+    tip: 'Compare your lease terms with neighbors if possible. Note any verbal rules that differ from the written lease.',
+  },
+  {
+    id: 'harassment',
+    title: 'Hostile Housing Environment',
+    example:
+      'A landlord or neighbor repeatedly makes slurs, threats, or unwanted advances that make you feel unsafe in your home.',
+    violation: 'Harassment based on a protected class can violate both federal and Durham fair housing law.',
+    tip: 'Keep a written log with dates, times, witnesses, and exact words. Report threats to police and to a fair housing agency.',
+  },
+];
+
+const FAIR_HOUSING_ACT_SECTIONS = [
+  {
+    id: 'what-is-it',
+    title: 'What is the Fair Housing Act?',
+    content:
+      'The Fair Housing Act is a federal law (Title VIII of the Civil Rights Act of 1968) that prohibits discrimination in housing because of race, color, national origin, religion, sex, familial status, or disability. It covers most housing including rentals, sales, lending, and insurance. The law was strengthened by amendments in 1988 that added disability and familial status protections.',
+  },
+  {
+    id: 'who-it-covers',
+    title: 'Who does it protect?',
+    content:
+      'The law protects anyone who is buying, renting, or living in housing from being treated differently because of a protected characteristic. This includes tenants, homebuyers, people seeking mortgage loans, and residents of apartments, houses, condos, and mobile homes. It also protects people who help others exercise their fair housing rights.',
+  },
+  {
+    id: 'what-it-prohibits',
+    title: 'What does it prohibit?',
+    content:
+      'The Act makes it illegal to refuse to rent or sell housing, set different terms or conditions, falsely deny availability, make discriminatory advertisements, threaten or retaliate against someone exercising their rights, or fail to make reasonable accommodations for people with disabilities. It covers actions by landlords, real estate agents, lenders, homeowner associations, and local governments.',
+  },
+  {
+    id: 'durham-additions',
+    title: 'How does Durham go further?',
+    content:
+      'The City of Durham\'s fair housing ordinance adds protections beyond the federal baseline. Durham includes sexual orientation, gender identity, military status, and protected hairstyles as locally protected classes. The city\'s Human Relations Division handles local complaints and can investigate violations of both federal and local protections.',
+  },
+  {
+    id: 'enforcement',
+    title: 'How is it enforced?',
+    content:
+      'Fair housing complaints can be filed with HUD (the U.S. Department of Housing and Urban Development), the North Carolina Human Relations Commission, or Durham Human Relations. HUD investigates complaints at no cost to the person filing. If a violation is found, remedies can include compensation, policy changes, civil penalties, and injunctive relief.',
+  },
+];
+
+const COMPLAINT_PROCESS_STEPS = [
+  {
+    id: 'recognize',
+    step: '01',
+    title: 'Recognize the issue',
+    desc: 'Ask whether the treatment you experienced is connected to a protected characteristic — race, disability, family status, religion, sex, national origin, or a Durham-protected class. Not every bad landlord experience is discrimination, but if the reason relates to who you are, it may be.',
+  },
+  {
+    id: 'gather',
+    step: '02',
+    title: 'Gather your evidence',
+    desc: 'Save everything: emails, text messages, lease agreements, photos, ads, notices, voicemails, and written notes with dates. The stronger your documentation, the easier it is for an investigator to act on your complaint.',
+  },
+  {
+    id: 'contact',
+    step: '03',
+    title: 'Contact a fair housing organization',
+    desc: 'Before filing, you can talk to Legal Aid NC (1-855-797-FAIR), Durham Human Relations (919-560-4570), or a local housing counselor. They can help you understand whether you have a case and what filing option fits best.',
+  },
+  {
+    id: 'file',
+    step: '04',
+    title: 'File a complaint',
+    desc: 'You can file with HUD online at hud.gov, by phone at 1-800-669-9777, or in person at a local HUD office. You can also file with Durham Human Relations or the NC Human Relations Commission. HUD complaints should be filed within 1 year of the last discriminatory act.',
+  },
+  {
+    id: 'investigation',
+    step: '05',
+    title: 'Investigation begins',
+    desc: 'After filing, HUD or the local agency will notify the housing provider, gather evidence from both sides, and may interview witnesses. The investigator decides whether there is reasonable cause to believe discrimination occurred. This process can take several months.',
+  },
+  {
+    id: 'resolution',
+    step: '06',
+    title: 'Resolution or hearing',
+    desc: 'If reasonable cause is found, the case may be resolved through conciliation (a voluntary agreement), an administrative hearing, or a federal court case. Remedies can include monetary damages, policy changes, and civil penalties. If no cause is found, you may still pursue a private lawsuit within 2 years.',
+  },
+];
+
 const QUICK_FACTS = [
   {
     label: 'HUD timing',
@@ -209,6 +332,9 @@ export default function HousingRightsScreen({ navigation }) {
   const [hoveredAction, setHoveredAction] = useState(null);
   const [hoveredClass, setHoveredClass] = useState(null);
   const [selectedClass, setSelectedClass] = useState(PROTECTED_CLASSES[0].id);
+  const [expandedScenario, setExpandedScenario] = useState(null);
+  const [expandedArticle, setExpandedArticle] = useState(null);
+  const [expandedStep, setExpandedStep] = useState(null);
 
   const activeClass =
     PROTECTED_CLASSES.find((item) => item.id === hoveredClass) ||
@@ -220,16 +346,6 @@ export default function HousingRightsScreen({ navigation }) {
       style={styles.container}
       contentContainerStyle={styles.pageFill}>
       <Navbar navigation={navigation} currentRoute="HousingRights" />
-
-      <View style={styles.breadcrumb}>
-        <Text
-          onPress={() => navigation.navigate('Home')}
-          style={styles.breadcrumbLink}>
-          Home
-        </Text>
-        <Text style={styles.breadcrumbSep}> / </Text>
-        <Text style={styles.breadcrumbCurrent}>Housing Rights</Text>
-      </View>
 
       <View style={styles.hero}>
         <View style={styles.heroGlowA} />
@@ -374,6 +490,152 @@ export default function HousingRightsScreen({ navigation }) {
           </View>
 
           <View style={styles.sectionBlock}>
+            <Text style={styles.sectionLabel}>COMMON SCENARIOS</Text>
+            <Text style={styles.sectionTitle}>
+              Recognizing housing discrimination
+            </Text>
+            <Text style={styles.sectionDesc}>
+              These real-world examples show how discrimination can appear in
+              everyday housing situations. Tap any scenario to see more detail.
+            </Text>
+
+            <View style={styles.articleList}>
+              {DISCRIMINATION_SCENARIOS.map((item) => {
+                const isOpen = expandedScenario === item.id;
+                return (
+                  <TouchableOpacity
+                    key={item.id}
+                    style={[styles.articleCard, isOpen && styles.articleCardOpen]}
+                    onPress={() =>
+                      setExpandedScenario(isOpen ? null : item.id)
+                    }
+                    activeOpacity={0.75}
+                    accessibilityLabel={`${item.title} scenario`}>
+                    <View style={styles.articleHeader}>
+                      <Text style={styles.articleTitle}>{item.title}</Text>
+                      <Text style={styles.articleToggle}>
+                        {isOpen ? '−' : '+'}
+                      </Text>
+                    </View>
+                    {isOpen && (
+                      <View style={styles.articleBody}>
+                        <Text style={styles.articleSubhead}>Example</Text>
+                        <Text style={styles.articleText}>{item.example}</Text>
+                        <Text style={styles.articleSubhead}>Why it violates the law</Text>
+                        <Text style={styles.articleText}>{item.violation}</Text>
+                        <Text style={styles.articleSubhead}>What to do</Text>
+                        <Text style={styles.articleText}>{item.tip}</Text>
+                      </View>
+                    )}
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </View>
+
+          <View style={styles.sectionBlock}>
+            <Text style={styles.sectionLabel}>THE LAW</Text>
+            <Text style={styles.sectionTitle}>
+              Understanding the Fair Housing Act
+            </Text>
+            <Text style={styles.sectionDesc}>
+              The Fair Housing Act is the foundation of housing discrimination
+              protections in the United States. Tap any section to learn more.
+            </Text>
+
+            <View style={styles.articleList}>
+              {FAIR_HOUSING_ACT_SECTIONS.map((item) => {
+                const isOpen = expandedArticle === item.id;
+                return (
+                  <TouchableOpacity
+                    key={item.id}
+                    style={[styles.articleCard, isOpen && styles.articleCardOpen]}
+                    onPress={() =>
+                      setExpandedArticle(isOpen ? null : item.id)
+                    }
+                    activeOpacity={0.75}
+                    accessibilityLabel={`${item.title} article`}>
+                    <View style={styles.articleHeader}>
+                      <Text style={styles.articleTitle}>{item.title}</Text>
+                      <Text style={styles.articleToggle}>
+                        {isOpen ? '−' : '+'}
+                      </Text>
+                    </View>
+                    {isOpen && (
+                      <View style={styles.articleBody}>
+                        <Text style={styles.articleText}>{item.content}</Text>
+                      </View>
+                    )}
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+
+            <View style={styles.sourceRow}>
+              <Text style={styles.sourceLabel}>Sources: </Text>
+              <Text
+                style={styles.sourceLink}
+                onPress={() =>
+                  Linking.openURL('https://www.hud.gov/program_offices/fair_housing_equal_opp/fair_housing_act_overview')
+                }>
+                HUD.gov — Fair Housing Act
+              </Text>
+              <Text style={styles.sourceSep}> · </Text>
+              <Text
+                style={styles.sourceLink}
+                onPress={() =>
+                  Linking.openURL('https://www.justice.gov/crt/fair-housing-act-1')
+                }>
+                DOJ — Fair Housing Act Text
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.sectionBlock}>
+            <Text style={styles.sectionLabel}>COMPLAINT PROCESS</Text>
+            <Text style={styles.sectionTitle}>
+              How a fair housing complaint works
+            </Text>
+            <Text style={styles.sectionDesc}>
+              Filing a complaint is free and confidential. Here is what happens
+              at each stage, from recognizing an issue to resolution.
+            </Text>
+
+            <View style={styles.articleList}>
+              {COMPLAINT_PROCESS_STEPS.map((item) => {
+                const isOpen = expandedStep === item.id;
+                return (
+                  <TouchableOpacity
+                    key={item.id}
+                    style={[styles.articleCard, isOpen && styles.articleCardOpen]}
+                    onPress={() =>
+                      setExpandedStep(isOpen ? null : item.id)
+                    }
+                    activeOpacity={0.75}
+                    accessibilityLabel={`Step ${item.step}: ${item.title}`}>
+                    <View style={styles.articleHeader}>
+                      <View style={styles.stepBadge}>
+                        <Text style={styles.stepBadgeText}>{item.step}</Text>
+                      </View>
+                      <Text style={[styles.articleTitle, { flex: 1 }]}>
+                        {item.title}
+                      </Text>
+                      <Text style={styles.articleToggle}>
+                        {isOpen ? '−' : '+'}
+                      </Text>
+                    </View>
+                    {isOpen && (
+                      <View style={styles.articleBody}>
+                        <Text style={styles.articleText}>{item.desc}</Text>
+                      </View>
+                    )}
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </View>
+
+          <View style={styles.sectionBlock}>
             <Text style={styles.sectionLabel}>TAKE ACTION</Text>
             <Text style={styles.sectionTitle}>What you can do next</Text>
             <View
@@ -500,29 +762,6 @@ const styles = StyleSheet.create({
   },
   pageFill: {
     paddingBottom: 56,
-  },
-  breadcrumb: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    backgroundColor: COLORS.white,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
-  },
-  breadcrumbLink: {
-    fontSize: fontSize.caption,
-    color: COLORS.primary,
-    ...font.bold,
-  },
-  breadcrumbSep: {
-    fontSize: fontSize.caption,
-    color: '#A1A79F',
-    marginHorizontal: 4,
-  },
-  breadcrumbCurrent: {
-    fontSize: fontSize.caption,
-    color: COLORS.textMuted,
   },
   hero: {
     position: 'relative',
@@ -962,6 +1201,98 @@ const styles = StyleSheet.create({
     color: COLORS.textMuted,
     fontSize: fontSize.caption,
     lineHeight: 22,
+  },
+  articleList: {
+    gap: 8,
+    marginTop: 8,
+  },
+  articleCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(27, 94, 32, 0.08)',
+    overflow: 'hidden',
+  },
+  articleCardOpen: {
+    borderColor: 'rgba(46, 125, 50, 0.2)',
+    shadowColor: '#142013',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.04,
+    shadowRadius: 12,
+    elevation: 2,
+  },
+  articleHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    gap: 12,
+  },
+  articleTitle: {
+    flex: 1,
+    fontSize: fontSize.body,
+    color: COLORS.textPrimary,
+    ...font.bold,
+  },
+  articleToggle: {
+    fontSize: fontSize.subtitle,
+    color: COLORS.primary,
+    ...font.bold,
+    width: 24,
+    textAlign: 'center',
+  },
+  articleBody: {
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+    paddingTop: 4,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(27, 94, 32, 0.06)',
+  },
+  articleSubhead: {
+    fontSize: fontSize.caption,
+    color: COLORS.primary,
+    ...font.extra,
+    letterSpacing: 0.5,
+    marginTop: 12,
+    marginBottom: 4,
+  },
+  articleText: {
+    fontSize: fontSize.small,
+    color: COLORS.textMuted,
+    lineHeight: 22,
+  },
+  stepBadge: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: COLORS.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  stepBadgeText: {
+    fontSize: fontSize.caption,
+    color: '#FFFFFF',
+    ...font.extra,
+  },
+  sourceRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    marginTop: 16,
+  },
+  sourceLabel: {
+    fontSize: fontSize.caption,
+    color: COLORS.textMuted,
+    ...font.medium,
+  },
+  sourceLink: {
+    fontSize: fontSize.caption,
+    color: COLORS.primary,
+    ...font.bold,
+  },
+  sourceSep: {
+    fontSize: fontSize.caption,
+    color: COLORS.textMuted,
   },
   resourcesCard: {
     backgroundColor: '#FFFFFF',

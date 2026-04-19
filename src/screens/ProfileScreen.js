@@ -26,20 +26,9 @@ import {
 } from 'firebase/firestore';
 import { updatePassword, deleteUser } from 'firebase/auth';
 import { db } from '../firebaseConfig';
-import { COLORS } from '../utils/constants';
+import { COLORS, STATUS_COLORS, STATUS_LABELS } from '../utils/constants';
 import { font } from '../theme/typography';
 import Navbar from '../components/Navbar';
-
-const STATUS_COLORS = {
-  pending: { bg: '#FFF8E1', text: '#F57F17', border: '#FFE082' },
-  reviewed: { bg: '#E3F2FD', text: '#1565C0', border: '#90CAF9' },
-  resolved: { bg: '#E8F5E9', text: '#2E7D32', border: '#A5D6A7' },
-};
-const STATUS_LABELS = {
-  pending: 'Pending',
-  reviewed: 'Under Review',
-  resolved: 'Resolved',
-};
 
 const CALL_TYPE_LABELS = {
   advocate: '⚖️ Advocate Call',
@@ -460,7 +449,7 @@ export default function ProfileScreen({ navigation, route }) {
                       value={firstName}
                       onChangeText={setFirstName}
                       placeholder="First name"
-                      placeholderTextColor="#bbb"
+                      placeholderTextColor={COLORS.placeholder}
                     />
                   </View>
                   <View style={[styles.field, isWide && { flex: 1 }]}>
@@ -470,7 +459,7 @@ export default function ProfileScreen({ navigation, route }) {
                       value={lastName}
                       onChangeText={setLastName}
                       placeholder="Last name"
-                      placeholderTextColor="#bbb"
+                      placeholderTextColor={COLORS.placeholder}
                     />
                   </View>
                 </View>
@@ -482,7 +471,7 @@ export default function ProfileScreen({ navigation, route }) {
                     value={email}
                     onChangeText={setEmail}
                     placeholder="Email address"
-                    placeholderTextColor="#bbb"
+                    placeholderTextColor={COLORS.placeholder}
                     keyboardType="email-address"
                     autoCapitalize="none"
                   />
@@ -498,7 +487,7 @@ export default function ProfileScreen({ navigation, route }) {
                     onChangeText={setPhone}
                     keyboardType="phone-pad"
                     placeholder="e.g. 919-555-0100"
-                    placeholderTextColor="#bbb"
+                    placeholderTextColor={COLORS.placeholder}
                   />
                 </View>
 
@@ -539,7 +528,7 @@ export default function ProfileScreen({ navigation, route }) {
                     onChangeText={setOldPassword}
                     secureTextEntry
                     placeholder="Enter current password"
-                    placeholderTextColor="#bbb"
+                    placeholderTextColor={COLORS.placeholder}
                   />
                 </View>
                 <View style={styles.field}>
@@ -550,7 +539,7 @@ export default function ProfileScreen({ navigation, route }) {
                     onChangeText={setNewPassword}
                     secureTextEntry
                     placeholder="Min. 8 characters"
-                    placeholderTextColor="#bbb"
+                    placeholderTextColor={COLORS.placeholder}
                   />
                 </View>
                 <View style={styles.field}>
@@ -561,7 +550,7 @@ export default function ProfileScreen({ navigation, route }) {
                     onChangeText={setConfirmPassword}
                     secureTextEntry
                     placeholder="Re-enter new password"
-                    placeholderTextColor="#bbb"
+                    placeholderTextColor={COLORS.placeholder}
                   />
                 </View>
 
@@ -581,19 +570,19 @@ export default function ProfileScreen({ navigation, route }) {
 
             <View style={[styles.card, styles.dangerCard]}>
               <View
-                style={[styles.cardAccent, { backgroundColor: '#D32F2F' }]}
+                style={[styles.cardAccent, { backgroundColor: COLORS.error }]}
               />
               <View style={styles.cardInner}>
                 <View style={styles.cardHeader}>
                   <View
                     style={[
                       styles.cardIconWrap,
-                      { backgroundColor: '#FFEBEE' },
+                      { backgroundColor: COLORS.dangerBg },
                     ]}>
                     <Text style={styles.cardIconEmoji}>⚠️</Text>
                   </View>
                   <View>
-                    <Text style={[styles.cardTitle, { color: '#C62828' }]}>
+                    <Text style={[styles.cardTitle, { color: COLORS.dangerText }]}>
                       Delete Account
                     </Text>
                     <Text style={styles.cardSubtitle}>
@@ -1039,7 +1028,7 @@ const styles = StyleSheet.create({
   tabBtnActive: {},
   tabBtnHover: { backgroundColor: COLORS.greenTint },
   tabEmoji: { fontSize: 15 },
-  tabText: { fontSize: 13, color: '#999', ...font.regular },
+  tabText: { fontSize: 13, color: COLORS.muted, ...font.regular },
   tabTextActive: { color: COLORS.primaryDeep, ...font.bold },
   tabUnderline: {
     position: 'absolute',
@@ -1060,8 +1049,8 @@ const styles = StyleSheet.create({
   feedbackSuccess: { backgroundColor: '#E8F5E9', borderColor: '#A5D6A7' },
   feedbackError: { backgroundColor: '#FFEBEE', borderColor: '#EF9A9A' },
   feedbackText: { fontSize: 14, textAlign: 'center', ...font.regular },
-  feedbackTextSuccess: { color: '#2E7D32' },
-  feedbackTextError: { color: '#C62828' },
+  feedbackTextSuccess: { color: COLORS.primary },
+  feedbackTextError: { color: COLORS.dangerText },
 
   // ── Cards ─────────────────────────────────────────────────────────────────
   card: {
@@ -1078,7 +1067,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#f0f0f0',
   },
-  dangerCard: { borderColor: '#FFCDD2' },
+  dangerCard: { borderColor: COLORS.dangerBorder },
   cardAccent: { width: 5, backgroundColor: COLORS.primary },
   cardInner: { flex: 1, padding: 22 },
   cardHeader: {
@@ -1091,66 +1080,66 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 12,
-    backgroundColor: '#E8F5E9',
+    backgroundColor: COLORS.iconTint,
     justifyContent: 'center',
     alignItems: 'center',
   },
   cardIconEmoji: { fontSize: 22 },
-  cardTitle: { fontSize: 16, ...font.bold, color: '#1a1a1a' },
-  cardSubtitle: { fontSize: 12, color: '#999', marginTop: 2 },
+  cardTitle: { fontSize: 16, ...font.bold, color: COLORS.textPrimary },
+  cardSubtitle: { fontSize: 12, color: COLORS.muted, marginTop: 4 },
 
   // ── Form ──────────────────────────────────────────────────────────────────
   row: { gap: 12 },
   rowWide: { flexDirection: 'row', gap: 16 },
   field: { marginBottom: 16 },
-  label: { fontSize: 13, ...font.semi, color: '#555', marginBottom: 7 },
-  optional: { ...font.regular, color: '#bbb' },
+  label: { fontSize: 13, ...font.semi, color: COLORS.textMuted, marginBottom: 8 },
+  optional: { ...font.regular, color: COLORS.muted },
   input: {
     borderWidth: 1.5,
-    borderColor: '#e8e8e8',
-    borderRadius: 10,
-    paddingHorizontal: 14,
+    borderColor: COLORS.border,
+    borderRadius: 12,
+    paddingHorizontal: 16,
     paddingVertical: 12,
     fontSize: 14,
     backgroundColor: COLORS.greenTint,
-    color: '#1a1a1a',
+    color: COLORS.textPrimary,
   },
 
   // ── Buttons ───────────────────────────────────────────────────────────────
   primaryBtn: {
     backgroundColor: COLORS.primaryDeep,
-    padding: 15,
-    borderRadius: 10,
+    padding: 16,
+    borderRadius: 12,
     alignItems: 'center',
     marginTop: 4,
   },
-  primaryBtnHover: { backgroundColor: '#163d18' },
-  primaryBtnText: { color: '#fff', ...font.extra, fontSize: 14 },
+  primaryBtnHover: { backgroundColor: COLORS.hoverDeep },
+  primaryBtnText: { color: COLORS.white, ...font.extra, fontSize: 14 },
   secondaryBtn: {
     backgroundColor: '#37474F',
-    padding: 14,
-    borderRadius: 10,
+    padding: 16,
+    borderRadius: 12,
     alignItems: 'center',
   },
   secondaryBtnHover: { backgroundColor: '#263238' },
-  secondaryBtnText: { color: '#fff', ...font.bold, fontSize: 14 },
+  secondaryBtnText: { color: COLORS.white, ...font.bold, fontSize: 14 },
   deleteBtn: {
-    backgroundColor: '#D32F2F',
-    padding: 14,
-    borderRadius: 10,
+    backgroundColor: COLORS.error,
+    padding: 16,
+    borderRadius: 12,
     alignItems: 'center',
     marginTop: 8,
   },
-  deleteBtnHover: { backgroundColor: '#b71c1c' },
-  deleteBtnText: { color: '#fff', ...font.bold, fontSize: 14 },
+  deleteBtnHover: { backgroundColor: COLORS.dangerDeep },
+  deleteBtnText: { color: COLORS.white, ...font.bold, fontSize: 14 },
 
   // ── Empty state ────────────────────────────────────────────────────────────
   emptyState: { alignItems: 'center', paddingVertical: 60, gap: 12 },
   emptyIcon: { fontSize: 52 },
-  emptyTitle: { fontSize: 20, ...font.bold, color: '#333' },
+  emptyTitle: { fontSize: 20, ...font.bold, color: COLORS.textPrimary },
   emptyText: {
     fontSize: 14,
-    color: '#777',
+    color: COLORS.textMuted,
     textAlign: 'center',
     maxWidth: 320,
     lineHeight: 22,
@@ -1164,7 +1153,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: '#e8e8e8',
+    borderColor: COLORS.border,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
@@ -1172,7 +1161,7 @@ const styles = StyleSheet.create({
     elevation: 1,
   },
   reportAccent: { width: 5 },
-  reportBody: { flex: 1, padding: 18 },
+  reportBody: { flex: 1, padding: 16 },
   reportCardTop: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -1182,10 +1171,10 @@ const styles = StyleSheet.create({
   reportType: {
     fontSize: 16,
     ...font.bold,
-    color: '#1a1a1a',
+    color: COLORS.textPrimary,
     marginBottom: 8,
   },
-  reportDate: { fontSize: 12, color: '#999' },
+  reportDate: { fontSize: 12, color: COLORS.muted },
   statusBadge: {
     borderWidth: 1,
     borderRadius: 20,
@@ -1195,16 +1184,16 @@ const styles = StyleSheet.create({
   statusText: { fontSize: 11, ...font.bold },
   reportTagRow: { flexDirection: 'row', marginBottom: 10 },
   reportTag: {
-    backgroundColor: '#E8F5E9',
-    borderRadius: 6,
-    paddingHorizontal: 10,
+    backgroundColor: COLORS.iconTint,
+    borderRadius: 8,
+    paddingHorizontal: 12,
     paddingVertical: 4,
   },
-  reportTagText: { fontSize: 12, color: '#2E7D32', ...font.semi },
+  reportTagText: { fontSize: 12, color: COLORS.primary, ...font.semi },
   reportDescription: {
     fontSize: 14,
-    color: '#555',
-    lineHeight: 22,
+    color: COLORS.textMuted,
+    lineHeight: 24,
     marginBottom: 12,
   },
   resolutionBox: {
@@ -1222,7 +1211,7 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
     marginBottom: 4,
   },
-  resolutionText: { fontSize: 13, color: '#555', lineHeight: 20 },
+  resolutionText: { fontSize: 13, color: COLORS.textMuted, lineHeight: 20 },
   scheduleCallBtn: {
     borderWidth: 1.5,
     borderColor: COLORS.primary,
@@ -1256,8 +1245,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 4,
   },
-  callTypeLabel: { fontSize: 16, ...font.bold, color: '#1a1a1a' },
-  callDate: { fontSize: 12, color: '#999' },
+  callTypeLabel: { fontSize: 16, ...font.bold, color: COLORS.textPrimary },
+  callDate: { fontSize: 12, color: COLORS.muted },
   callDetailGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -1271,8 +1260,8 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     minWidth: 130,
   },
-  callDetailLabel: { fontSize: 11, color: '#888', marginBottom: 2 },
-  callDetailValue: { fontSize: 13, ...font.semi, color: '#1a1a1a' },
+  callDetailLabel: { fontSize: 11, color: COLORS.subtle, marginBottom: 4 },
+  callDetailValue: { fontSize: 13, ...font.semi, color: COLORS.textPrimary },
   callNotesBox: {
     backgroundColor: '#f9f9f9',
     borderRadius: 8,
@@ -1288,15 +1277,15 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
     marginBottom: 4,
   },
-  callNotesText: { fontSize: 13, color: '#555', lineHeight: 20 },
+  callNotesText: { fontSize: 13, color: COLORS.textMuted, lineHeight: 20 },
   callLinkedBadge: {
-    backgroundColor: '#E8F5E9',
-    borderRadius: 6,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
+    backgroundColor: COLORS.iconTint,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
     alignSelf: 'flex-start',
   },
-  callLinkedText: { fontSize: 12, color: '#2E7D32', ...font.semi },
+  callLinkedText: { fontSize: 12, color: COLORS.primary, ...font.semi },
 
   // ── Expandable report / call header ───────────────────────────────────────
   reportHeader: {
@@ -1312,22 +1301,22 @@ const styles = StyleSheet.create({
     gap: 8,
     flexShrink: 0,
   },
-  reportMeta: { fontSize: 12, color: '#999', marginTop: 3 },
-  chevron: { fontSize: 11, color: '#999' },
+  reportMeta: { fontSize: 12, color: COLORS.muted, marginTop: 4 },
+  chevron: { fontSize: 11, color: COLORS.muted },
 
   // ── Expanded detail area ──────────────────────────────────────────────────
   reportDetail: { paddingTop: 4 },
-  detailDivider: { height: 1, backgroundColor: '#eee', marginVertical: 14 },
+  detailDivider: { height: 1, backgroundColor: COLORS.divider, marginVertical: 16 },
   detailLabel: {
     fontSize: 11,
     ...font.bold,
-    color: '#888',
+    color: COLORS.subtle,
     letterSpacing: 0.8,
     textTransform: 'uppercase',
     marginBottom: 4,
     marginTop: 12,
   },
-  detailText: { fontSize: 14, color: '#444', lineHeight: 21 },
+  detailText: { fontSize: 14, color: COLORS.textMuted, lineHeight: 24 },
 
   // ── Evidence file buttons ─────────────────────────────────────────────────
   evidenceRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 4 },
@@ -1348,14 +1337,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#FFCDD2',
+    borderColor: COLORS.dangerBorder,
     borderRadius: 8,
-    paddingHorizontal: 14,
-    paddingVertical: 9,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
     backgroundColor: '#FFF5F5',
   },
   withdrawBtnHover: {
-    backgroundColor: '#FFEBEE',
+    backgroundColor: COLORS.dangerBg,
     borderColor: '#EF9A9A',
   },
   withdrawBtnDisabled: {
@@ -1364,10 +1353,10 @@ const styles = StyleSheet.create({
   withdrawBtnText: {
     fontSize: 12,
     ...font.bold,
-    color: '#C62828',
+    color: COLORS.dangerText,
     letterSpacing: 0.2,
   },
   withdrawBtnTextHover: {
-    color: '#B71C1C',
+    color: COLORS.dangerDeep,
   },
 });

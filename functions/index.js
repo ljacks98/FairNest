@@ -7,7 +7,7 @@ const OpenAI = require('openai');
 setGlobalOptions({ maxInstances: 10 });
 
 exports.chatGPT = onRequest(
-  { secrets: ['OPENAI_API_KEY'] }, // 🔥 THIS IS CRITICAL
+  { secrets: ['OPENAI_API_KEY'] },
   async (req, res) => {
     cors(req, res, async () => {
       try {
@@ -18,20 +18,24 @@ exports.chatGPT = onRequest(
 
         const { message } = req.body;
 
-        if (!message) {
-          return res.status(400).json({ error: 'Message is required.' });
+        if (!message || typeof message !== 'string') {
+          return res.status(400).json({ error: 'Message is required and must be a string.' });
         }
 
-        // 🔥 Create OpenAI instance INSIDE function
+        // Limit message length to prevent abuse
+        const sanitizedMessage = message.trim().slice(0, 2000);
+
+        if (!sanitizedMessage) {
+          return res.status(400).json({ error: 'Message cannot be empty.' });
+        }
+
         const openai = new OpenAI({
           apiKey: process.env.OPENAI_API_KEY,
         });
 
-        console.log('API KEY LENGTH:', process.env.OPENAI_API_KEY?.length);
-
-        const completion = await openai.responses.create({
+        const completion = await openai.chat.completions.create({
           model: 'gpt-4.1-mini',
-          input: [
+          messages: [
             {
               role: 'system',
               content: `
@@ -54,17 +58,17 @@ Keep responses easy to read on a phone screen.
             },
             {
               role: 'user',
-              content: userMessage,
+              content: sanitizedMessage,
             },
           ],
-          max_output_tokens: 500,
+          max_tokens: 500,
         });
 
         res.status(200).json({
           reply: completion.choices[0].message.content,
         });
       } catch (error) {
-        console.error('OpenAI Error:', error);
+        console.error('OpenAI Error:', error.message);
         res.status(500).json({ error: 'AI request failed.' });
       }
     });

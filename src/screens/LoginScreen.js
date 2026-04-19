@@ -69,8 +69,9 @@ export default function LoginScreen({ navigation }) {
     } catch (err) {
       switch (err.code) {
         case 'auth/invalid-email':     setError('Please enter a valid email address.');        break;
-        case 'auth/user-not-found':    setError('No account found with this email.');          break;
-        case 'auth/wrong-password':    setError('Incorrect password. Please try again.');      break;
+        case 'auth/user-not-found':
+        case 'auth/wrong-password':
+        case 'auth/invalid-credential':setError('Invalid email or password. Please try again.'); break;
         case 'auth/too-many-requests': setError('Too many failed attempts. Try again later.'); break;
         default:                       setError('Login failed. Please try again.');
       }
@@ -123,7 +124,7 @@ export default function LoginScreen({ navigation }) {
           {/* Error */}
           {!!error && (
             <View style={styles.errorBox}>
-              <Text style={{ fontSize: 15 }}>⚠️</Text>
+              <Text style={styles.errorEmoji}>⚠️</Text>
               <Text style={styles.errorText}>{error}</Text>
             </View>
           )}
@@ -133,7 +134,7 @@ export default function LoginScreen({ navigation }) {
           <TextInput
             style={styles.input}
             placeholder="you@example.com"
-            placeholderTextColor="#c0c8c0"
+            placeholderTextColor={COLORS.placeholder}
             value={email}
             onChangeText={setEmail}
             autoCapitalize="none"
@@ -147,7 +148,7 @@ export default function LoginScreen({ navigation }) {
             <TextInput
               style={styles.passwordInput}
               placeholder="••••••••"
-              placeholderTextColor="#c0c8c0"
+              placeholderTextColor={COLORS.placeholder}
               value={password}
               onChangeText={setPassword}
               secureTextEntry={secureText}
@@ -157,7 +158,7 @@ export default function LoginScreen({ navigation }) {
               onPress={() => setSecureText(!secureText)}
               activeOpacity={0.7}
               accessibilityLabel={secureText ? 'Show password' : 'Hide password'}>
-              <Text style={{ fontSize: 18, color: '#9aaa9a' }}>{secureText ? '👁️' : '🙈'}</Text>
+              <Text style={styles.toggleIcon}>{secureText ? '👁️' : '🙈'}</Text>
             </TouchableOpacity>
           </View>
 
@@ -205,7 +206,7 @@ export default function LoginScreen({ navigation }) {
             onMouseLeave={() => setHoveredGoogle(false)}
             activeOpacity={0.7}
             accessibilityLabel="Continue with Google">
-            <Text style={{ fontSize: 18 }}>🇬</Text>
+            <Text style={styles.googleIcon}>🇬</Text>
             <Text style={styles.googleText}>Continue with Google</Text>
           </TouchableOpacity>
 
@@ -346,17 +347,20 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    backgroundColor: '#fdf0ee',
-    borderRadius: 10,
-    paddingHorizontal: 14,
+    backgroundColor: COLORS.errorBg,
+    borderRadius: 12,
+    paddingHorizontal: 16,
     paddingVertical: 12,
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: '#f5c0b8',
+    borderColor: COLORS.errorBorder,
+  },
+  errorEmoji: {
+    fontSize: 16,
   },
   errorText: {
     fontSize: fontSize.small,
-    color: '#c0392b',
+    color: COLORS.errorText,
     flex: 1,
   },
 
@@ -374,8 +378,8 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: COLORS.border,
     borderRadius: 12,
-    paddingHorizontal: 18,
-    paddingVertical: 15,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
     fontSize: fontSize.body,
     ...font.regular,
     color: COLORS.textPrimary,
@@ -387,12 +391,12 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: COLORS.border,
     borderRadius: 12,
-    paddingHorizontal: 18,
+    paddingHorizontal: 16,
     backgroundColor: COLORS.greenTint,
   },
   passwordInput: {
     flex: 1,
-    paddingVertical: 15,
+    paddingVertical: 16,
     fontSize: fontSize.body,
     ...font.regular,
     color: COLORS.textPrimary,
@@ -414,7 +418,7 @@ const styles = StyleSheet.create({
   signInBtn: {
     backgroundColor: COLORS.primaryDeep,
     borderRadius: 12,
-    paddingVertical: 17,
+    paddingVertical: 16,
     alignItems: 'center',
     marginBottom: 24,
     shadowColor: COLORS.primaryDeep,
@@ -460,7 +464,7 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: COLORS.border,
     borderRadius: 12,
-    paddingVertical: 15,
+    paddingVertical: 16,
     backgroundColor: COLORS.white,
   },
   googleText: {
@@ -488,8 +492,16 @@ const styles = StyleSheet.create({
     textDecorationLine: 'underline',
   },
 
+  toggleIcon: {
+    fontSize: 18,
+    color: COLORS.placeholder,
+  },
+  googleIcon: {
+    fontSize: 18,
+  },
+
   // ── Hover states ──────────────────────────────────────────────────────────
-  signInBtnHover:  { backgroundColor: '#163d18' },
+  signInBtnHover:  { backgroundColor: COLORS.hoverDeep },
   googleBtnHover:  { backgroundColor: COLORS.greenTint, borderColor: COLORS.primary },
   forgotTextHover: { color: COLORS.primaryDeep, textDecorationLine: 'underline' },
   signUpLinkHover: { color: COLORS.primaryDeep },

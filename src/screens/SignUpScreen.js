@@ -70,7 +70,13 @@ export default function SignUpScreen({ navigation }) {
       });
       navigation.navigate('Home');
     } catch (err) {
-      setError(err.message);
+      if (err.code === 'auth/email-already-in-use') {
+        setError('An account with this email already exists.');
+      } else if (err.code === 'auth/invalid-email') {
+        setError('Please enter a valid email address.');
+      } else {
+        setError('Sign up failed. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
@@ -135,7 +141,7 @@ export default function SignUpScreen({ navigation }) {
           {/* Error */}
           {!!error && (
             <View style={styles.errorBox}>
-              <Text style={{ fontSize: 15 }}>⚠️</Text>
+              <Text style={styles.errorEmoji}>⚠️</Text>
               <Text style={styles.errorText}>{error}</Text>
             </View>
           )}
@@ -147,7 +153,7 @@ export default function SignUpScreen({ navigation }) {
               <TextInput
                 style={styles.input}
                 placeholder="Jane"
-                placeholderTextColor="#c0c8c0"
+                placeholderTextColor={COLORS.placeholder}
                 value={firstName}
                 onChangeText={setFirstName}
                 accessibilityLabel="First name"
@@ -158,7 +164,7 @@ export default function SignUpScreen({ navigation }) {
               <TextInput
                 style={styles.input}
                 placeholder="Doe"
-                placeholderTextColor="#c0c8c0"
+                placeholderTextColor={COLORS.placeholder}
                 value={lastName}
                 onChangeText={setLastName}
                 accessibilityLabel="Last name"
@@ -171,7 +177,7 @@ export default function SignUpScreen({ navigation }) {
           <TextInput
             style={styles.input}
             placeholder="you@example.com"
-            placeholderTextColor="#c0c8c0"
+            placeholderTextColor={COLORS.placeholder}
             value={email}
             onChangeText={setEmail}
             autoCapitalize="none"
@@ -185,7 +191,7 @@ export default function SignUpScreen({ navigation }) {
             <TextInput
               style={styles.passwordInput}
               placeholder="Min 8 chars, upper, number, symbol"
-              placeholderTextColor="#c0c8c0"
+              placeholderTextColor={COLORS.placeholder}
               value={password}
               onChangeText={setPassword}
               secureTextEntry={secureText}
@@ -195,7 +201,7 @@ export default function SignUpScreen({ navigation }) {
               onPress={() => setSecureText(!secureText)}
               activeOpacity={0.7}
               accessibilityLabel={secureText ? 'Show password' : 'Hide password'}>
-              <Text style={{ fontSize: 18, color: '#9aaa9a' }}>{secureText ? '👁️' : '🙈'}</Text>
+              <Text style={styles.toggleIcon}>{secureText ? '👁️' : '🙈'}</Text>
             </TouchableOpacity>
           </View>
 
@@ -205,7 +211,7 @@ export default function SignUpScreen({ navigation }) {
             <TextInput
               style={styles.passwordInput}
               placeholder="Re-enter your password"
-              placeholderTextColor="#c0c8c0"
+              placeholderTextColor={COLORS.placeholder}
               value={confirmPassword}
               onChangeText={setConfirmPassword}
               secureTextEntry={secureConfirm}
@@ -215,7 +221,7 @@ export default function SignUpScreen({ navigation }) {
               onPress={() => setSecureConfirm(!secureConfirm)}
               activeOpacity={0.7}
               accessibilityLabel={secureConfirm ? 'Show confirm password' : 'Hide confirm password'}>
-              <Text style={{ fontSize: 18, color: '#9aaa9a' }}>{secureConfirm ? '👁️' : '🙈'}</Text>
+              <Text style={styles.toggleIcon}>{secureConfirm ? '👁️' : '🙈'}</Text>
             </TouchableOpacity>
           </View>
 
@@ -250,7 +256,7 @@ export default function SignUpScreen({ navigation }) {
             onMouseLeave={() => setHoveredGoogle(false)}
             activeOpacity={0.7}
             accessibilityLabel="Sign up with Google">
-            <Text style={{ fontSize: 18 }}>🇬</Text>
+            <Text style={styles.googleIcon}>🇬</Text>
             <Text style={styles.googleText}>Continue with Google</Text>
           </TouchableOpacity>
 
@@ -389,17 +395,20 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: 8,
-    backgroundColor: '#fdf0ee',
-    borderRadius: 10,
-    paddingHorizontal: 14,
+    backgroundColor: COLORS.errorBg,
+    borderRadius: 12,
+    paddingHorizontal: 16,
     paddingVertical: 12,
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: '#f5c0b8',
+    borderColor: COLORS.errorBorder,
+  },
+  errorEmoji: {
+    fontSize: 16,
   },
   errorText: {
     fontSize: fontSize.small,
-    color: '#c0392b',
+    color: COLORS.errorText,
     flex: 1,
     lineHeight: fontSize.small * 1.5,
   },
@@ -428,7 +437,7 @@ const styles = StyleSheet.create({
     borderColor: COLORS.border,
     borderRadius: 12,
     paddingHorizontal: 16,
-    paddingVertical: 14,
+    paddingVertical: 16,
     fontSize: fontSize.body,
     ...font.regular,
     color: COLORS.textPrimary,
@@ -445,7 +454,7 @@ const styles = StyleSheet.create({
   },
   passwordInput: {
     flex: 1,
-    paddingVertical: 14,
+    paddingVertical: 16,
     fontSize: fontSize.body,
     ...font.regular,
     color: COLORS.textPrimary,
@@ -455,7 +464,7 @@ const styles = StyleSheet.create({
   signUpBtn: {
     backgroundColor: COLORS.primaryDeep,
     borderRadius: 12,
-    paddingVertical: 17,
+    paddingVertical: 16,
     alignItems: 'center',
     marginTop: 24,
     marginBottom: 24,
@@ -502,7 +511,7 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: COLORS.border,
     borderRadius: 12,
-    paddingVertical: 15,
+    paddingVertical: 16,
     backgroundColor: COLORS.white,
   },
   googleText: {
@@ -530,8 +539,16 @@ const styles = StyleSheet.create({
     textDecorationLine: 'underline',
   },
 
+  toggleIcon: {
+    fontSize: 18,
+    color: COLORS.placeholder,
+  },
+  googleIcon: {
+    fontSize: 18,
+  },
+
   // ── Hover states ──────────────────────────────────────────────────────────
-  signUpBtnHover:  { backgroundColor: '#163d18' },
+  signUpBtnHover:  { backgroundColor: COLORS.hoverDeep },
   googleBtnHover:  { backgroundColor: COLORS.greenTint, borderColor: COLORS.primary },
   loginLinkHover:  { color: COLORS.primaryDeep },
 });

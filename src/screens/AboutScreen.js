@@ -6,6 +6,7 @@ import {
   ScrollView,
   useWindowDimensions,
   ImageBackground,
+  Image,
   TouchableOpacity,
 } from 'react-native';
 
@@ -48,28 +49,30 @@ const PLATFORM_PILLARS = [
 
 const TEAM_PLACEHOLDERS = [
   {
-    emoji: '🧠',
-    name: 'Project Lead',
-    role: 'Strategy & Product',
-    bio: 'Placeholder for the team member leading the vision, planning, and overall direction of FairNest.',
+    image: require('../../assets/Laila.png'),
+    imageTop: true,
+    name: 'Laila Jackson',
+    role: 'Strategy & Coordination',
+    bio: 'Laila keeps FairNest moving forward by aligning the team across mobile development, AI integration, and security. She manages timelines, coordinates communication, and ensures every moving part stays connected so the platform delivers on its promise to Durham residents.',
   },
   {
-    emoji: '🎨',
-    name: 'Design Lead',
+    image: require('../../assets/JAIDEN.png'),
+    name: 'Jaiden Lanier',
     role: 'Frontend & UX',
-    bio: 'Placeholder for the teammate shaping the interface, user flows, and the look and feel of the platform.',
+    bio: 'Jaiden brings FairNest to life by translating designs into polished, accessible interfaces. His technical skill in React Native and eye for user experience ensure every screen feels intuitive, while his work integrating AI components keeps the platform smart and responsive.',
   },
   {
     emoji: '🛠️',
-    name: 'Platform Lead',
-    role: 'Firebase & Systems',
-    bio: 'Placeholder for the teammate responsible for the data layer, app logic, and connected platform features.',
+    name: 'Terence Agaromba',
+    role: 'Platform & Integration',
+    bio: 'FairNest\'s backend, cloud infrastructure, and AI integration all run through Terence. He architects the data layer, builds Firebase Cloud Functions, and ensures every feature — from report filing to AI-powered chat — works reliably across platforms.',
   },
   {
-    emoji: '🤝',
-    name: 'Community Lead',
+    image: require('../../assets/AALIYAH.png'),
+    imageTop: true,
+    name: 'Aaliyah Harrell',
     role: 'Research & Outreach',
-    bio: 'Placeholder for the teammate focused on user needs, housing context, and community-centered research.',
+    bio: 'Aaliyah bridges community needs and system design by gathering requirements, interpreting user feedback, and ensuring the platform stays aligned with what residents actually need. Her analytical thinking and attention to detail keep FairNest grounded in real-world expectations.',
   },
 ];
 
@@ -195,7 +198,19 @@ export default function AboutScreen({ navigation }) {
                 hoveredTeam === member.role && styles.teamCardHover,
               ]}>
               <View style={styles.teamAvatar}>
-                <Text style={styles.teamAvatarText}>{member.emoji}</Text>
+                {member.image ? (
+                  <Image
+                    source={member.image}
+                    style={[
+                      styles.teamAvatarImage,
+                      member.imageTop && styles.teamAvatarImageTop,
+                    ]}
+                    accessibilityRole="image"
+                    accessibilityLabel={`Photo of ${member.name}`}
+                  />
+                ) : (
+                  <Text style={styles.teamAvatarText}>{member.emoji}</Text>
+                )}
               </View>
               <Text style={styles.teamName}>{member.name}</Text>
               <Text style={styles.teamRole}>{member.role}</Text>
@@ -524,6 +539,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 16,
+    overflow: 'hidden',
+  },
+  teamAvatarImage: {
+    width: 78,
+    height: 78,
+    borderRadius: 39,
+    resizeMode: 'cover',
+  },
+  teamAvatarImageTop: {
+    height: 156,
+    borderRadius: 0,
+    position: 'absolute',
+    top: 0,
   },
   teamAvatarText: {
     fontSize: 34,

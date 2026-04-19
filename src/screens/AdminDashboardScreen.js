@@ -22,6 +22,7 @@ import {
 import { db } from '../firebaseConfig';
 import { AuthContext } from '../context/AuthContext';
 import { font } from '../theme/typography';
+import { COLORS, STATUS_COLORS, STATUS_LABELS } from '../utils/constants';
 import Navbar from '../components/Navbar';
 
 // Group flat chatLog messages into per-user conversations
@@ -59,18 +60,6 @@ function groupByUser(logs) {
 }
 
 const STATUS_OPTIONS = ['pending', 'reviewed', 'resolved'];
-
-const STATUS_COLORS = {
-  pending: { bg: '#FFF8E1', text: '#F57F17', border: '#FFE082' },
-  reviewed: { bg: '#E3F2FD', text: '#1565C0', border: '#90CAF9' },
-  resolved: { bg: '#E8F5E9', text: '#2E7D32', border: '#A5D6A7' },
-};
-
-const STATUS_LABELS = {
-  pending: 'Pending',
-  reviewed: 'Under Review',
-  resolved: 'Resolved',
-};
 
 function sanitizePhoneNumber(value) {
   return (value || '').replace(/\D/g, '');
@@ -334,7 +323,9 @@ if (tab === 'conversations') fetchConversations();
             styles.tabBtn,
             activeTab === 'reports' && styles.tabBtnActive,
           ]}
-          onPress={() => handleTabChange('reports')}>
+          onPress={() => handleTabChange('reports')}
+          activeOpacity={0.7}
+          accessibilityLabel="View reports tab">
           <Text
             style={[
               styles.tabText,
@@ -348,7 +339,9 @@ if (tab === 'conversations') fetchConversations();
             styles.tabBtn,
             activeTab === 'conversations' && styles.tabBtnActive,
           ]}
-          onPress={() => handleTabChange('conversations')}>
+          onPress={() => handleTabChange('conversations')}
+          activeOpacity={0.7}
+          accessibilityLabel="View AI conversations tab">
           <Text
             style={[
               styles.tabText,
@@ -360,7 +353,9 @@ if (tab === 'conversations') fetchConversations();
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.tabBtn, activeTab === 'calls' && styles.tabBtnActive]}
-          onPress={() => handleTabChange('calls')}>
+          onPress={() => handleTabChange('calls')}
+          activeOpacity={0.7}
+          accessibilityLabel="View call requests tab">
           <Text
             style={[
               styles.tabText,

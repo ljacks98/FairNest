@@ -137,7 +137,7 @@ export default function ScheduleCallScreen({ navigation, route }) {
         <Navbar navigation={navigation} currentRoute="ScheduleCall" />
         <View style={styles.authGuard}>
           <View style={styles.authIconCircle}>
-            <Text style={{ fontSize: 32, color: COLORS.primaryDeep }}>!</Text>
+            <Text style={styles.authIconText}>!</Text>
           </View>
           <Text style={styles.authTitle}>Login Required</Text>
           <Text style={styles.authDesc}>
@@ -1201,12 +1201,16 @@ const styles = StyleSheet.create({
     gap: 14,
   },
   authIconCircle: {
-    width: 74,
-    height: 74,
-    borderRadius: 37,
-    backgroundColor: '#E8F3E2',
+    width: 76,
+    height: 76,
+    borderRadius: 38,
+    backgroundColor: COLORS.iconTint,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  authIconText: {
+    fontSize: 32,
+    color: COLORS.primaryDeep,
   },
   authTitle: {
     fontSize: fontSize.h2,

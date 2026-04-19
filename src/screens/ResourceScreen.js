@@ -16,11 +16,24 @@ import Navbar from '../components/Navbar';
 import { COLORS } from '../utils/constants';
 import { fontSize, font } from '../theme/typography';
 
-const FILTERS = [
+const HOUSING_FILTERS = [
   { label: 'All', value: null },
   { label: 'Rental Assistance', value: 'assistance' },
   { label: 'Affordable Housing', value: 'affordable' },
   { label: 'Legal Help', value: 'legal' },
+];
+
+const EMPLOYMENT_FILTERS = [
+  { label: 'All', value: null },
+  { label: 'Job Listings', value: 'listings' },
+  { label: 'Training Programs', value: 'training' },
+  { label: 'Employment Support', value: 'support' },
+];
+
+const CATEGORY_TABS = [
+  { label: 'Accessibility', value: 'accessibility' },
+  { label: 'Housing', value: 'housing' },
+  { label: 'Jobs & Employment', value: 'employment' },
 ];
 
 const CATEGORY_CONTENT = {
@@ -75,39 +88,67 @@ const CATEGORY_CONTENT = {
     ],
   },
   employment: {
-    title: 'Employment Resources',
+    title: 'Jobs & Employment',
     subtitle:
-      'Career support, workforce training, and local employment programs connected to Durham and North Carolina.',
+      'Job listings, workforce training, and career support programs in Durham — focused on entry-level roles and residents facing employment barriers.',
     facts: [
       {
-        label: 'Local access',
+        label: 'Entry-level focus',
         value:
-          'Employment help often includes resume support, training pathways, job listings, and certification programs.',
+          'Many Durham employers hire for roles that require no degree — transit, food service, hospital support, maintenance, and warehouse positions.',
       },
       {
-        label: 'Useful pairing',
+        label: 'Free training available',
         value:
-          'If housing hardship is tied to job loss or reduced income, combining employment support with housing assistance is often the strongest route.',
+          'Durham Tech, StepUp Durham, Goodwill, and the Durham Literacy Center offer free skills training, GED prep, and job readiness programs.',
+      },
+      {
+        label: 'Housing + employment',
+        value:
+          'If housing hardship is tied to job loss, combining employment support with housing assistance is often the strongest route forward.',
       },
     ],
     notes: [
-      'Bring an updated resume and any training history when possible.',
-      'Ask whether a program offers remote, evening, or certification-based options if scheduling is difficult.',
+      'Bring an updated resume and any training history when possible — NCWorks can help build one for free.',
+      'Ask about evening, weekend, or remote options if scheduling around childcare or transportation is difficult.',
+      'Duke University and Duke Health roles often include tuition assistance and health benefits even for entry-level positions.',
+      'City and county jobs post on governmentjobs.com — check regularly as positions rotate.',
     ],
     links: [
       {
         id: 'ncworks',
         eyebrow: 'NCWorks',
-        title: 'NCWorks Career Center',
-        desc: 'Official statewide employment and workforce system for job search and training support.',
+        title: 'NCWorks Job Search',
+        desc: 'North Carolina official job board — filter by Durham county, no degree required, and entry-level.',
         url: 'https://www.ncworks.gov',
+      },
+      {
+        id: 'duke-careers',
+        eyebrow: 'Duke University',
+        title: 'Duke Careers Portal',
+        desc: 'Search entry-level hospital, campus, and support roles with benefits and tuition assistance.',
+        url: 'https://careers.duke.edu',
+      },
+      {
+        id: 'durham-city-jobs',
+        eyebrow: 'City of Durham',
+        title: 'City Government Job Openings',
+        desc: 'Parks, transit, sanitation, and public works positions — many require no degree.',
+        url: 'https://www.governmentjobs.com/careers/durhamnc',
       },
       {
         id: 'durham-tech',
         eyebrow: 'Durham Tech',
-        title: 'Durham Tech Workforce and Career Services',
-        desc: 'Training, certification, and career support through Durham Technical Community College.',
+        title: 'Durham Tech Short-Term Certificates',
+        desc: 'CNA, HVAC, welding, CDL, and other certification programs that lead directly to employment.',
         url: 'https://www.durhamtech.edu',
+      },
+      {
+        id: 'stepup-durham',
+        eyebrow: 'StepUp Durham',
+        title: 'StepUp Durham Job Training',
+        desc: 'Workforce training for adults facing barriers to employment — housing instability, prior convictions, limited experience.',
+        url: 'https://www.stepupdurham.org',
       },
     ],
   },
@@ -165,7 +206,8 @@ export default function ResourceScreen({ navigation, route }) {
   const isMedium = width >= 760;
   const isWide = width >= 1120;
 
-  const resolvedCategory = category || 'housing';
+  const [selectedCategory, setSelectedCategory] = useState(category || 'housing');
+  const resolvedCategory = selectedCategory;
   const content =
     CATEGORY_CONTENT[resolvedCategory] || CATEGORY_CONTENT.housing;
 
@@ -196,13 +238,10 @@ export default function ResourceScreen({ navigation, route }) {
   }, []);
 
   const filtered = resources.filter((item) => {
-    if (category && category !== 'housing') {
-      return item.category === category;
-    }
-    if (activeType) {
-      return item.category === 'housing' && item.type === activeType;
-    }
-    return category ? item.category === category : true;
+    const cat = resolvedCategory;
+    if (item.category !== cat) return false;
+    if (activeType) return item.type === activeType;
+    return true;
   });
 
   if (loading) {
@@ -219,16 +258,6 @@ export default function ResourceScreen({ navigation, route }) {
       contentContainerStyle={styles.pageFill}>
       <Navbar navigation={navigation} currentRoute="Resources" />
 
-      <View style={styles.breadcrumb}>
-        <Text
-          onPress={() => navigation.navigate('Home')}
-          style={styles.breadcrumbLink}>
-          Home
-        </Text>
-        <Text style={styles.breadcrumbSep}> / </Text>
-        <Text style={styles.breadcrumbCurrent}>Resources</Text>
-      </View>
-
       <View style={styles.hero}>
         <View style={styles.heroGlowA} />
         <View style={styles.heroGlowB} />
@@ -243,10 +272,10 @@ export default function ResourceScreen({ navigation, route }) {
                   {filtered.length} results available
                 </Text>
               </View>
-              {resolvedCategory === 'housing' && (
+              {(resolvedCategory === 'housing' || resolvedCategory === 'employment') && (
                 <View style={styles.heroBadge}>
                   <Text style={styles.heroBadgeText}>
-                    Filter by housing need
+                    {resolvedCategory === 'employment' ? 'Filter by job type' : 'Filter by housing need'}
                   </Text>
                 </View>
               )}
@@ -279,12 +308,13 @@ export default function ResourceScreen({ navigation, route }) {
                 label="Visible results"
                 value={`${filtered.length} resource${filtered.length === 1 ? '' : 's'}`}
               />
-              {resolvedCategory === 'housing' ? (
+              {(resolvedCategory === 'housing' || resolvedCategory === 'employment') ? (
                 <SnapshotRow
                   label="Active filter"
                   value={
-                    FILTERS.find((item) => item.value === activeType)?.label ||
-                    'All housing resources'
+                    (resolvedCategory === 'employment' ? EMPLOYMENT_FILTERS : HOUSING_FILTERS)
+                      .find((item) => item.value === activeType)?.label ||
+                    `All ${resolvedCategory} resources`
                   }
                 />
               ) : null}
@@ -319,14 +349,44 @@ export default function ResourceScreen({ navigation, route }) {
               little more visual guidance as you scan.
             </Text>
 
-            {(!category || category === 'housing') && (
-              <View style={styles.filterRow}>
-                {FILTERS.map((f) => (
+            <View style={styles.filterRow}>
+              {CATEGORY_TABS.map((tab) => (
+                <TouchableOpacity
+                  key={tab.value}
+                  style={[
+                    styles.filterBtn,
+                    resolvedCategory === tab.value && styles.filterBtnActive,
+                    resolvedCategory !== tab.value &&
+                      hoveredFilter === `cat-${tab.value}` &&
+                      styles.filterBtnHover,
+                  ]}
+                  onPress={() => {
+                    setSelectedCategory(tab.value);
+                    setActiveType(null);
+                  }}
+                  onMouseEnter={() => setHoveredFilter(`cat-${tab.value}`)}
+                  onMouseLeave={() => setHoveredFilter(null)}
+                  activeOpacity={0.75}
+                  accessibilityLabel={`${tab.label} resources`}>
+                  <Text
+                    style={[
+                      styles.filterText,
+                      resolvedCategory === tab.value && styles.filterTextActive,
+                    ]}>
+                    {tab.label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            {(resolvedCategory === 'housing' || resolvedCategory === 'employment') && (
+              <View style={styles.filterRowSub}>
+                {(resolvedCategory === 'employment' ? EMPLOYMENT_FILTERS : HOUSING_FILTERS).map((f) => (
                   <TouchableOpacity
                     key={String(f.value)}
                     style={[
-                      styles.filterBtn,
-                      activeType === f.value && styles.filterBtnActive,
+                      styles.filterBtnSub,
+                      activeType === f.value && styles.filterBtnSubActive,
                       activeType !== f.value &&
                         hoveredFilter === String(f.value) &&
                         styles.filterBtnHover,
@@ -334,11 +394,12 @@ export default function ResourceScreen({ navigation, route }) {
                     onPress={() => setActiveType(f.value)}
                     onMouseEnter={() => setHoveredFilter(String(f.value))}
                     onMouseLeave={() => setHoveredFilter(null)}
-                    activeOpacity={0.75}>
+                    activeOpacity={0.75}
+                    accessibilityLabel={`Filter by ${f.label}`}>
                     <Text
                       style={[
-                        styles.filterText,
-                        activeType === f.value && styles.filterTextActive,
+                        styles.filterTextSub,
+                        activeType === f.value && styles.filterTextSubActive,
                       ]}>
                       {f.label}
                     </Text>
@@ -373,7 +434,13 @@ export default function ResourceScreen({ navigation, route }) {
                           ? 'Affordable Housing'
                           : resource.type === 'legal'
                             ? 'Legal Help'
-                            : resource.type}
+                            : resource.type === 'training'
+                              ? 'Training Program'
+                              : resource.type === 'listings'
+                                ? 'Job Listing'
+                                : resource.type === 'support'
+                                  ? 'Employment Support'
+                                  : resource.type}
                     </Text>
                   </View>
                 )}
@@ -493,29 +560,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 60,
-  },
-  breadcrumb: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    backgroundColor: COLORS.white,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
-  },
-  breadcrumbLink: {
-    fontSize: fontSize.caption,
-    color: COLORS.primary,
-    ...font.bold,
-  },
-  breadcrumbSep: {
-    fontSize: fontSize.caption,
-    color: '#A1A79F',
-    marginHorizontal: 4,
-  },
-  breadcrumbCurrent: {
-    fontSize: fontSize.caption,
-    color: COLORS.textMuted,
   },
   hero: {
     position: 'relative',
@@ -808,16 +852,44 @@ const styles = StyleSheet.create({
   filterTextActive: {
     color: '#FFFFFF',
   },
+  filterRowSub: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 16,
+    paddingLeft: 4,
+  },
+  filterBtnSub: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    backgroundColor: '#FBFCF8',
+  },
+  filterBtnSubActive: {
+    backgroundColor: COLORS.primaryDeep,
+    borderColor: COLORS.primaryDeep,
+  },
+  filterTextSub: {
+    fontSize: fontSize.tiny,
+    color: COLORS.textMuted,
+    ...font.medium,
+  },
+  filterTextSubActive: {
+    color: '#FFFFFF',
+  },
   resultsCount: {
     fontSize: fontSize.caption,
     color: '#6F7A6F',
   },
   grid: {
-    gap: 14,
+    gap: 16,
   },
   gridWide: {
     flexDirection: 'row',
     flexWrap: 'wrap',
+    alignItems: 'stretch',
   },
   card: {
     backgroundColor: '#FFFFFF',
@@ -832,8 +904,10 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   cardWide: {
-    flex: 1,
-    minWidth: 290,
+    flexBasis: '48%',
+    flexGrow: 0,
+    flexShrink: 0,
+    justifyContent: 'flex-start',
   },
   cardHover: {
     transform: [{ translateY: -2 }],
@@ -878,6 +952,7 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   websiteBtn: {
+    marginTop: 'auto',
     borderWidth: 1.5,
     borderColor: COLORS.primary,
     borderRadius: 14,

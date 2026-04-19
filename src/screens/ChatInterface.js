@@ -21,6 +21,8 @@ import {
 } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 import { AuthContext } from '../context/AuthContext';
+import { aiService } from '../services/api';
+import { COLORS } from '../utils/constants';
 import { fontSize, font } from '../theme/typography';
 
 const SUGGESTED_QUESTIONS = [
@@ -107,19 +109,10 @@ export default function ChatInterface({ navigation }) {
     setLoading(true);
 
     try {
-      const response = await fetch(
-        'https://us-central1-fairnest-abe1e.cloudfunctions.net/chatGPT',
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message: msg.trim() }),
-        }
-      );
-      if (!response.ok) throw new Error('Network error');
-      const data = await response.json();
+      const reply = await aiService.getChatResponse(msg.trim());
       const aiMessage = {
         id: (Date.now() + 1).toString(),
-        text: data.reply || 'No response received.',
+        text: reply || 'No response received.',
         sender: 'ai',
         timestamp: new Date().toISOString(),
       };
@@ -164,7 +157,7 @@ export default function ChatInterface({ navigation }) {
   if (historyLoading) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator size="large" color="#2E7D32" />
+        <ActivityIndicator size="large" color={COLORS.primary} />
       </View>
     );
   }
@@ -201,7 +194,9 @@ export default function ChatInterface({ navigation }) {
               <TouchableOpacity
                 key={i}
                 style={styles.suggestionBtn}
-                onPress={() => sendMessage(q)}>
+                onPress={() => sendMessage(q)}
+                activeOpacity={0.7}
+                accessibilityLabel={`Ask: ${q}`}>
                 <Text style={styles.suggestionText}>{q}</Text>
               </TouchableOpacity>
             ))}
@@ -225,7 +220,7 @@ export default function ChatInterface({ navigation }) {
             <Text style={styles.aiAvatarText}>AI</Text>
           </View>
           <View style={styles.typingBubble}>
-            <ActivityIndicator size="small" color="#2E7D32" />
+            <ActivityIndicator size="small" color={COLORS.primary} />
             <Text style={styles.typingText}>Thinking...</Text>
           </View>
         </View>
@@ -255,7 +250,7 @@ export default function ChatInterface({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f5f5f5' },
+  container: { flex: 1, backgroundColor: COLORS.background },
   center:    { flex: 1, justifyContent: 'center', alignItems: 'center' },
 
   // Header
@@ -263,11 +258,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.white,
     paddingHorizontal: 20,
-    paddingVertical: 14,
+    paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#e8e8e8',
+    borderBottomColor: COLORS.border,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
@@ -278,12 +273,12 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#2E7D32',
+    backgroundColor: COLORS.primary,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  headerTitle: { fontSize: fontSize.body, ...font.bold, color: '#1a1a1a' },
-  headerSub:   { fontSize: fontSize.tiny, color: '#888', marginTop: 1 },
+  headerTitle: { fontSize: fontSize.body, ...font.bold, color: COLORS.textPrimary },
+  headerSub:   { fontSize: fontSize.tiny, color: COLORS.subtle, marginTop: 2 },
 
   // Empty state
   emptyState: {
@@ -293,28 +288,28 @@ const styles = StyleSheet.create({
     padding: 24,
   },
   emptyIcon:  { fontSize: fontSize.hero, marginBottom: 16 },
-  emptyTitle: { fontSize: fontSize.h2, ...font.bold, color: '#1a1a1a', marginBottom: 8, textAlign: 'center' },
-  emptyDesc:  { fontSize: fontSize.body, color: '#666', textAlign: 'center', lineHeight: 22, maxWidth: 400, marginBottom: 28 },
+  emptyTitle: { fontSize: fontSize.h2, ...font.bold, color: COLORS.textPrimary, marginBottom: 8, textAlign: 'center' },
+  emptyDesc:  { fontSize: fontSize.body, color: COLORS.textMuted, textAlign: 'center', lineHeight: 24, maxWidth: 400, marginBottom: 28 },
 
   suggestionsGrid:     { width: '100%', maxWidth: 600, gap: 10 },
   suggestionsGridWide: { flexDirection: 'row', flexWrap: 'wrap' },
   suggestionBtn: {
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.white,
     borderWidth: 1,
-    borderColor: '#d0e8d0',
-    borderRadius: 10,
-    padding: 14,
+    borderColor: COLORS.iconTint,
+    borderRadius: 12,
+    padding: 16,
     flex: 1,
     minWidth: 200,
   },
-  suggestionText: { fontSize: fontSize.caption, color: '#2E7D32', lineHeight: 18 },
+  suggestionText: { fontSize: fontSize.caption, color: COLORS.primary, lineHeight: 20 },
 
   // Messages
   messageList: { padding: 16, paddingBottom: 8 },
   messageRow: {
     flexDirection: 'row',
     alignItems: 'flex-end',
-    marginBottom: 14,
+    marginBottom: 12,
     gap: 8,
   },
   messageRowUser: { flexDirection: 'row-reverse' },
@@ -323,34 +318,34 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#2E7D32',
+    backgroundColor: COLORS.primary,
     justifyContent: 'center',
     alignItems: 'center',
     flexShrink: 0,
   },
-  aiAvatarText: { color: '#fff', fontSize: fontSize.tiny, ...font.bold },
+  aiAvatarText: { color: COLORS.white, fontSize: fontSize.tiny, ...font.bold },
 
   bubble: {
     maxWidth: '75%',
     borderRadius: 16,
     padding: 12,
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.white,
     borderWidth: 1,
-    borderColor: '#e0e0e0',
+    borderColor: COLORS.border,
     borderBottomLeftRadius: 4,
   },
   bubbleWide:     { maxWidth: '60%' },
-  bubbleUser:     { backgroundColor: '#2E7D32', borderColor: '#2E7D32', borderBottomLeftRadius: 16, borderBottomRightRadius: 4 },
+  bubbleUser:     { backgroundColor: COLORS.primary, borderColor: COLORS.primary, borderBottomLeftRadius: 16, borderBottomRightRadius: 4 },
   bubbleAi:       {},
-  bubbleText:     { fontSize: fontSize.body, color: '#333', lineHeight: 22 },
-  bubbleTextUser: { color: '#fff' },
-  bubbleTime:     { fontSize: fontSize.tiny, color: '#aaa', marginTop: 5, alignSelf: 'flex-end' },
+  bubbleText:     { fontSize: fontSize.body, color: COLORS.textPrimary, lineHeight: 24 },
+  bubbleTextUser: { color: COLORS.white },
+  bubbleTime:     { fontSize: fontSize.tiny, color: COLORS.muted, marginTop: 4, alignSelf: 'flex-end' },
   bubbleTimeUser: { color: 'rgba(255,255,255,0.6)' },
 
   // Typing
   typingRow:    { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 16, paddingBottom: 8 },
-  typingBubble: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#fff', borderRadius: 12, padding: 10, borderWidth: 1, borderColor: '#e0e0e0' },
-  typingText:   { fontSize: fontSize.caption, color: '#888' },
+  typingBubble: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: COLORS.white, borderRadius: 12, padding: 12, borderWidth: 1, borderColor: COLORS.border },
+  typingText:   { fontSize: fontSize.caption, color: COLORS.subtle },
 
   // Input
   inputBar: {
@@ -358,35 +353,35 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
     gap: 10,
     padding: 12,
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.white,
     borderTopWidth: 1,
-    borderTopColor: '#e8e8e8',
+    borderTopColor: COLORS.border,
   },
   inputBarWide: { paddingHorizontal: 24 },
   input: {
     flex: 1,
     borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 22,
+    borderColor: COLORS.border,
+    borderRadius: 24,
     paddingHorizontal: 16,
-    paddingVertical: 10,
+    paddingVertical: 12,
     fontSize: fontSize.input,
-    backgroundColor: '#fafafa',
+    backgroundColor: COLORS.inputBg,
     maxHeight: 100,
   },
   sendBtn: {
     width: 42,
     height: 42,
     borderRadius: 21,
-    backgroundColor: '#2E7D32',
+    backgroundColor: COLORS.primary,
     justifyContent: 'center',
     alignItems: 'center',
     flexShrink: 0,
   },
-  sendBtnDisabled: { backgroundColor: '#a5d6a7' },
-  sendBtnText:     { color: '#fff', fontSize: fontSize.h3, ...font.bold, marginTop: -2 },
+  sendBtnDisabled: { backgroundColor: COLORS.secondary, opacity: 0.5 },
+  sendBtnText:     { color: COLORS.white, fontSize: fontSize.h3, ...font.bold, marginTop: -2 },
 
-  footerNote: { fontSize: fontSize.tiny, color: '#bbb', textAlign: 'center', paddingVertical: 4, backgroundColor: '#fff' },
+  footerNote: { fontSize: fontSize.tiny, color: COLORS.muted, textAlign: 'center', paddingVertical: 8, backgroundColor: COLORS.white },
   backBtn: { marginRight: 8, paddingHorizontal: 4, paddingVertical: 4 },
-  backBtnText: { fontSize: fontSize.body, color: '#2E7D32', ...font.semi },
+  backBtnText: { fontSize: fontSize.body, color: COLORS.primary, ...font.semi },
 });
