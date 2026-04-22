@@ -57,7 +57,7 @@ export default function Navbar({
 
   const navLinks = [
     { label: 'Home', route: 'Home' },
-    { label: 'Learn More', route: 'HousingRights' },
+    { label: 'Resources', route: 'Resources' },
     { label: 'Report', route: 'Report' },
     { label: 'Book a Call', route: 'ScheduleCall' },
     { label: 'About Us', route: 'About' },

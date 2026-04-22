@@ -1,7 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "Bash(node)"
+      "Bash(node)",
+      "Bash(export GOOGLE_APPLICATION_CREDENTIALS=\"$\\(pwd\\)/fairnest-abe1e-firebase-adminsdk-fbsvc-d8fbf06d68.json\")",
+      "Bash(node functions/scripts/set-admin.js --email familyof2003@gmail.com --admin true)"
     ]
   }
 }

@@ -27,7 +27,7 @@ const STORY_COLUMNS = [
   },
   {
     label: 'Values',
-    title: 'Human-centered, local, and action-oriented',
+    title: 'Human centered, local, and action oriented',
     body: 'We care about plain language, trustworthy information, and pathways to real next steps. Every part of the product is meant to help residents move from uncertainty toward support.',
   },
 ];
@@ -35,7 +35,7 @@ const STORY_COLUMNS = [
 const PLATFORM_PILLARS = [
   {
     title: 'Understand your rights',
-    text: 'Plain-language guidance helps residents recognize when housing treatment may be unfair or discriminatory.',
+    text: 'Helps residents recognize when housing treatment may be unfair or discriminatory.',
   },
   {
     title: 'Take the next step',
@@ -62,16 +62,16 @@ const TEAM_PLACEHOLDERS = [
     bio: 'Jaiden brings FairNest to life by translating designs into polished, accessible interfaces. His technical skill in React Native and eye for user experience ensure every screen feels intuitive, while his work integrating AI components keeps the platform smart and responsive.',
   },
   {
-    image: require('../../assets/Terence.png'),
+    image: require('../../assets/Terence123.jpg'),
     name: 'Terence Agaromba',
-    role: 'Platform & Integration',
-    bio: "FairNest's backend, cloud infrastructure, and AI integration all run through Terence. He architects the data layer, builds Firebase Cloud Functions, and ensures every feature, from report filing to AI powered chat, works reliably across platforms.",
+    role: 'Back End Developer',
+    bio: "He runs FairNest's backend, cloud infrastructure, and AI integration architecting the data layer, building Firebase Cloud Functions, and ensuring everything from report filing to AI powered chat works reliably across platforms. He also enhances the UI/UX and handles quality assurance to keep the platform polished and bug free from the inside out.",
   },
   {
     image: require('../../assets/AALIYAH.png'),
     imageTop: true,
     name: 'Aaliyah Harrell',
-    role: 'Research & Outreach',
+    role: 'System Analyst',
     bio: 'Aaliyah bridges community needs and system design by gathering requirements, interpreting user feedback, and ensuring the platform stays aligned with what residents actually need. Her analytical thinking and attention to detail keep FairNest grounded in real-world expectations.',
   },
   {

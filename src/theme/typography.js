@@ -26,10 +26,14 @@
 //   System     — Uses device default (no install needed)
 // ─────────────────────────────────────────────────────────────────────────────
 
+import { Platform } from 'react-native';
+
 export const FONT_REGULAR = 'Poppins_400Regular';
 export const FONT_SEMI    = 'Poppins_600SemiBold';
 export const FONT_BOLD    = 'Poppins_700Bold';
 export const FONT_EXTRA   = 'Poppins_800ExtraBold';
+
+const WEB_STACK = "'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
 
 // Font sizes — increase/decrease the base to scale everything at once
 const BASE = 1; // multiply all sizes by this to scale up/down globally
@@ -60,9 +64,19 @@ export const fontSize = {
 
 // Ready-to-use fontFamily values — spread these into any StyleSheet text style
 // Example: { ...font.bold, fontSize: fontSize.h2, color: COLORS.textPrimary }
-export const font = {
-  regular: { fontFamily: FONT_REGULAR },
-  semi:    { fontFamily: FONT_SEMI },
-  bold:    { fontFamily: FONT_BOLD },
-  extra:   { fontFamily: FONT_EXTRA },
-};
+// On web we use the CSS family 'Poppins' (loaded via web/index.html) with a
+// fontWeight, because the JS-side names like 'Poppins_400Regular' can fail to
+// resolve on production web builds and fall back to serif.
+export const font = Platform.OS === 'web'
+  ? {
+      regular: { fontFamily: WEB_STACK, fontWeight: '400' },
+      semi:    { fontFamily: WEB_STACK, fontWeight: '600' },
+      bold:    { fontFamily: WEB_STACK, fontWeight: '700' },
+      extra:   { fontFamily: WEB_STACK, fontWeight: '800' },
+    }
+  : {
+      regular: { fontFamily: FONT_REGULAR },
+      semi:    { fontFamily: FONT_SEMI },
+      bold:    { fontFamily: FONT_BOLD },
+      extra:   { fontFamily: FONT_EXTRA },
+    };

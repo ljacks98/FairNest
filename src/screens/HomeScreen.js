@@ -377,7 +377,7 @@ const STEPS = [
     num: '02',
     icon: '📖',
     title: 'Know Your Rights',
-    desc: 'Get clear, plain language guidance on what legal protections apply to your case.',
+    desc: 'Get clear guidance on what legal protections apply to your case.',
     route: 'HousingRights',
   },
   {
@@ -429,7 +429,7 @@ const FEATURE_CARDS = [
   {
     icon: '📅',
     title: 'Schedule a Call',
-    desc: 'Book a free consultation with an advocate or attorney',
+    desc: 'Book a free consultation with a FairNest member or legal attorney',
     route: 'ScheduleCall',
     auth: true,
   },

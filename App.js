@@ -90,6 +90,27 @@ function MainNavigator() {
   );
 }
 
+const linking = {
+  prefixes: [],
+  config: {
+    screens: {
+      Home: '',
+      Resources: 'resources',
+      HousingRights: 'housing-rights',
+      FairHousingSupport: 'fair-housing-support',
+      About: 'about',
+      Login: 'login',
+      SignUp: 'signup',
+      ChatInterface: 'chat',
+      Report: 'report',
+      Profile: 'profile',
+      AdminDashboard: 'admin',
+      DiscriminationChecker: 'discrimination-checker',
+      ScheduleCall: 'schedule-call',
+    },
+  },
+};
+
 export default function App() {
   const [fontsLoaded, fontError] = useFonts({
     Poppins_400Regular,
@@ -104,7 +125,7 @@ export default function App() {
     <AuthProvider>
       <View style={styles.container}>
         <StatusBar barStyle="dark-content" />
-        <NavigationContainer>
+        <NavigationContainer linking={linking}>
           <MainNavigator />
         </NavigationContainer>
       </View>
